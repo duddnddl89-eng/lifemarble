@@ -201,6 +201,22 @@ img{max-width:100%}
 .adm-table .r{text-align:right}
 .acts{display:flex;gap:4px;flex-wrap:wrap}
 .danger{border-color:var(--no)!important;color:var(--no)!important}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;position:sticky;top:0;z-index:5;background:var(--bg);padding:2px 0 6px}
+.tabs button{font:inherit;font-size:13px;padding:6px 11px;border-radius:999px;border:1px solid var(--road);background:var(--paper);color:var(--ink);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tabs button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.side .panel[data-tab]{display:none}
+.side .panel.on{display:block}
+.help-card p,.help-card li{font-size:14px;line-height:1.65;max-width:70ch}
+.help-card ol,.help-card ul{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
+.help-card .adm-table table{min-width:0}
+.tour-card{text-align:left}
+.tour-step{font-size:12px;color:var(--ink-2);letter-spacing:.5px;margin-bottom:6px}
+.tour-card p{font-size:14.5px;line-height:1.65;color:var(--ink)}
+.tour-btns{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+.tour-btns .btn{width:auto}
+.cell{cursor:pointer}
+.cell:focus-visible{outline:3px solid var(--gold);outline-offset:-3px}
 </style>
 </head>
 <body>
@@ -208,7 +224,7 @@ img{max-width:100%}
 <header>
   <h1>보실이네 <span>인생마블</span></h1>
   <div class="hdr-right"><span class="mode" id="mode">불러오는 중…</span><span id="who"></span>
-    <button class="mini" id="adminBtn" hidden>운영자</button><button class="mini" id="logoutBtn" hidden>로그아웃</button><button class="mini" id="loginBtn" hidden>로그인</button></div>
+    <button class="mini" id="helpBtn">도움말</button><button class="mini" id="adminBtn" hidden>운영자</button><button class="mini" id="logoutBtn" hidden>로그아웃</button><button class="mini" id="loginBtn" hidden>로그인</button></div>
 </header>
 <div class="notice" id="notice" role="status" hidden></div>
 <div class="wrap">
@@ -237,7 +253,8 @@ img{max-width:100%}
     </div>
   </div>
   <div class="side">
-    <section class="panel">
+    <nav class="tabs" id="tabs" aria-label="정보 탭"></nav>
+    <section class="panel" data-tab="life">
       <h2>내 인생 <small id="lives"></small></h2>
       <div class="stats" id="stats"></div>
       <div class="trait" id="trait"></div>
@@ -246,7 +263,7 @@ img{max-width:100%}
       <div class="net"><span class="note">순자산 (현금+예금+땅+주식+소지품−대출)</span><span class="v num" id="net"></span></div>
       <div class="nick"><input id="nickIn" maxlength="12" placeholder="랭킹에 쓸 닉네임"><button class="mini" id="nickBtn">저장</button></div>
     </section>
-    <section class="panel">
+    <section class="panel" data-tab="bank">
       <h2>동네은행 <small id="bankNote"></small></h2>
       <div class="kv" id="bankKv"></div>
       <div class="amt">
@@ -259,36 +276,94 @@ img{max-width:100%}
       </div>
       <div class="note" id="bankMsg" style="margin-top:6px"></div>
     </section>
-    <section class="panel">
+    <section class="panel" data-tab="items">
       <h2>소지품·쇼핑 <small id="itemNote"></small></h2>
       <div class="items" id="inv"></div>
       <div class="subh">중고마켓 · 24시간 경매</div>
       <div class="items" id="market"></div>
       <details id="shopBox"><summary>동네 쇼핑몰 (새 상품)</summary><div class="items" id="shop"></div></details>
     </section>
-    <section class="panel">
+    <section class="panel" data-tab="vote">
       <h2>동네 선거관리위원회 <small id="weekNote"></small></h2>
       <div id="election"></div>
     </section>
-    <section class="panel">
+    <section class="panel" data-tab="jobs">
       <h2>직업 도감 <small>시험장에서 응시</small></h2>
       <div class="jobs" id="jobs"></div>
     </section>
-    <section class="panel">
+    <section class="panel" data-tab="stock">
       <h2>동네 증권시장 <small>10분마다 시세 변동</small></h2>
       <div id="stocks"></div>
     </section>
-    <section class="panel">
+    <section class="panel" data-tab="rank">
       <h2>동네 부자 랭킹 <small id="rankNote"></small></h2>
       <ol class="rank" id="rank"></ol>
     </section>
-    <section class="panel">
+    <section class="panel" data-tab="log">
       <h2>인생 일지</h2>
       <ul class="log" id="log"></ul>
     </section>
   </div>
 </div>
 
+<div class="admin" id="help" hidden>
+  <div class="adm-card help-card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="adm-head"><h2 id="helpTitle">게임 설명서</h2><span class="note"></span><button class="btn" id="helpTour" type="button">처음 안내 다시 보기</button><button class="btn primary" id="helpClose" type="button">닫기</button></div>
+    <div class="help-body">
+      <section class="adm-sec"><h3>한 줄 요약</h3>
+        <p>주사위를 굴려 동네 한 바퀴씩 돌며 <b>직업을 얻고, 땅을 사고, 결혼하고, 투자해서</b> 60살 은퇴할 때 <b>순자산 1등</b>이 되는 게임이에요. 부루마블(땅 사고 통행료 받기)과 인생게임(직업·결혼·자녀)을 섞었어요.</p></section>
+      <section class="adm-sec"><h3>기본 흐름</h3>
+        <ol>
+          <li><b>주사위 굴리기</b>: 판 가운데 버튼. 두 주사위 합만큼 앞으로 가고, 멈춘 칸의 일이 생겨요.</li>
+          <li><b>월급날</b>: 출발 칸(월급날)을 지날 때마다 월급이 들어오고 생활비·양육비가 나가요.</li>
+          <li><b>나이</b>: 월급날을 10번 지나면 1살. 20살에 시작해 60살에 은퇴하고, 조기 은퇴도 돼요.</li>
+          <li><b>주사위 충전</b>: 몇 분마다 1개씩 차요. 모자라면 게임머니로 살 수 있어요(하루 횟수 제한).</li>
+        </ol></section>
+      <section class="adm-sec"><h3>칸 종류 (판의 칸을 누르면 설명이 나와요)</h3>
+        <div class="adm-table"><table><thead><tr><th>칸</th><th>하는 일</th></tr></thead><tbody>
+          <tr><td>초록 줄 · 땅</td><td>빈 땅이면 살 수 있고, 내 땅이면 건물(주택→빌라→빌딩)을 올려요. 남의 땅이면 통행료를 내고 인수할 수 있어요.</td></tr>
+          <tr><td>보라 줄 · 학교·자격증학원·인턴십·시험장</td><td>학력·자격증·경험을 쌓고 시험장에서 직업 시험을 봐요.</td></tr>
+          <tr><td>파란 줄 · 직장·야근</td><td>알바를 구하거나 승진 심사를 봐요. 야근은 수당을 주지만 주사위를 하나 더 써요.</td></tr>
+          <tr><td>분홍 줄 · 예식장·산부인과</td><td>결혼하고, 아이를 가져요.</td></tr>
+          <tr><td>노란 줄 · 월급날·은행·증권사·황금열쇠</td><td>돈 관련 칸. 황금열쇠는 웃기거나 슬픈 무작위 사건이에요.</td></tr>
+          <tr><td>회색 줄 · 세무서</td><td>가진 현금의 10%를 세금으로 내요. 예금은 안 걷어가요.</td></tr>
+        </tbody></table></div></section>
+      <section class="adm-sec"><h3>직업 얻는 법</h3>
+        <p>처음엔 백수예요. <b>직장 칸</b>에 가면 알바를 구할 수 있어요. 더 좋은 직업은 조건을 채우고 <b>시험장</b>에서 붙어야 해요. 예: 회사원은 대졸, 프로그래머는 정보처리기사 + 경험 1. 조건과 합격률은 <b>직업</b> 탭에서 볼 수 있어요. 떨어질수록 다음 합격률이 올라가요.</p></section>
+      <section class="adm-sec"><h3>땅과 통행료</h3>
+        <ul>
+          <li>한 사람당 땅은 <b>3곳</b>까지(공인중개사 4곳). 땅이 없으면 월급날마다 월세가 나가요.</li>
+          <li>이웃이 내 땅에 멈추면 통행료가 <b>자동으로 내 현금에 들어와요</b>(접속 안 해 있어도).</li>
+          <li>남의 땅에 멈추면 통행료를 내고, 돈이 있으면 <b>인수</b>할 수 있어요. 인수될 때마다 그 땅 시세가 15% 올라요. 빌딩은 인수가가 2배예요.</li>
+          <li>땅이 많을수록 월급날 <b>보유세</b>(땅 가치의 2%)가 나가요.</li>
+        </ul></section>
+      <section class="adm-sec"><h3>가족</h3>
+        <p>직업이 생기면 예식장에서 결혼할 수 있어요. <b>공동 관리</b>(배우자 월급이 들어옴)와 <b>각자 관리</b>(생활비·양육비 반반) 중에 골라요. 산부인과에서 임신하면 8바퀴 뒤 아이가 태어나요. 아이는 스무 살까지 양육비가 들고, 그 뒤엔 가끔 용돈을 보내줘요.</p></section>
+      <section class="adm-sec"><h3>돈 불리기</h3>
+        <ul>
+          <li><b>은행</b> 탭: 예금(이자), 대출(한도 안에서), 상환.</li>
+          <li><b>주식</b> 탭: 10분마다 시세가 바뀌어요. 모두가 같은 시세를 봐요.</li>
+          <li><b>소지품</b> 탭: 사치품은 효과가 있지만 되팔면 헐값이에요. 중고마켓 경매로 이웃에게 팔 수 있어요.</li>
+        </ul></section>
+      <section class="adm-sec"><h3>선거</h3>
+        <p>매주 월요일 0시에 개표해요. 25살·순자산 2,000만 이상이면 국회의원, 35살·순자산 5,000만 이상이면 대통령에 출마할 수 있어요. 당선되면 다음 한 주 동안 정책을 골라 <b>모든 주민</b>에게 적용해요. 득표율 15% 이상이면 기탁금을 돌려받아요.</p></section>
+      <section class="adm-sec"><h3>꿀팁</h3>
+        <ul>
+          <li>초반엔 학교·자격증으로 스펙을 쌓아 빨리 정식 직업을 잡는 게 좋아요.</li>
+          <li>싼 땅이라도 일찍 하나 사두면 월세가 사라지고 통행료가 들어와요.</li>
+          <li>돈이 모자라면 예금 → 자동 대출 → 주식 → 소지품 → 땅 급매 순으로 정리돼요. 그래도 모자라면 파산이에요.</li>
+        </ul></section>
+    </div>
+  </div>
+</div>
+<div class="auth" id="tour" hidden>
+  <div class="auth-card tour-card" role="dialog" aria-modal="true" aria-labelledby="tourTitle">
+    <div class="tour-step" id="tourStep"></div>
+    <h2 id="tourTitle"></h2>
+    <p id="tourText"></p>
+    <div class="tour-btns"><button class="linkbtn" id="tourSkip" type="button">건너뛰기</button><button class="btn primary" id="tourNext" type="button">다음</button></div>
+  </div>
+</div>
 <div class="admin" id="admin" hidden>
   <div class="adm-card" role="dialog" aria-modal="true" aria-labelledby="admTitle">
     <div class="adm-head"><h2 id="admTitle">운영자 화면</h2><span class="note" id="admMsg" role="status"></span><button class="btn" id="admClose" type="button">닫기</button></div>
@@ -392,7 +467,7 @@ const TOLL=[.15,.4,.8,1.4];
 const BUILD_R=.6, TAKEOVER_R=1.3, TAKEOVER_BLD=2, INFLATE=1.15, HOLD_TAX=.02, IDLE_DAYS=7, MAX_LANDS=3;
 const EDU=['고졸','전문대졸','대졸','대학원졸'];
 const EDU_COST=[120,200,300];
-let MAX_ROLLS=50, ROLL_MS=600000;
+let MAX_ROLLS=80, ROLL_MS=360000;
 const RETIRE=60, LAPS_PER_YEAR=10, PENSION_AGE=50;
 
 /* ================= 스펙·직업 ================= */
@@ -710,7 +785,7 @@ function renderBoard(){
     const tk=el('div','tokens');
     for(let k=0;k<Math.min(3,otherAt[id]||0);k++) tk.append(el('span','otok'));
     if(me.posId===id) tk.append(el('span','tok'));
-    e.append(tk);board.append(e);
+    e.append(tk);e.tabIndex=0;e.setAttribute('role','button');e.onclick=()=>{if(!busy)setMsg(cellInfo(id))};e.onkeydown=ev=>{if(ev.key==='Enter'&&!busy)setMsg(cellInfo(id))};board.append(e);
   });
   const cnt=1+Object.keys(others).length;
   $('boardNote').textContent=`판 ${SIDE+1}×${SIDE+1} · 주민 ${cnt}명${LEVEL<EXP.length?` · ${(LEVEL+1)*10+1}명이 되면 4칸 확장`:' · 최대 크기'}`;
@@ -1066,6 +1141,7 @@ function choose(text,opts){
 function idleActions(){
   const a=$('actions');a.innerHTML='';
   const b=el('button','btn primary','주사위 굴리기');b.id='rollBtn';b.disabled=busy||me.rolls<1;b.onclick=roll;a.append(b);
+  if(me.rolls<MAX_ROLLS&&diceLeft()>0){const pr=dicePrice();const db=el('button','btn',`주사위 +${DICE_PACK} (${won(pr)})`);db.title=`게임머니로 주사위를 사요. 오늘 ${diceLeft()}번 남음`;db.disabled=busy||me.cash<pr;db.onclick=buyDice;a.append(db)}
   const er=el('button','btn','조기 은퇴');er.disabled=busy;er.onclick=earlyRetire;a.append(er);
 }
 
@@ -1135,30 +1211,72 @@ function giveBirth(){
 }
 
 /* ================= 황금열쇠 ================= */
-const KEYS=[
- ()=>`복권 4등 당첨! +${won(lucky(200,'황금열쇠: 동네 복권 당첨'))}`,
- ()=>{spend(60,'황금열쇠: 과속 딱지');return '과속 딱지… -60만'},
- ()=>{spend(50,'황금열쇠: 친구 결혼식 축의금');return '친구 결혼식 축의금 -50만'},
- ()=>me.job==='none'?`중고거래 대박 +${won(lucky(100,'황금열쇠: 중고거래'))}`:`연말 보너스 +${won(lucky(Math.max(80,avgSalary()),'황금열쇠: 연말 보너스'))}`,
- ()=>{
-   if(me.job==='civil') return '구조조정 소문이 돌았지만 공무원은 끄떡없어요';
-   if(me.job==='none') return '구조조정 뉴스를 봤어요. 아직 다닐 회사가 없네요';
-   if(me.rank>0&&R()<.5){me.rank--;addLog(`황금열쇠: 구조조정으로 ${title()}(으)로 강등`);return `구조조정… ${title()}(으)로 강등됐어요`}
-   if(me.rank===0&&me.job!=='alba'&&R()<.25){const was=JOBS[me.job].n;me.job='none';addLog(`황금열쇠: ${was} 일자리를 잃었어요`);return `회사가 어려워져 ${was} 일을 잃었어요… 다시 시험을 보세요`}
-   return '구조조정 소문이 돌았지만 무사했어요';
- },
- ()=>{const ad=adults().filter(c=>c.job!==0).length;if(ad) return `다 큰 자식들이 효도 여행을 보내줬어요 +${won(lucky(ad*120,'황금열쇠: 자녀 효도'))}`;
-   if(minors().length){const f=Math.round(80*(me.finance==='split'?.5:1));spend(f,'황금열쇠: 아이 학원비 추가');return `아이 학원비가 올랐어요 -${won(f)}`}
-   spend(40,'황금열쇠: 부모님 용돈');return '부모님 용돈 드리기 -40만'},
- ()=>{if(me.married&&me.finance!=='split'){const f=Math.round(60+R()*140);spend(f,'황금열쇠: 배우자 충동구매');return `공동 통장에서 배우자가 충동구매를 했어요 -${won(f)}`}
-   if(me.married){gain(50,'황금열쇠: 배우자가 밥 샀어요');return '각자 관리라 배우자가 데이트 비용을 냈어요 +50만'}
-   return `소개팅 커피값 -${won((spend(20),20))}`},
- ()=>`동네 상품권 당첨 +${won(lucky(100,'황금열쇠: 상품권'))}`,
- ()=>{const i=Math.floor(R()*STOCKS.length);const q=me.job==='tuber'?4:2;me.shares[i]+=q;addLog(`황금열쇠: ${STOCKS[i].n} ${q}주 받음`);return `지인이 ${STOCKS[i].n} ${q}주를 줬어요`},
- ()=>{if(me.job==='doctor')return '감기 기운이 있었지만 직접 처방했어요 (병원비 면제)';const d=Math.round(me.cash*.05);if(d>0){spend(d,'황금열쇠: 병원비');return `감기로 병원비 -${won(d)}`}return '감기에 걸렸지만 금방 나았어요'},
- ()=>{if(me.exp<10)me.exp++;addLog('황금열쇠: 봉사활동으로 경험 +1');return '주말 봉사활동! 경험 +1'},
- ()=>{if(me.items.length){const x=me.items[Math.floor(R()*me.items.length)];const f=Math.round(ITEMS[x.k].c*.05);spend(f,`황금열쇠: ${ITEMS[x.k].n} 수리비`);return `${ITEMS[x.k].n}이 고장났어요. 수리비 -${won(f)}`}return `길에서 지갑을 주워 돌려줬어요. 사례금 +${won(lucky(30,'황금열쇠: 사례금'))}`},
+const pick=a=>a[Math.floor(R()*a.length)];
+const GOOD=[
+ ['편의점에서 산 복권이 4등! 사장님이 "우리 가게 명당이네" 하면서 내 사진을 붙였어요','복권 4등',200],
+ ['중고마켓에 올린 낡은 의자가 "빈티지 감성"이라며 웃돈 받고 팔렸어요','중고 의자 판매',100],
+ ['명절에 큰아버지가 "취업은 했냐" 대신 봉투를 주셨어요. 올해 최고의 명절','명절 용돈',120],
+ ['회식 경품 추첨에서 에어프라이어 당첨! 3분 만에 중고로 팔았어요','회식 경품',80],
+ ['카드 포인트가 3년 동안 몰래 쌓여 있었어요. 포인트 대방출','카드 포인트',60],
+ ['동네 노래자랑에서 트로트 한 곡 뽑았더니 심사위원 할머니들이 눈물을','노래자랑 장려상',90],
+ ['길에서 주운 지갑을 돌려줬더니 주인이 알고 보니 건물주였어요','지갑 사례금',150],
+ ['겨울 패딩 주머니에서 작년의 내가 숨겨둔 비상금 발견. 과거의 나 칭찬해','비상금 발견',30],
+ ['배달 음식이 잘못 와서 사장님이 사과의 의미로 환불에 쿠폰까지','배달 환불',40],
+ ['당근에서 산 중고 그림이 알고 보니 유명 작가 습작이었어요','그림 되팔기',180],
 ];
+const BAD=[
+ ['손톱이 문틈에 끼어 부러졌어요. 정형외과 의사가 "네일샵 가세요" 하는데 진료비는 받더라고요','손톱 진료비',40,1],
+ ['자전거 타다 할아버지 리어카와 부딪혔어요. 할아버지는 멀쩡, 내 자전거만 박살났어요','리어카 접촉사고',70,0],
+ ['주차하다 기둥을 살짝 긁었어요. 기둥은 멀쩡한데 내 범퍼만 울고 있어요','범퍼 수리',90,0],
+ ['과속 카메라에 찍혔어요. 사진이 너무 잘 나와서 더 억울해요','과속 딱지',60,0],
+ ['새벽 2시, 배달 앱 세 개를 동시에 열었다가 전부 결제해버렸어요','야식 폭주',45,0],
+ ['친구 결혼식 축의금. 뷔페에 갈비가 있어서 그나마 위로가 됐어요','축의금',50,0],
+ ['고양이가 노트북 위에서 낮잠을 잤어요. 키보드가 "ㅁㅁㅁㅁㅁ"만 쳐져요','키보드 수리',80,0],
+ ['헬스장 1년권을 결제했어요. 출석은 세 번. 헬스장 사장님께 기부한 셈이에요','헬스장 1년권',60,0],
+ ['휴대폰 액정이 중력을 이기지 못했어요. 거미줄 무늬가 생겼어요','액정 수리',70,0],
+ ['계단에서 발목을 접질렸어요. 넘어지면서 "괜찮아요!"를 세 번 외쳤어요','발목 치료비',50,1],
+ ['비둘기를 피하다 넘어져 무릎이 까졌어요. 비둘기는 끝까지 안 비켰어요','무릎 치료비',30,1],
+ ['노래방에서 고음을 지르다 목이 나갔어요. 이비인후과 직행','목 치료비',35,1],
+ ['우산을 버스에 두고 내렸어요. 올해만 일곱 번째 우산이에요','우산 재구매',15,0],
+ ['택배 상자를 뜯다 커터칼에 손을 베였어요. 택배 안엔 반창고가 들어 있었어요','손가락 치료비',25,1],
+];
+function goodKey([t,l,v]){return ()=>`${t} +${won(lucky(v,'황금열쇠: '+l))}`}
+function badKey([t,l,v,med]){return ()=>{
+  if(med&&me.job==='doctor') return `${t}… 하지만 의사라서 셀프 진료로 끝냈어요 (병원비 면제)`;
+  spend(v,'황금열쇠: '+l);return `${t} -${won(v)}`}}
+const KEYS=[
+ ...GOOD.map(goodKey),
+ ...BAD.map(badKey),
+ ()=>me.job==='none'
+   ?`동네 편의점 사장님이 "청년, 밥은 먹고 다니나" 하며 폐기 도시락을 잔뜩 주셨어요. 식비 절약 +${won(lucky(50,'황금열쇠: 식비 절약'))}`
+   :`사장님 기분이 좋아서 깜짝 보너스! (사장님 로또 된 듯) +${won(lucky(Math.max(80,avgSalary()),'황금열쇠: 깜짝 보너스'))}`,
+ ()=>{
+   if(me.job==='civil') return '회사 단톡방에 "구조조정" 소문이 돌았지만… 공무원은 그런 거 몰라요. 오늘도 칼퇴';
+   if(me.job==='none') return '뉴스에서 구조조정 소식이 나와요. 다닐 회사가 없으니 잃을 것도 없어요. 오히려 좋아';
+   if(me.rank>0&&R()<.5){me.rank--;addLog(`황금열쇠: 구조조정으로 ${title()}(으)로 강등`);return `팀장님이 "잠깐 얘기 좀 할까?"라고 했어요. 그 말은 언제나 불길하죠… ${title()}(으)로 강등됐어요`}
+   if(me.rank===0&&me.job!=='alba'&&R()<.25){const was=JOBS[me.job].n;me.job='none';addLog(`황금열쇠: ${was} 일자리를 잃었어요`);return `사무실에 출근했더니 내 자리에 화분이 놓여 있어요… ${was} 일을 잃었어요. 다시 시험을 준비해요`}
+   return '구조조정 명단이 돌았는데 내 이름이 없어요! 오늘은 커피를 두 잔 마셔도 돼요';
+ },
+ ()=>{const ad=adults().filter(c=>c.job!==0).length;if(ad) return `다 큰 자식들이 "엄빠 그동안 고생했어" 하며 효도 여행을 보내줬어요 +${won(lucky(ad*120,'황금열쇠: 자녀 효도'))}`;
+   if(minors().length){const f=Math.round(80*(me.finance==='split'?.5:1));spend(f,'황금열쇠: 아이 학원비');return `아이가 "친구들 다 다닌대"라며 학원을 하나 더 등록했어요 -${won(f)}`}
+   spend(40,'황금열쇠: 부모님 용돈');return '엄마한테 전화했더니 "요즘 바쁘냐"고만 하셔서 마음이 찔려 용돈을 보냈어요 -40만'},
+ ()=>{if(me.married&&me.finance!=='split'){const f=Math.round(60+R()*140);spend(f,'황금열쇠: 배우자 충동구매');return `공동 통장 알림이 울렸어요. 배우자가 "이건 투자야"라며 안마의자를 샀어요 -${won(f)}`}
+   if(me.married){gain(50,'황금열쇠: 배우자가 데이트 비용 계산');return '각자 관리 덕분에 오늘 데이트는 배우자가 쐈어요 +50만'}
+   spend(20,'황금열쇠: 소개팅 커피값');return '소개팅에 나갔는데 상대가 커피만 마시고 "급한 일이 생겨서"… 커피값 -20만'},
+ ()=>{const i=Math.floor(R()*STOCKS.length);const q=me.job==='tuber'?4:2;me.shares[i]+=q;addLog(`황금열쇠: ${STOCKS[i].n} ${q}주 받음`);return `친구가 "이건 진짜야, 나만 믿어"라며 ${STOCKS[i].n} ${q}주를 줬어요. 믿어도 될까요?`},
+ ()=>{if(me.exp<10)me.exp++;addLog('황금열쇠: 봉사활동으로 경험 +1');return '동네 할머니 장바구니를 들어드리다 반상회에서 "착한 청년상"을 받았어요. 경험 +1'},
+ ()=>{if(me.items.length){const x=me.items[Math.floor(R()*me.items.length)];const f=Math.round(ITEMS[x.k].c*.05);spend(f,`황금열쇠: ${ITEMS[x.k].n} 수리비`);return `애지중지하던 ${ITEMS[x.k].n}에 새똥 테러가… 세척·수리비 -${won(f)}`}
+   return `길에서 주운 만원짜리를 경찰서에 맡겼더니 주인이 고맙다며 사례를 했어요 +${won(lucky(30,'황금열쇠: 사례금'))}`},
+ ()=>{const n=3;me.rolls+=n;addLog(`황금열쇠: 에너지드링크로 주사위 +${n}`);return `피곤해서 에너지드링크를 원샷했더니 심장이 뛰고 다리가 근질근질해요. 주사위 +${n}`},
+];
+const TOLL_TXT=[
+ (w,n)=>`${w}네 ${n}에 발을 들였어요. 통행료를 내며 부러움의 눈물을 삼켰어요`,
+ (w,n)=>`${w}의 ${n}… 주인이 웃으며 카드 단말기를 내밀었어요`,
+ (w,n)=>`${w}의 ${n}을 지나가는데 알고 보니 입장료가 있었네요`,
+ (w,n)=>`${n}에서 ${w}이(가) 손을 흔들어요. 반가운 게 아니라 통행료 달라는 거예요`,
+];
+const TAX_TXT=['세무서 직원이 너무 반갑게 맞아줘서 오히려 무서웠어요','연말정산의 반대말을 몸소 체험했어요','인생에서 피할 수 없는 세 가지: 죽음, 세금, 월요일','세무서 앞 화분이 유난히 싱싱하네요. 내 세금으로 키웠나 봐요'];
+const NIGHT_TXT=['팀장님이 퇴근 5분 전에 "잠깐 얘기 좀…"','오늘 저녁은 편의점 삼각김밥 두 개. 야근 확정','사무실 불 끄는 마지막 사람이 됐어요. 경비 아저씨와 친해졌어요','"내일 아침까지만 부탁해~" 한마디에 밤이 사라졌어요'];
 
 /* ================= 칸 효과 ================= */
 async function resolve(id){
@@ -1228,11 +1346,11 @@ async function resolve(id){
     const g=Math.max(20,Math.round(avgSalary()*.3*(dr?2:1)));gain(g,'야근 수당');
     const free=P('no_night')||has('car');
     const used=free?0:Math.min(me.rolls,dr?2:1);me.rolls-=used;
-    setMsg(`야근했어요. 수당 +${won(g)}${used?`, 대신 주사위 ${used}개를 썼어요.`:` (${has('car')?'차로 퇴근해서':'야근 제한법 덕분에'} 주사위는 그대로)`}`);return;
+    setMsg(`${pick(NIGHT_TXT)}. 수당 +${won(g)}${used?`, 대신 주사위 ${used}개를 썼어요.`:` (${has('car')?'차로 퇴근해서':'야근 제한법 덕분에'} 주사위는 그대로)`}`);return;
   }
   if(c.k==='tax'){
     const rate=taxRate()*(me.job==='lawyer'?.5:1);
-    const t=Math.max(0,Math.round(me.cash*rate));spend(t,`세무서 세금 ${pct(rate)}`);setMsg(`세금을 냈어요 -${won(t)} (세율 ${pct(rate)})`);return;
+    const t=Math.max(0,Math.round(me.cash*rate));spend(t,`세무서 세금 ${pct(rate)}`);setMsg(`${pick(TAX_TXT)}. 세금 -${won(t)} (세율 ${pct(rate)})`);return;
   }
 }
 async function workCell(){
@@ -1302,7 +1420,7 @@ async function landCell(id){
   else{
     spend(t,`${who}의 ${c.n} 통행료`);payLedger(o.id,t);
     const why=[c.food&&o.job==='chef'?'주인이 셰프라 1.5배':'',me.job==='lawyer'?'변호사 10% 할인':'',P('realty_cool')?'부동산 규제 -20%':'',P('realty_boom')?'부동산 부양 +20%':''].filter(Boolean).join(', ');
-    setMsg(`${who}의 ${c.n}(${BLD[o.l]}) 통행료 -${won(t)}${why?` (${why})`:''}`);
+    setMsg(`${pick(TOLL_TXT)(who,c.n)}. 통행료 -${won(t)}${why?` (${why})`:''}`);
   }
   const tp=takeoverPrice(id);
   if(full||me.cash<tp) return;
@@ -1425,7 +1543,7 @@ function onMarket(snap){markets=docsOf(snap);gotMarket=true;settleMarket();if(!b
 function onBids(snap){bids=docsOf(snap);gotBids=true;settleMarket();if(!busy)renderItems()}
 
 async function boot(){
-  buildBoard(0);
+  buildBoard(0);initTabs();
   let stored=null;
   try{const s=localStorage.getItem('lifemarble.me');if(s)stored=JSON.parse(s);logs=JSON.parse(localStorage.getItem('lifemarble.log')||'[]')}catch(e){}
   me=normalize({...freshLife(),...(stored||{})});
@@ -1488,7 +1606,7 @@ function authMsg(t,ok){const m=$('authMsg');m.textContent=t;m.className='auth-ms
 function wireAuth(){
   $('goSignup').onclick=()=>showAuth('signup');
   $('goLogin').onclick=()=>showAuth('login');
-  $('soloBtn').onclick=()=>{hideAuth();$('mode').textContent='혼자 하기 · 로그인하면 이웃과 함께해요';$('loginBtn').hidden=false};
+  $('soloBtn').onclick=()=>{hideAuth();if(!me.tutDone)showTour();$('mode').textContent='혼자 하기 · 로그인하면 이웃과 함께해요';$('loginBtn').hidden=false};
   $('loginBtn').onclick=()=>showAuth('login');
   $('loginForm').onsubmit=async e=>{e.preventDefault();
     try{await AUTH.signInWithEmailAndPassword($('liEmail').value.trim(),$('liPw').value)}catch(err){authMsg(authErr(err))}};
@@ -1508,14 +1626,86 @@ function wireAuth(){
   $('nickForm').onsubmit=async e=>{e.preventDefault();
     const r=await claimNick($('regNick').value.trim());
     if(r!=='ok'){authMsg(r);return}
-    hideAuth();addLog(`주민 등록 완료! "${me.nick}"님, 보실이네에 오신 걸 환영해요`);$('nickIn').value=me.nick;renderAll();idleActions();};
+    hideAuth();addLog(`주민 등록 완료! "${me.nick}"님, 보실이네에 오신 걸 환영해요`);$('nickIn').value=me.nick;renderAll();idleActions();if(!me.tutDone)showTour();};
   $('adminBtn').onclick=openAdmin;$('admClose').onclick=()=>{$('admin').hidden=true};
   $('logoutBtn').onclick=async()=>{try{await AUTH.signOut()}catch(e){}location.reload()};
 }
+/* ================= 탭·도움말·안내·칸 설명·주사위 구매 ================= */
+const TABS=[['life','내 인생'],['bank','은행'],['items','소지품'],['vote','선거'],['jobs','직업'],['stock','주식'],['rank','랭킹'],['log','일지']];
+function showTab(t){
+  if(!TABS.some(x=>x[0]===t)) t='life';
+  document.querySelectorAll('.side .panel[data-tab]').forEach(p=>p.classList.toggle('on',p.dataset.tab===t));
+  document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.t===t)));
+  try{localStorage.setItem('lm.tab',t)}catch(e){}
+}
+function initTabs(){
+  const nav=$('tabs');nav.innerHTML='';nav.setAttribute('role','tablist');
+  TABS.forEach(([k,n])=>{const b=el('button','',n);b.type='button';b.dataset.t=k;b.setAttribute('role','tab');b.onclick=()=>showTab(k);nav.append(b)});
+  let t='life';try{t=localStorage.getItem('lm.tab')||'life'}catch(e){}
+  showTab(t);
+}
+const TOUR=[
+  ['보실이네 인생마블에 오신 걸 환영해요','스무 살 고졸 백수로 시작해서, 주사위를 굴려 동네를 돌며 60살 은퇴할 때 순자산 1등을 노리는 게임이에요. 부루마블처럼 땅을 사고, 인생게임처럼 직업·결혼·자녀가 생겨요.'],
+  ['주사위를 굴려요','판 가운데 "주사위 굴리기"를 누르면 앞으로 가고, 멈춘 칸의 일이 생겨요. 출발 칸(월급날)을 지날 때마다 월급이 들어오고, 10바퀴마다 한 살씩 먹어요. 주사위는 몇 분마다 1개씩 다시 차요.'],
+  ['직업과 땅이 핵심이에요','처음엔 직장 칸에서 알바를 구하고, 학교·자격증학원·인턴십으로 스펙을 쌓아 시험장에서 좋은 직업에 붙으세요. 돈이 모이면 땅을 사서 건물을 올리면, 이웃이 밟을 때마다 통행료가 들어와요.'],
+  ['궁금하면 언제든','판의 칸을 누르면 그 칸 설명이 나와요. 오른쪽 탭에서 은행·소지품·선거·직업·주식·랭킹을 볼 수 있고, 위쪽 "도움말"에 전체 설명서가 있어요. 그럼 첫 주사위를 굴려볼까요?'],
+];
+let tourI=0;
+function showTour(){tourI=0;$('tour').hidden=false;renderTour()}
+function renderTour(){
+  const [t,x]=TOUR[tourI];$('tourStep').textContent=`${tourI+1} / ${TOUR.length}`;$('tourTitle').textContent=t;$('tourText').textContent=x;
+  $('tourNext').textContent=tourI===TOUR.length-1?'시작하기':'다음';$('tourNext').focus({preventScroll:true});
+}
+function endTour(){$('tour').hidden=true;if(!me.tutDone){me.tutDone=true;save()}}
+$('tourNext').onclick=()=>{if(tourI<TOUR.length-1){tourI++;renderTour()}else endTour()};
+$('tourSkip').onclick=endTour;
+$('helpBtn').onclick=()=>{$('help').hidden=false;$('helpClose').focus({preventScroll:true})};
+$('helpClose').onclick=()=>{$('help').hidden=true};
+$('helpTour').onclick=()=>{$('help').hidden=true;showTour()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('help').hidden)$('help').hidden=true;else if(!$('tour').hidden)endTour()}});
+const CELL_HELP={
+  pay:'월급날 — 지나가기만 해도 월급이 들어오고 생활비·양육비가 나가요. 10번 지나면 한 살. 딱 멈추면 반 달치 보너스!',
+  key:'황금열쇠 — 웃기거나 슬픈 무작위 사건이 생겨요. 복권 당첨부터 리어카 접촉사고까지.',
+  work:'직장 — 백수면 알바를 구하고, 직업이 있으면 승진 심사를 볼 수 있어요. 학력·경험이 높을수록 잘 붙어요.',
+  school:'학교 — 학력을 올려요(전문대→대학→대학원). 회사원·의사·변호사 시험 조건이에요.',
+  academy:'자격증학원 — 자격증을 따요. 프로그래머·셰프·공인중개사·펀드매니저·유튜버 시험 조건이에요.',
+  intern:'인턴십 — 경험 +1(알바생은 +2)과 활동비를 받아요. 의사·셰프·유튜버 등은 경험이 필요해요.',
+  exam:'시험장 — 조건을 채운 직업 시험을 봐요. 떨어져도 다음 합격률이 올라가요.',
+  bank:'은행 — 예금 보너스 5%를 받고, 현금을 예금하거나 대출을 갚을 수 있어요.',
+  wed:'예식장 — 직업이 있으면 결혼할 수 있어요. 결혼했다면 기념일이고, 돈 관리 방식을 바꿀 수 있어요.',
+  baby:'산부인과 — 결혼했다면 임신할 수 있어요. 8바퀴 뒤 월급날에 아기가 태어나요.',
+  stock:'증권사 — 계좌 개설 이벤트로 주식 1주를 공짜로 받아요.',
+  night:'야근 — 수당을 받지만 주사위 1개를 더 써요. 경차가 있으면 주사위를 아껴요.',
+  tax:'세무서 — 가진 현금의 10%를 세금으로 내요. 예금은 안 걷어가니 미리 예금해 두세요.',
+};
+function cellInfo(id){
+  const c=CELL[id];
+  if(c.k!=='land') return CELL_HELP[c.k]||c.n;
+  const o=ownerOf(id),r=reg[id]||{};
+  const base=`${c.n}${c.food?' (음식 거리)':''} — `;
+  if(!o) return base+`빈 땅이에요. 멈추면 ${won(buyPrice(id))}에 살 수 있고, 사면 이웃이 밟을 때마다 통행료가 들어와요.${r.deals?` 인수 ${r.deals}번으로 시세가 올랐어요.`:''}`;
+  if(isMine(o)) return base+`내 땅(${BLD[o.l]})이에요. 통행료 ${won(tollShown(id,o))}. 멈추면 건물을 올릴 수 있어요.`;
+  return base+`${nameOf(o.id)}의 ${BLD[o.l]}. 멈추면 통행료 ${won(tollFor(id,o))}를 내고, 돈이 있으면 ${won(takeoverPrice(id))}에 인수할 수 있어요.`;
+}
+// 주사위 구매
+const DICE_PACK=5, DICE_DAILY=4;
+const kstDay=()=>new Date(Date.now()+9*36e5).toISOString().slice(0,10);
+const dicePrice=()=>Math.max(40,Math.round(avgSalary()*.2/10)*10);
+function diceLeft(){const b=me.diceBuy||{};return b.d===kstDay()?DICE_DAILY-(b.n||0):DICE_DAILY}
+function buyDice(){
+  const pr=dicePrice();
+  if(busy||diceLeft()<=0||me.cash<pr) return;
+  me.cash-=pr;me.rolls+=DICE_PACK;
+  const b=me.diceBuy&&me.diceBuy.d===kstDay()?me.diceBuy:{d:kstDay(),n:0};b.n++;me.diceBuy=b;
+  addLog(`편의점에서 에너지드링크 한 박스를 샀어요. 주사위 +${DICE_PACK} (-${won(pr)})`);
+  setMsg(`주사위 ${DICE_PACK}개 충전! 오늘 ${diceLeft()}번 더 살 수 있어요.`);
+  save();renderStats();idleActions();
+}
+
 /* ================= 운영자 ================= */
 const ADMIN_EMAIL='duddnddl89@gmail.com';
 let CFG={notice:null,bans:{},season:{n:0},settings:{}}, isAdmin=false, PAY_MUL=1, EVENT_NAME='';
-const DEF_SET={rollMin:10,maxRolls:50,payMul:1,event:''};
+const DEF_SET={rollMin:6,maxRolls:80,payMul:1,event:''};
 function applySettings(s){
   const v={...DEF_SET,...(s||{})};
   MAX_ROLLS=Math.max(5,Math.min(500,Math.round(v.maxRolls)||50));
@@ -1699,7 +1889,7 @@ async function startOnline(){
   wireAuth();
   const cfg=window.FIREBASE_CONFIG;
   if(!window.firebase||!cfg||!cfg.apiKey||/여기/.test(cfg.apiKey)){
-    $('mode').textContent='혼자 하기 · 온라인 설정 전 (firebase-config.js)';return;
+    $('mode').textContent='혼자 하기 · 온라인 설정 전 (firebase-config.js)';if(!me.tutDone)showTour();return;
   }
   try{firebase.initializeApp(cfg);AUTH=firebase.auth();FS=firebase.firestore();AUTH.languageCode='ko'}catch(e){$('mode').textContent='Firebase 설정을 확인해 주세요';return}
   $('mode').textContent='로그인 확인 중…';
@@ -1715,7 +1905,7 @@ async function startOnline(){
       reg={};
     }catch(e){authMsg('저장소에 연결하지 못했어요. 보안 규칙 설정을 확인하세요.');db=null;return}
     $('nickIn').value=me.nick||'';$('mode').textContent='온라인 · 이웃들과 땅·선거·경매·랭킹 공유';
-    if(!me.nick){showAuth('nick');$('regNick').value=''} else hideAuth();
+    if(!me.nick){showAuth('nick');$('regNick').value=''} else {hideAuth();if(!me.tutDone)showTour()}
     if(!subscribed){
       subscribed=true;
       db.collection('players').onSnapshot(onPlayers,()=>{});
