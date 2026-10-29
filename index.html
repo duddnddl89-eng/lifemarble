@@ -178,6 +178,29 @@ img{max-width:100%}
 .linkbtn{font:inherit;font-size:12.5px;background:none;border:0;color:var(--ink-2);text-decoration:underline;cursor:pointer;padding:2px}
 .auth-msg{min-height:1.4em;font-size:12.5px;color:var(--no);margin-top:10px}
 .auth-msg.ok{color:var(--ok)}
+.notice{max-width:1180px;margin:0 auto 14px;padding:9px 14px;border-radius:6px;background:var(--paper);border-left:4px solid var(--gold);font-size:13.5px}
+.notice b{font-weight:600;color:var(--gold);margin-right:4px}
+.pol.event{border-color:var(--me);color:var(--me);font-weight:600}
+.admin{position:fixed;inset:0;z-index:40;background:color-mix(in srgb,var(--bg) 92%,transparent);overflow:auto;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(24px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.adm-card{max-width:980px;margin:0 auto;background:var(--paper);border-radius:10px;padding:18px 20px;border-top:6px solid var(--ink)}
+.adm-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:0;background:var(--paper);padding-bottom:8px;z-index:1}
+.adm-head h2{font-family:var(--display);font-weight:400;font-size:26px;margin:0;flex:0 0 auto}
+.adm-head .note{flex:1;min-width:0;color:var(--ok)}
+.adm-sec{border-top:1px solid var(--road);padding:14px 0}
+.adm-sec h3{font-family:var(--display);font-weight:400;font-size:19px;margin:0 0 10px}
+.adm-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px;font-size:13px}
+.adm-row input,.adm-sec textarea,.adm-grid input{font:inherit;padding:6px 9px;border:1px solid var(--road);border-radius:5px;background:var(--bg);color:var(--ink)}
+.adm-sec textarea{width:100%;resize:vertical}
+.adm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.adm-grid label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-2)}
+.adm-table{overflow-x:auto}
+.adm-table table{width:100%;border-collapse:collapse;font-size:13px;min-width:620px}
+.adm-table th{text-align:left;font-weight:600;font-size:12px;color:var(--ink-2);border-bottom:1px solid var(--road);padding:6px 8px}
+.adm-table td{border-bottom:1px dashed var(--road);padding:6px 8px;vertical-align:middle}
+.adm-table .r{text-align:right}
+.acts{display:flex;gap:4px;flex-wrap:wrap}
+.danger{border-color:var(--no)!important;color:var(--no)!important}
 </style>
 </head>
 <body>
@@ -185,8 +208,9 @@ img{max-width:100%}
 <header>
   <h1>보실이네 <span>인생마블</span></h1>
   <div class="hdr-right"><span class="mode" id="mode">불러오는 중…</span><span id="who"></span>
-    <button class="mini" id="logoutBtn" hidden>로그아웃</button><button class="mini" id="loginBtn" hidden>로그인</button></div>
+    <button class="mini" id="adminBtn" hidden>운영자</button><button class="mini" id="logoutBtn" hidden>로그아웃</button><button class="mini" id="loginBtn" hidden>로그인</button></div>
 </header>
+<div class="notice" id="notice" role="status" hidden></div>
 <div class="wrap">
   <div>
     <div class="boardwrap">
@@ -265,6 +289,12 @@ img{max-width:100%}
   </div>
 </div>
 
+<div class="admin" id="admin" hidden>
+  <div class="adm-card" role="dialog" aria-modal="true" aria-labelledby="admTitle">
+    <div class="adm-head"><h2 id="admTitle">운영자 화면</h2><span class="note" id="admMsg" role="status"></span><button class="btn" id="admClose" type="button">닫기</button></div>
+    <div id="admBody"></div>
+  </div>
+</div>
 <div class="auth" id="auth" hidden>
   <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
     <h2 id="authTitle">보실이네 <span>인생마블</span></h2>
@@ -362,7 +392,8 @@ const TOLL=[.15,.4,.8,1.4];
 const BUILD_R=.6, TAKEOVER_R=1.3, TAKEOVER_BLD=2, INFLATE=1.15, HOLD_TAX=.02, IDLE_DAYS=7, MAX_LANDS=3;
 const EDU=['고졸','전문대졸','대졸','대학원졸'];
 const EDU_COST=[120,200,300];
-const MAX_ROLLS=50, ROLL_MS=600000, RETIRE=60, LAPS_PER_YEAR=10, PENSION_AGE=50;
+let MAX_ROLLS=50, ROLL_MS=600000;
+const RETIRE=60, LAPS_PER_YEAR=10, PENSION_AGE=50;
 
 /* ================= 스펙·직업 ================= */
 const CERTS={
@@ -589,7 +620,7 @@ function payNow(){
   const [lo,hi]=salRange(me.job,me.rank);
   let p=lo===hi?lo:Math.round((lo+R()*(hi-lo))/10)*10;
   if(me.job==='alba'&&P('min_wage')) p+=60;
-  return p;
+  return Math.round(p*PAY_MUL);
 }
 function refillRolls(){
   if(me.rolls>=MAX_ROLLS){me.rollT=Date.now();return}
@@ -702,6 +733,7 @@ function renderStats(){
   $('lives').textContent=`${me.lives}번째 인생${me.best?' · 최고 '+won(me.best):''}`;
   const ll=$('lifeline');ll.innerHTML='';ll.append(el('b','',`${me.age}세 ${title()}`),` · 현금 ${won(me.cash)}`);
   const pl=$('policyLine');pl.innerHTML='';
+  if(EVENT_NAME){const s=el('span','pol event',EVENT_NAME);pl.append(s)}
   [...T.pol].forEach(id=>{const s=el('span','pol',ALL_POL[id].n);s.title=ALL_POL[id].d;pl.append(s)});
   const left=me.rolls>=MAX_ROLLS?'가득':`${Math.ceil((ROLL_MS-(Date.now()-me.rollT))/60000)}분 뒤 +1`;
   const fullMs=me.rolls>=MAX_ROLLS?0:(MAX_ROLLS-me.rolls-1)*ROLL_MS+(ROLL_MS-(Date.now()-me.rollT));
@@ -850,6 +882,7 @@ async function settleMarket(){
     }
     const list=clone((markets[myId]&&markets[myId].list)||{});let listChanged=false;
     for(const [lid,L] of Object.entries(list)){
+      if(L.closed==='cancelled'&&!L.returned&&L.item&&L.item.k){L.returned=true;me.items.push(L.item);listChanged=true;changed=true;addLog(`운영자가 ${ITEMS[L.item.k].n} 경매를 취소해서 물건을 돌려받았어요`);continue}
       if(L.closed||now<L.ends) continue;
       const key=`${myId}~${lid}`,tb=topBid(key,L.start);
       if(!tb){L.closed='unsold';me.items.push(L.item);listChanged=true;changed=true;addLog(`${ITEMS[L.item.k].n} 경매가 유찰돼서 돌려받았어요`)}
@@ -1476,8 +1509,191 @@ function wireAuth(){
     const r=await claimNick($('regNick').value.trim());
     if(r!=='ok'){authMsg(r);return}
     hideAuth();addLog(`주민 등록 완료! "${me.nick}"님, 보실이네에 오신 걸 환영해요`);$('nickIn').value=me.nick;renderAll();idleActions();};
+  $('adminBtn').onclick=openAdmin;$('admClose').onclick=()=>{$('admin').hidden=true};
   $('logoutBtn').onclick=async()=>{try{await AUTH.signOut()}catch(e){}location.reload()};
 }
+/* ================= 운영자 ================= */
+const ADMIN_EMAIL='duddnddl89@gmail.com';
+let CFG={notice:null,bans:{},season:{n:0},settings:{}}, isAdmin=false, PAY_MUL=1, EVENT_NAME='';
+const DEF_SET={rollMin:10,maxRolls:50,payMul:1,event:''};
+function applySettings(s){
+  const v={...DEF_SET,...(s||{})};
+  MAX_ROLLS=Math.max(5,Math.min(500,Math.round(v.maxRolls)||50));
+  ROLL_MS=Math.max(1,Math.min(120,Number(v.rollMin)||10))*60000;
+  PAY_MUL=Math.max(.1,Math.min(10,Number(v.payMul)||1));
+  EVENT_NAME=(v.event||'').slice(0,30);
+}
+function renderNotice(){
+  const n=CFG.notice,box=$('notice');
+  if(n&&n.text){box.hidden=false;box.textContent='';box.append(el('b','','공지'),' '+n.text)} else box.hidden=true;
+}
+function bannedMe(){return !!(myId&&CFG.bans&&CFG.bans[myId])}
+function applyBan(){
+  if(bannedMe()&&!isAdmin){
+    busy=true;$('auth').hidden=false;['login','signup','nick'].forEach(v=>$('auth-'+v).hidden=true);
+    $('authMsg').className='auth-msg';$('authMsg').textContent=`운영자가 접속을 막았어요.${CFG.bans[myId].reason?' 사유: '+CFG.bans[myId].reason:''} 문의는 운영자에게 해주세요.`;
+  }
+}
+async function applySeason(){
+  const sn=(CFG.season&&CFG.season.n)||0;
+  if(me.season==null){me.season=sn;if(me.nick)save();return}
+  if(me.season>=sn) return;
+  const keep={nick:me.nick,best:me.best,lives:me.lives,collected:me.collected,giftT:me.giftT};
+  me=freshLife(keep);me.season=sn;me.giftT=keep.giftT;
+  logs=[];addLog(`시즌 ${sn} 시작! 모든 주민이 스무 살부터 다시 출발해요. 지난 시즌 기록은 명예의 전당에 남았어요.`);
+  if(db&&myId){chain(()=>FS.doc('market/'+myId).set({list:{}}));chain(()=>FS.doc('bids/'+myId).set({b:{},won:{}}))}
+  save();renderAll();idleActions();
+}
+function onConfig(snap){
+  const d={};snap.docs.forEach(x=>{if(x.exists)d[x.id]=x.data()});
+  CFG.notice=d.notice||null;CFG.bans=(d.bans&&d.bans.uids)||{};CFG.season=d.season||{n:0};CFG.settings=d.settings||{};
+  applySettings(CFG.settings);renderNotice();applyBan();applySeason();
+  if(!busy){renderStats()}
+  if(isAdmin&&!$('admin').hidden) renderAdmin();
+}
+function onGifts(snap){
+  if(!snap.exists) return;
+  const items=(snap.data().items||[]).filter(x=>x&&x.t>(me.giftT||0)).sort((a,b)=>a.t-b.t);
+  if(!items.length) return;
+  for(const g of items){
+    if(g.reset){const keep={nick:me.nick,best:me.best,lives:(me.lives||1)+1,collected:me.collected,season:me.season};
+      for(const id of myLands()) releaseLand(id);
+      me=freshLife(keep);me.season=keep.season;addLog('운영자가 내 인생을 초기화했어요. 스무 살부터 다시 시작해요.')}
+    if(g.cash){me.cash+=g.cash;addLog(`운영자 ${g.cash>0?'지급':'회수'} ${g.cash>0?'+':''}${won(g.cash)}${g.msg?' — '+g.msg:''}`)}
+    if(g.rolls){me.rolls=Math.max(0,me.rolls+g.rolls);addLog(`운영자 주사위 ${g.rolls>0?'+':''}${g.rolls}개${g.msg?' — '+g.msg:''}`)}
+    me.giftT=Math.max(me.giftT||0,g.t);
+  }
+  setMsg('운영자에게서 알림이 왔어요. 인생 일지를 확인하세요.');
+  save();renderAll();
+}
+
+/* 운영자 화면 */
+const fmtAgo=t=>{if(!t)return '-';const m=Math.floor((Date.now()-t)/6e4);return m<1?'방금':m<60?`${m}분 전`:m<1440?`${Math.floor(m/60)}시간 전`:`${Math.floor(m/1440)}일 전`};
+function twoStep(btn,label,fn){
+  btn.onclick=async()=>{
+    if(btn.dataset.armed!=='1'){btn.dataset.armed='1';const t=btn.textContent;btn.textContent=label||'한 번 더 누르면 실행';btn.classList.add('danger');
+      setTimeout(()=>{if(btn.isConnected){btn.dataset.armed='';btn.textContent=t;btn.classList.remove('danger')}},4000);return}
+    btn.disabled=true;try{await fn()}catch(e){admMsg('실패했어요: '+(e&&e.message||e))}btn.disabled=false;
+  };
+}
+function admMsg(t){$('admMsg').textContent=t;clearTimeout(admMsg._t);admMsg._t=setTimeout(()=>{$('admMsg').textContent=''},5000)}
+async function gift(uid,obj,label){
+  await FS.doc('gifts/'+uid).set({items:firebase.firestore.FieldValue.arrayUnion({...obj,t:Date.now(),id:Math.random().toString(36).slice(2)})},{merge:true});
+  admMsg(`${label} 완료 — 그 주민이 다음 접속(또는 지금 접속 중이면 바로)에 반영돼요.`);
+}
+function allPlayers(){
+  const list=[{id:myId,...me,net:netWorth()}];
+  for(const [id,p] of Object.entries(others)) list.push({id,...p});
+  return list.sort((a,b)=>(b.net||0)-(a.net||0));
+}
+function renderAdmin(){
+  const box=$('admBody');box.innerHTML='';
+  const players=allPlayers(),now=Date.now();
+  const active=players.filter(p=>now-(p.updated||0)<7*864e5).length;
+  const owned=ALL_LAND.filter(id=>reg[id]&&reg[id].owner).length;
+  const live=allListings().filter(L=>!L.closed);
+  const sec=(t)=>{const s=el('section','adm-sec');s.append(el('h3','',t));box.append(s);return s};
+
+  // 1. 현황
+  const s1=sec('동네 현황');
+  const kv=el('div','kv');
+  [['주민',players.length+'명'],['7일 내 활동',active+'명'],['동네 총 순자산',won(players.reduce((a,p)=>a+(p.net||0),0))],['땅 보유',`${owned}/${BOARD.filter(id=>CELL[id].k==='land').length}곳`],
+   ['진행 중 경매',live.length+'건'],['시즌',String(CFG.season.n||0)],['판 크기',`${SIDE+1}×${SIDE+1}`],['차단',Object.keys(CFG.bans).length+'명']]
+   .forEach(([k,v])=>{const d=el('div','stat');d.append(el('div','k',k),el('div','v num',v));kv.append(d)});
+  s1.append(kv);
+
+  // 2. 공지
+  const s2=sec('공지사항');
+  const ta=el('textarea');ta.id='admNotice';ta.rows=2;ta.maxLength=200;ta.placeholder='예: 이번 주말은 월급 2배 이벤트!';ta.value=(CFG.notice&&CFG.notice.text)||'';
+  const r2=el('div','adm-row');const b2=el('button','btn primary','공지 올리기'),b2c=el('button','btn','공지 내리기');
+  b2.onclick=async()=>{await FS.doc('config/notice').set({text:ta.value.trim(),t:Date.now()});admMsg('공지를 올렸어요. 모든 주민 화면 위에 보여요.')};
+  b2c.onclick=async()=>{await FS.doc('config/notice').set({text:'',t:Date.now()});ta.value='';admMsg('공지를 내렸어요.')};
+  r2.append(b2,b2c);s2.append(ta,r2);
+
+  // 3. 이벤트·밸런스
+  const s3=sec('이벤트·밸런스 (모든 주민에게 바로 적용)');
+  const cur={...DEF_SET,...CFG.settings};
+  const fields=[['rollMin','주사위 충전(분)',cur.rollMin,'1~120'],['maxRolls','주사위 최대 개수',cur.maxRolls,'5~500'],['payMul','월급 배율',cur.payMul,'예: 2 = 월급 2배'],['event','이벤트 이름',cur.event,'예: 주말 월급 2배']];
+  const grid=el('div','adm-grid');
+  fields.forEach(([k,l,v,ph])=>{const lab=el('label','',l);const i=el('input');i.id='set_'+k;i.value=v;i.placeholder=ph;if(k!=='event'){i.type='number';i.step=k==='payMul'?'0.1':'1'}lab.append(i);grid.append(lab)});
+  const r3=el('div','adm-row');const b3=el('button','btn primary','적용'),b3d=el('button','btn','기본값으로');
+  b3.onclick=async()=>{const v={rollMin:Number($('set_rollMin').value),maxRolls:Number($('set_maxRolls').value),payMul:Number($('set_payMul').value),event:$('set_event').value.trim()};
+    await FS.doc('config/settings').set(v);admMsg('적용했어요. 접속 중인 주민 화면에도 바로 반영돼요.')};
+  b3d.onclick=async()=>{await FS.doc('config/settings').set(DEF_SET);admMsg('기본값(10분·50개·월급 1배)으로 돌렸어요.')};
+  r3.append(b3,b3d);s3.append(grid,r3);
+
+  // 4. 주민 관리
+  const s4=sec('주민 관리');
+  const amtRow=el('div','adm-row');const ai=el('input');ai.type='number';ai.id='admAmt';ai.value='500';ai.step='10';const mi=el('input');mi.id='admMemo';mi.placeholder='사유(선택, 주민 일지에 표시)';mi.maxLength=40;
+  amtRow.append(el('span','note','금액(만)'),ai,mi);s4.append(amtRow);
+  const tw=el('div','adm-table');const tb=el('table');
+  tb.innerHTML='<thead><tr><th>주민</th><th>나이·직업</th><th class="r">순자산</th><th>마지막 접속</th><th>관리</th></tr></thead>';
+  const body=el('tbody');
+  players.forEach(p=>{
+    const tr=el('tr');const banned=!!CFG.bans[p.id];
+    const n=el('td','',(p.nick||'(미등록)')+(p.id===myId?' (나)':'')+(banned?' · 차단됨':''));
+    const pp=normalize(clone(p));
+    tr.append(n,el('td','',`${pp.age}세 ${title(pp)}`),el('td','r num',won(p.net||0)),el('td','',fmtAgo(p.updated)));
+    const act=el('td','acts');
+    const memo=()=>$('admMemo').value.trim();
+    const bg=el('button','mini','지급');bg.onclick=()=>{const a=Math.round(Number($('admAmt').value)||0);if(a>0)gift(p.id,{cash:a,msg:memo()},`${p.nick||'주민'}에게 ${won(a)} 지급`)};
+    const bt=el('button','mini','회수');bt.onclick=()=>{const a=Math.round(Number($('admAmt').value)||0);if(a>0)gift(p.id,{cash:-a,msg:memo()},`${p.nick||'주민'}에게서 ${won(a)} 회수`)};
+    const br=el('button','mini','주사위+20');br.onclick=()=>gift(p.id,{rolls:20,msg:memo()},`${p.nick||'주민'}에게 주사위 20개 지급`);
+    const bz=el('button','mini','인생 초기화');twoStep(bz,'정말 초기화?',()=>gift(p.id,{reset:true},`${p.nick||'주민'} 인생 초기화`));
+    act.append(bg,bt,br,bz);
+    if(p.id!==myId){
+      const bb=el('button','mini',banned?'차단 해제':'차단');
+      if(banned) bb.onclick=async()=>{await FS.doc('config/bans').update({['uids.'+p.id]:firebase.firestore.FieldValue.delete()});admMsg(`${p.nick||'주민'} 차단을 풀었어요.`)};
+      else twoStep(bb,'정말 차단?',async()=>{await FS.doc('config/bans').set({uids:{[p.id]:{reason:memo(),t:Date.now()}}},{merge:true});
+        for(const id of ALL_LAND) if(reg[id]&&reg[id].owner===p.id) await FS.doc('lands/'+id).set({...reg[id],owner:null,l:0,t:Date.now()});
+        admMsg(`${p.nick||'주민'}을 차단하고 땅을 환수했어요.`)});
+      act.append(bb);
+    }
+    tr.append(act);body.append(tr);
+  });
+  tb.append(body);tw.append(tb);s4.append(tw);
+
+  // 5. 땅
+  const s5=sec('땅 관리');
+  const lt=el('div','adm-table');const ltb=el('table');ltb.innerHTML='<thead><tr><th>땅</th><th>주인</th><th>건물</th><th class="r">시세</th><th>관리</th></tr></thead>';
+  const lb=el('tbody');
+  ALL_LAND.filter(id=>BOARD.includes(id)||reg[id]).forEach(id=>{
+    const r=reg[id]||{},c=CELL[id];const tr=el('tr');
+    tr.append(el('td','',c.n),el('td','',r.owner?nameOf(r.owner):'-'),el('td','',r.owner?BLD[r.l||0]:'-'),el('td','r num',won(r.p||c.p)+(r.deals?` ↑${r.deals}`:'')));
+    const act=el('td','acts');
+    if(r.owner){const b=el('button','mini','환수');twoStep(b,'정말 환수?',async()=>{await FS.doc('lands/'+id).set({owner:null,l:0,p:r.p||c.p,deals:r.deals||0,t:Date.now()});admMsg(`${c.n}을 빈 땅으로 돌렸어요.`)});act.append(b)}
+    if((r.p&&r.p!==c.p)||r.deals){const b=el('button','mini','시세 초기화');b.onclick=async()=>{await FS.doc('lands/'+id).set({...r,owner:r.owner||null,l:r.l||0,p:c.p,deals:0,t:r.t||Date.now()});admMsg(`${c.n} 시세를 ${won(c.p)}으로 돌렸어요.`)};act.append(b)}
+    tr.append(act);lb.append(tr);
+  });
+  ltb.append(lb);lt.append(ltb);s5.append(lt);
+
+  // 6. 경매
+  const s6=sec('중고마켓 경매');
+  if(!live.length) s6.append(el('div','note','진행 중인 경매가 없어요.'));
+  live.forEach(L=>{const I=ITEMS[L.item&&L.item.k];if(!I)return;const tbd=topBid(L.key,L.start);
+    const row=el('div','adm-row');row.append(el('span','',`${nameOf(L.sid)}의 ${I.n} · 시작 ${won(L.start)} · ${tbd?'최고 '+won(tbd.a):'입찰 없음'} · ${untilMs(L.ends-now)}`));
+    const b=el('button','mini','경매 취소');twoStep(b,'정말 취소?',async()=>{await FS.doc('market/'+L.sid).set({list:{[L.lid]:{closed:'cancelled'}}},{merge:true});admMsg('경매를 취소했어요. 물건은 판매자에게 돌아가요.')});
+    row.append(b);s6.append(row)});
+
+  // 7. 시즌
+  const s7=sec('시즌 리셋');
+  const hall=(CFG.season.hall||[]);
+  s7.append(el('div','note',`지금은 시즌 ${CFG.season.n||0}이에요. 리셋하면 지금 순위 상위 10명이 명예의 전당에 남고, 모든 땅이 비워지고, 모든 주민이 스무 살부터 다시 시작해요. 최고 기록과 닉네임은 유지돼요.`));
+  if(hall.length){const h=el('ol','rank');hall.forEach(x=>{const li=el('li');li.append(el('span','num',''),el('div','who',x.nick),el('span','num',won(x.net)));h.append(li)});s7.append(el('div','el-h',`시즌 ${(CFG.season.n||1)-1} 명예의 전당`),h)}
+  const r7=el('div','adm-row');const ci=el('input');ci.id='admSeason';ci.placeholder='리셋 이라고 입력';const b7=el('button','btn','시즌 리셋');b7.classList.add('danger');
+  b7.onclick=async()=>{
+    if(ci.value.trim()!=='리셋'){admMsg('확인 칸에 "리셋"이라고 입력해야 실행돼요.');return}
+    b7.disabled=true;
+    const top=allPlayers().filter(p=>p.nick).slice(0,10).map(p=>({nick:p.nick,net:p.net||0}));
+    const batch=FS.batch();
+    ALL_LAND.forEach(id=>batch.set(FS.doc('lands/'+id),{owner:null,l:0,p:CELL[id].p,deals:0,t:Date.now()}));
+    batch.set(FS.doc('config/season'),{n:(CFG.season.n||0)+1,t:Date.now(),hall:top});
+    await batch.commit();ci.value='';b7.disabled=false;admMsg(`시즌 ${(CFG.season.n||0)+1}을 시작했어요.`);
+  };
+  r7.append(ci,b7);s7.append(r7);
+}
+function openAdmin(){if(!isAdmin)return;$('admin').hidden=false;renderAdmin()}
+
 let subscribed=false;
 async function startOnline(){
   wireAuth();
@@ -1490,6 +1706,7 @@ async function startOnline(){
   AUTH.onAuthStateChanged(async u=>{
     if(!u){db=null;myId=null;showAuth('login');$('mode').textContent='로그인이 필요해요';$('logoutBtn').hidden=true;return}
     myId=u.uid;db=makeDb(FS);
+    isAdmin=(u.email||'').toLowerCase()===ADMIN_EMAIL&&u.emailVerified!==false;$('adminBtn').hidden=!isAdmin;
     $('who').textContent=u.email||'구글 계정';$('logoutBtn').hidden=false;$('loginBtn').hidden=true;
     try{
       const snap=await db.doc('players/'+myId).get();
@@ -1508,6 +1725,8 @@ async function startOnline(){
       db.collection('vote').onSnapshot(onVotes,()=>{});
       db.collection('market').onSnapshot(onMarket,()=>{});
       db.collection('bids').onSnapshot(onBids,()=>{});
+      FS.collection('config').onSnapshot(onConfig,()=>{});
+      FS.doc('gifts/'+myId).onSnapshot(onGifts,()=>{});
     }
     if(me.nick) save();
     renderAll();idleActions();

@@ -1,0 +1,62 @@
+rules_version = '2';
+// 보실이네 인생마블 — Firestore 보안 규칙 (운영자 기능 포함)
+// 원칙: 로그인한 주민만 읽고, 각자 자기 문서만 쓴다. 땅 장부만 공용.
+// 운영자(duddnddl89@gmail.com 구글 계정)는 공지·설정·지급·차단·환수를 할 수 있다.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isAdmin() {
+      return signedIn()
+        && request.auth.token.email == 'duddnddl89@gmail.com'
+        && request.auth.token.email_verified == true;
+    }
+    function banned() {
+      return exists(/databases/$(database)/documents/config/bans)
+        && request.auth.uid in get(/databases/$(database)/documents/config/bans).data.uids;
+    }
+    function isSelf(uid) { return signedIn() && request.auth.uid == uid && !banned(); }
+
+    // 내 인생: 모두 읽기, 본인만 쓰기 (운영자는 정리용으로 쓰기 가능)
+    match /players/{uid} {
+      allow read: if signedIn();
+      allow write: if isSelf(uid) || isAdmin();
+    }
+
+    // 장부·출마·투표·입찰: 본인 문서만
+    match /ledger/{uid} { allow read: if signedIn(); allow write: if isSelf(uid); }
+    match /cand/{uid}   { allow read: if signedIn(); allow write: if isSelf(uid); }
+    match /vote/{uid}   { allow read: if signedIn(); allow write: if isSelf(uid); }
+    match /bids/{uid}   { allow read: if signedIn(); allow write: if isSelf(uid); }
+    // 중고마켓: 본인 + 운영자(경매 취소)
+    match /market/{uid} { allow read: if signedIn(); allow write: if isSelf(uid) || isAdmin(); }
+
+    // 땅 장부: 사거나 인수할 때 새 주인은 반드시 나, 팔거나 환수할 때만 비울 수 있음
+    match /lands/{landId} {
+      allow read: if signedIn();
+      allow create, update: if isAdmin() || (signedIn() && !banned() &&
+        (request.resource.data.owner == request.auth.uid || request.resource.data.owner == null));
+      allow delete: if false;
+    }
+
+    // 닉네임 중복 방지
+    match /nicknames/{nick} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow update: if signedIn() && resource.data.uid == request.auth.uid && request.resource.data.uid == request.auth.uid;
+      allow delete: if (signedIn() && resource.data.uid == request.auth.uid) || isAdmin();
+    }
+
+    // 운영 설정: 공지(notice), 차단(bans), 시즌(season), 밸런스(settings)
+    match /config/{doc} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // 운영자 지급·회수·초기화 우편함: 본인만 읽고, 운영자만 씀
+    match /gifts/{uid} {
+      allow read: if (signedIn() && request.auth.uid == uid) || isAdmin();
+      allow write: if isAdmin();
+    }
+  }
+}
