@@ -1,0 +1,1522 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>보실이네 인생마블</title>
+<meta name="description" content="부루마블과 인생게임을 섞은 온라인 웹 보드게임">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 동네 지도 위 버스노선 한 바퀴 = 인생 2년. 8x8 판, 오른쪽(모바일은 아래)에 내 인생·직업 도감·주식·랭킹 */
+:root{
+  --bg:#ECEFE7; --paper:#F8F9F4; --road:#D7DBCD; --ink:#1E2621; --ink-2:#5D6A62;
+  --me:#E0512F; --other:#6E7F95; --land:#3F8F62; --gold:#C9971A; --life:#C24E78; --work:#3C68A8; --spec:#7A55B8;
+  --up:#C2412B; --down:#2D64B0; --ok:#2F8A57; --no:#B5462F;
+  --display:"Do Hyeon","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141917; --paper:#1D2421; --road:#2C3531; --ink:#E5EBE4; --ink-2:#97A59C;
+  --me:#FF7452; --other:#93A4BA; --land:#5DBB86; --gold:#E3B23C; --life:#E57AA0; --work:#6E9AE0; --spec:#A88BE6;
+  --up:#FF7A63; --down:#6EA2F0; --ok:#5FC98A; --no:#F08A70; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --paper:#1D2421; --road:#2C3531; --ink:#E5EBE4; --ink-2:#97A59C;
+  --me:#FF7452; --other:#93A4BA; --land:#5DBB86; --gold:#E3B23C; --life:#E57AA0; --work:#6E9AE0; --spec:#A88BE6;
+  --up:#FF7A63; --down:#6EA2F0; --ok:#5FC98A; --no:#F08A70; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:minmax(0,680px) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:940px){.wrap{grid-template-columns:minmax(0,1fr)}}
+header{max-width:1180px;margin:0 auto 14px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(26px,5vw,36px);margin:0;letter-spacing:-.5px}
+h1 span{color:var(--me)}
+.mode{font-size:12px;color:var(--ink-2)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* board */
+.boardwrap{overflow-x:auto;border-radius:6px}
+.board{--n:8;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));grid-template-rows:repeat(var(--n),minmax(0,1fr));gap:3px;
+  aspect-ratio:1;width:100%;min-width:calc(var(--n) * 40px);background:var(--road);padding:3px;border-radius:6px}
+@media (min-width:500px){.board{min-width:0}}
+.cell{background:var(--paper);border-radius:3px;position:relative;padding:3px 4px;display:flex;flex-direction:column;min-width:0;overflow:hidden;
+  border-top:4px solid var(--kind,var(--road))}
+.cell .nm{font-family:var(--display);font-size:clamp(9px,2vw,14px);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .sub{font-size:clamp(7px,1.5vw,10.5px);color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell.corner .nm{font-size:clamp(10px,2.3vw,16px)}
+.cell.owned-me{box-shadow:inset 0 -4px 0 var(--me)}
+.cell.owned-other{box-shadow:inset 0 -4px 0 var(--other)}
+.cell .bld{font-size:clamp(7px,1.5vw,10.5px);letter-spacing:1px}
+.cell.owned-me .bld{color:var(--me)} .cell.owned-other .bld{color:var(--other)}
+.tokens{position:absolute;right:3px;bottom:5px;display:flex;gap:2px;align-items:center}
+.tok{width:clamp(9px,2vw,14px);height:clamp(9px,2vw,14px);border-radius:50%;background:var(--me);border:2px solid var(--paper);box-shadow:0 0 0 1px var(--me)}
+.otok{width:7px;height:7px;border-radius:50%;background:var(--other);opacity:.8}
+.cell.here{outline:2px solid var(--me);outline-offset:-2px}
+.center{grid-area:2/2/var(--n)/var(--n);background:var(--paper);border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(6px,1.4vw,12px);
+  padding:clamp(8px,2vw,20px);text-align:center;min-width:0;
+  background-image:repeating-linear-gradient(0deg,transparent 0 23px,color-mix(in srgb,var(--road) 45%,transparent) 23px 24px),repeating-linear-gradient(90deg,transparent 0 23px,color-mix(in srgb,var(--road) 45%,transparent) 23px 24px)}
+.lifeline{font-size:clamp(11px,2.3vw,14px);color:var(--ink-2)}
+.lifeline b{color:var(--ink);font-weight:600}
+.dice{display:flex;gap:10px}
+.die{width:clamp(38px,9vw,58px);aspect-ratio:1;background:var(--bg);border:2px solid var(--ink);border-radius:10px;display:grid;place-items:center;
+  font-family:var(--display);font-size:clamp(22px,5vw,34px)}
+.msg{font-size:clamp(12px,2.5vw,15px);font-weight:500;min-height:2.6em;max-width:36ch;text-wrap:balance}
+.actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:46ch}
+.btn{font:inherit;font-size:clamp(12px,2.3vw,14px);font-weight:600;padding:.45em .95em;border-radius:999px;border:1.5px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn:focus-visible,.mini:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.rolls{font-size:12px;color:var(--ink-2)}
+
+/* side */
+.side{display:flex;flex-direction:column;gap:18px;min-width:0}
+.panel{background:var(--paper);border-radius:6px;padding:14px 16px;min-width:0}
+.panel h2{font-family:var(--display);font-weight:400;font-size:20px;margin:0 0 8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h2 small{font-family:var(--body);font-size:12px;color:var(--ink-2)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 12px}
+.stat .k{font-size:11px;color:var(--ink-2);letter-spacing:.3px}
+.stat .v{font-weight:600}
+.trait{margin-top:10px;font-size:12.5px;padding:8px 10px;border-left:3px solid var(--work);background:var(--bg);border-radius:0 4px 4px 0}
+.trait b{font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.chip{font-size:11.5px;padding:1px 8px;border-radius:999px;border:1px solid var(--spec);color:var(--spec)}
+.chip.off{border-color:var(--road);color:var(--ink-2)}
+.net{display:flex;justify-content:space-between;align-items:baseline;border-top:1px dashed var(--road);margin-top:10px;padding-top:8px}
+.net .v{font-family:var(--display);font-size:24px}
+.row{display:grid;grid-template-columns:minmax(0,1.3fr) 64px auto auto;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--road)}
+.row:first-of-type{border-top:0}
+.row .n{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .h{font-size:11px;color:var(--ink-2)}
+.px{text-align:right}
+.chg.up{color:var(--up)} .chg.down{color:var(--down)}
+.mini{font:inherit;font-size:12px;padding:2px 8px;border-radius:4px;border:1px solid var(--road);background:var(--bg);color:var(--ink);cursor:pointer}
+.mini:disabled{opacity:.4;cursor:not-allowed}
+.trade{display:flex;gap:4px}
+svg.spark{width:64px;height:22px;display:block}
+.bankrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.jobs{display:flex;flex-direction:column}
+.job{padding:8px 0;border-top:1px solid var(--road);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px}
+.job:first-child{border-top:0}
+.job .jn{font-family:var(--display);font-size:16px}
+.job.cur .jn{color:var(--me)}
+.job .js{font-size:12px;color:var(--ink-2);text-align:right}
+.job .jt{grid-column:1/-1;font-size:12.5px}
+.job .jr{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 10px;font-size:11.5px}
+.req.ok{color:var(--ok)} .req.no{color:var(--no)}
+.req.ok::before{content:"✓ "} .req.no::before{content:"✗ "}
+.rank{list-style:none;margin:0;padding:0}
+.rank li{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:8px;padding:5px 0;border-top:1px solid var(--road);align-items:baseline}
+.rank li:first-child{border-top:0}
+.rank li.me .who{color:var(--me);font-weight:600}
+.rank .who{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank .meta{font-size:11px;color:var(--ink-2)}
+.log{list-style:none;margin:0;padding:0;max-height:220px;overflow:auto;font-size:13px}
+.log li{padding:4px 0;border-top:1px solid var(--road)}
+.log li:first-child{border-top:0}
+.log .t{color:var(--ink-2);font-size:11px;margin-right:6px}
+.note{font-size:12px;color:var(--ink-2)}
+.nick{display:flex;gap:6px;margin-top:8px}
+.nick input{font:inherit;flex:1;min-width:0;padding:4px 8px;border:1px solid var(--road);border-radius:4px;background:var(--bg);color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--ink-2);margin-top:10px}
+.legend i{display:inline-block;width:10px;height:4px;margin-right:4px;vertical-align:middle}
+.policyline{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;max-width:42ch}
+.pol{font-size:11px;padding:1px 7px;border-radius:999px;background:var(--bg);border:1px solid var(--gold);color:var(--ink)}
+.el-sec{border-top:1px solid var(--road);padding-top:10px;margin-top:10px}
+.el-sec:first-child{border-top:0;padding-top:0;margin-top:0}
+.el-h{font-size:12px;color:var(--ink-2);letter-spacing:.3px;margin-bottom:6px}
+.office{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;align-items:baseline;font-size:13px}
+.office .role{font-family:var(--display);font-size:15px}
+.office .pol-d{grid-column:2;font-size:12px;color:var(--ink-2)}
+.cand{display:grid;grid-template-columns:minmax(0,1fr) 90px auto;gap:8px;align-items:center;padding:5px 0;border-top:1px dashed var(--road);font-size:13px}
+.cand:first-of-type{border-top:0}
+.cand .cn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{height:6px;background:var(--road);border-radius:3px;overflow:hidden;position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--gold)}
+.cand .pct{font-size:11px;color:var(--ink-2);text-align:right}
+.picks{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.req-line{font-size:12px;margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 10px}
+details summary{cursor:pointer;font-size:12px;color:var(--ink-2);margin-top:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.kv{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 12px}
+@media (max-width:420px){.kv{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.amt{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center}
+.amt input{font:inherit;width:8em;padding:4px 8px;border:1px solid var(--road);border-radius:4px;background:var(--bg);color:var(--ink)}
+.items .it{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:7px 0;border-top:1px solid var(--road);align-items:center}
+.items .it:first-child{border-top:0}
+.it .in{font-weight:600}
+.it .ie{grid-column:1/-1;font-size:12px;color:var(--ink-2)}
+.it .ib{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.it .form{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.it .form input{font:inherit;width:7em;padding:3px 6px;border:1px solid var(--road);border-radius:4px;background:var(--bg);color:var(--ink)}
+.family{margin-top:10px;display:flex;flex-direction:column;gap:2px;font-size:12.5px}
+.family:empty{display:none}
+.fam-h{font-size:12px;color:var(--ink-2);border-left:3px solid var(--life);padding-left:8px;margin-bottom:4px}
+.fam-row{padding:3px 0 3px 11px;border-top:1px dashed var(--road)}
+.subh{font-size:12px;color:var(--ink-2);letter-spacing:.3px;margin:12px 0 2px;padding-top:8px;border-top:1px dashed var(--road)}
+.tag{font-size:11px;padding:0 6px;border-radius:999px;border:1px solid var(--road);color:var(--ink-2);margin-left:4px;font-weight:400}
+.hot{color:var(--me);border-color:var(--me)}
+
+[hidden]{display:none!important}
+img{max-width:100%}
+.hdr-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--ink-2)}
+.auth{position:fixed;inset:0;z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(3px);display:grid;place-items:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));overflow:auto}
+.auth-card{width:100%;max-width:380px;background:var(--paper);border-radius:10px;padding:24px 22px;box-shadow:0 10px 40px rgba(0,0,0,.18);border-top:6px solid var(--me)}
+.auth-card h2{font-family:var(--display);font-weight:400;font-size:28px;margin:0 0 4px}
+.auth-card h2 span{color:var(--me)}
+.auth-card p{margin:0 0 16px;color:var(--ink-2);font-size:13px}
+.auth-card form{display:flex;flex-direction:column;gap:10px}
+.auth-card label{font-size:12px;color:var(--ink-2);display:flex;flex-direction:column;gap:4px}
+.auth-card input{font:inherit;font-size:15px;padding:9px 11px;border:1px solid var(--road);border-radius:6px;background:var(--bg);color:var(--ink)}
+.auth-card .btn{width:100%;padding:.7em 1em}
+.auth-or{display:flex;align-items:center;gap:10px;color:var(--ink-2);font-size:12px;margin:6px 0}
+.auth-or::before,.auth-or::after{content:"";flex:1;height:1px;background:var(--road)}
+.auth-links{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:12px}
+.linkbtn{font:inherit;font-size:12.5px;background:none;border:0;color:var(--ink-2);text-decoration:underline;cursor:pointer;padding:2px}
+.auth-msg{min-height:1.4em;font-size:12.5px;color:var(--no);margin-top:10px}
+.auth-msg.ok{color:var(--ok)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>보실이네 <span>인생마블</span></h1>
+  <div class="hdr-right"><span class="mode" id="mode">불러오는 중…</span><span id="who"></span>
+    <button class="mini" id="logoutBtn" hidden>로그아웃</button><button class="mini" id="loginBtn" hidden>로그인</button></div>
+</header>
+<div class="wrap">
+  <div>
+    <div class="boardwrap">
+    <div class="board" id="board">
+      <div class="center" id="center">
+        <div class="lifeline" id="lifeline"></div>
+        <div class="policyline" id="policyLine"></div>
+        <div class="dice"><div class="die" id="d1">·</div><div class="die" id="d2">·</div></div>
+        <div class="msg" id="msg">주사위를 굴려 스무 살 인생을 시작하세요.</div>
+        <div class="actions" id="actions"></div>
+        <div class="rolls" id="rolls"></div>
+      </div>
+    </div>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--land)"></i>땅</span>
+      <span><i style="background:var(--spec)"></i>스펙업·시험</span>
+      <span><i style="background:var(--work)"></i>직장·야근</span>
+      <span><i style="background:var(--life)"></i>결혼·출산</span>
+      <span><i style="background:var(--gold)"></i>돈·황금열쇠</span>
+      <span><i style="background:var(--me)"></i>내 땅</span>
+      <span><i style="background:var(--other)"></i>이웃 땅</span>
+      <span id="boardNote"></span>
+    </div>
+  </div>
+  <div class="side">
+    <section class="panel">
+      <h2>내 인생 <small id="lives"></small></h2>
+      <div class="stats" id="stats"></div>
+      <div class="trait" id="trait"></div>
+      <div class="chips" id="certs"></div>
+      <div class="family" id="family"></div>
+      <div class="net"><span class="note">순자산 (현금+예금+땅+주식+소지품−대출)</span><span class="v num" id="net"></span></div>
+      <div class="nick"><input id="nickIn" maxlength="12" placeholder="랭킹에 쓸 닉네임"><button class="mini" id="nickBtn">저장</button></div>
+    </section>
+    <section class="panel">
+      <h2>동네은행 <small id="bankNote"></small></h2>
+      <div class="kv" id="bankKv"></div>
+      <div class="amt">
+        <input id="amtIn" type="number" inputmode="numeric" min="10" step="10" value="100" aria-label="금액(만 원)">
+        <span class="note">만</span>
+        <button class="mini" id="bDep">예금</button>
+        <button class="mini" id="bWd">출금</button>
+        <button class="mini" id="bLoan">대출</button>
+        <button class="mini" id="bRepay">상환</button>
+      </div>
+      <div class="note" id="bankMsg" style="margin-top:6px"></div>
+    </section>
+    <section class="panel">
+      <h2>소지품·쇼핑 <small id="itemNote"></small></h2>
+      <div class="items" id="inv"></div>
+      <div class="subh">중고마켓 · 24시간 경매</div>
+      <div class="items" id="market"></div>
+      <details id="shopBox"><summary>동네 쇼핑몰 (새 상품)</summary><div class="items" id="shop"></div></details>
+    </section>
+    <section class="panel">
+      <h2>동네 선거관리위원회 <small id="weekNote"></small></h2>
+      <div id="election"></div>
+    </section>
+    <section class="panel">
+      <h2>직업 도감 <small>시험장에서 응시</small></h2>
+      <div class="jobs" id="jobs"></div>
+    </section>
+    <section class="panel">
+      <h2>동네 증권시장 <small>10분마다 시세 변동</small></h2>
+      <div id="stocks"></div>
+    </section>
+    <section class="panel">
+      <h2>동네 부자 랭킹 <small id="rankNote"></small></h2>
+      <ol class="rank" id="rank"></ol>
+    </section>
+    <section class="panel">
+      <h2>인생 일지</h2>
+      <ul class="log" id="log"></ul>
+    </section>
+  </div>
+</div>
+
+<div class="auth" id="auth" hidden>
+  <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <h2 id="authTitle">보실이네 <span>인생마블</span></h2>
+    <section id="auth-login">
+      <p>로그인하면 이웃들과 땅을 사고, 선거하고, 경매해요.</p>
+      <form id="loginForm">
+        <label>이메일<input id="liEmail" type="email" autocomplete="email" required></label>
+        <label>비밀번호<input id="liPw" type="password" autocomplete="current-password" required></label>
+        <button class="btn primary" type="submit">로그인</button>
+      </form>
+      <div class="auth-or">또는</div>
+      <button class="btn" id="googleBtn" type="button">구글 계정으로 계속하기</button>
+      <div class="auth-links"><button class="linkbtn" id="goSignup" type="button">처음이에요 · 회원가입</button><button class="linkbtn" id="resetBtn" type="button">비밀번호 찾기</button></div>
+      <div class="auth-links"><button class="linkbtn" id="soloBtn" type="button">로그인 없이 혼자 해보기</button></div>
+    </section>
+    <section id="auth-signup" hidden>
+      <p>이메일로 가입하거나 구글 계정으로 바로 시작하세요.</p>
+      <form id="signupForm">
+        <label>이메일<input id="suEmail" type="email" autocomplete="email" required></label>
+        <label>비밀번호 (6자 이상)<input id="suPw" type="password" autocomplete="new-password" minlength="6" required></label>
+        <label>비밀번호 확인<input id="suPw2" type="password" autocomplete="new-password" minlength="6" required></label>
+        <button class="btn primary" type="submit">가입하기</button>
+      </form>
+      <div class="auth-or">또는</div>
+      <button class="btn" id="googleBtn2" type="button">구글 계정으로 가입하기</button>
+      <div class="auth-links"><button class="linkbtn" id="goLogin" type="button">이미 계정이 있어요 · 로그인</button></div>
+    </section>
+    <section id="auth-nick" hidden>
+      <p>마지막 단계예요. 동네에서 쓸 이름을 정해 주민 등록을 해주세요. 랭킹과 선거에 이 이름이 보여요.</p>
+      <form id="nickForm">
+        <label>닉네임 (한글·영문·숫자 2~12자)<input id="regNick" maxlength="12" autocomplete="nickname" required></label>
+        <button class="btn primary" type="submit">주민 등록하고 시작하기</button>
+      </form>
+    </section>
+    <div class="auth-msg" id="authMsg" role="status"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const won=n=>Math.round(n).toLocaleString('ko-KR')+'만';
+const sleep=ms=>new Promise(r=>setTimeout(r,matchMedia('(prefers-reduced-motion: reduce)').matches?0:ms));
+const R=Math.random;
+const pct=x=>Math.round(x*100)+'%';
+const clone=o=>JSON.parse(JSON.stringify(o));
+function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+
+/* ================= 판 =================
+   칸마다 고정 id. 기본 28칸(8x8), 주민 10명마다 4칸(각 변 끝에 1칸)씩 늘어 최대 12x12 */
+const K={pay:'var(--gold)',land:'var(--land)',key:'var(--gold)',work:'var(--work)',school:'var(--spec)',academy:'var(--spec)',intern:'var(--spec)',exam:'var(--spec)',bank:'var(--gold)',wed:'var(--life)',baby:'var(--life)',stock:'var(--gold)',night:'var(--work)',tax:'var(--ink-2)'};
+const BASE=[
+ {k:'pay',n:'월급날',s:'지나가면 월급'},
+ {k:'land',n:'골목시장',p:100,food:1},{k:'key',n:'황금열쇠',s:'뭐가 나올까'},{k:'land',n:'분식집거리',p:120,food:1},
+ {k:'academy',n:'자격증학원',s:'자격증 따기'},{k:'land',n:'놀이터',p:150},{k:'intern',n:'인턴십',s:'경험 +1'},
+ {k:'bank',n:'은행',s:'예금 보너스'},
+ {k:'land',n:'학원가',p:180},{k:'school',n:'학교',s:'학력 올리기'},{k:'land',n:'공원앞',p:200},
+ {k:'exam',n:'시험장',s:'직업 시험'},{k:'land',n:'버스터미널',p:230},{k:'key',n:'황금열쇠',s:'뭐가 나올까'},
+ {k:'wed',n:'예식장',s:'결혼'},
+ {k:'land',n:'먹자골목',p:260,food:1},{k:'stock',n:'증권사',s:'공짜 주식'},{k:'land',n:'영화관',p:290},
+ {k:'work',n:'직장',s:'취업·승진'},{k:'baby',n:'산부인과',s:'아이 갖기'},{k:'land',n:'대학가',p:320},
+ {k:'night',n:'야근',s:'수당 받고 1턴 소모'},
+ {k:'land',n:'호수공원',p:360},{k:'exam',n:'시험장',s:'직업 시험'},{k:'land',n:'백화점',p:420},
+ {k:'key',n:'황금열쇠',s:'뭐가 나올까'},{k:'tax',n:'세무서',s:'현금 세금'},{k:'land',n:'신도시',p:500}
+].map((c,i)=>({...c,id:String(i)}));
+const EXP=[ // 확장 지구: [아래변, 왼변, 윗변, 오른변] 끝에 붙는 칸
+ [{k:'land',n:'카페거리',p:210,food:1},{k:'land',n:'오피스타운',p:300},{k:'key',n:'황금열쇠',s:'뭐가 나올까'},{k:'land',n:'테크밸리',p:460}],
+ [{k:'land',n:'전통시장',p:130,food:1},{k:'academy',n:'자격증학원',s:'자격증 따기'},{k:'land',n:'한강뷰',p:400},{k:'land',n:'스카이타워',p:560}],
+ [{k:'land',n:'야시장',p:170,food:1},{k:'exam',n:'시험장',s:'직업 시험'},{k:'land',n:'리조트단지',p:380},{k:'land',n:'국제업무지구',p:620}],
+ [{k:'land',n:'푸드코트',p:240,food:1},{k:'stock',n:'증권사',s:'공짜 주식'},{k:'land',n:'골프장',p:430},{k:'land',n:'펜트하우스',p:700}],
+].map((d,L)=>d.map((c,s)=>({...c,id:`x${L+1}${s}`,district:L+1})));
+const CELL={};BASE.forEach(c=>CELL[c.id]=c);EXP.flat().forEach(c=>CELL[c.id]=c);
+const ALL_LAND=Object.values(CELL).filter(c=>c.k==='land').map(c=>c.id);
+let LEVEL=0, BOARD=[], SIDE=7;
+function buildBoard(L){
+  LEVEL=L;const sides=[0,1,2,3].map(s=>BASE.slice(s*7,s*7+7).map(c=>c.id));
+  for(let k=0;k<L;k++) sides.forEach((arr,s)=>arr.push(EXP[k][s].id));
+  BOARD=sides.flat();SIDE=7+L;
+  $('board').style.setProperty('--n',SIDE+1);
+}
+function pos(i){
+  const n=SIDE+1,s=Math.floor(i/SIDE),k=i%SIDE;
+  if(s===0) return [n,n-k];
+  if(s===1) return [n-k,1];
+  if(s===2) return [1,1+k];
+  return [1+k,n];
+}
+const levelFor=count=>Math.min(EXP.length,Math.floor(Math.max(0,count-1)/10));
+const BLD=['빈 땅','주택','빌라','빌딩'];
+const TOLL=[.15,.4,.8,1.4];
+const BUILD_R=.6, TAKEOVER_R=1.3, TAKEOVER_BLD=2, INFLATE=1.15, HOLD_TAX=.02, IDLE_DAYS=7, MAX_LANDS=3;
+const EDU=['고졸','전문대졸','대졸','대학원졸'];
+const EDU_COST=[120,200,300];
+const MAX_ROLLS=50, ROLL_MS=600000, RETIRE=60, LAPS_PER_YEAR=10, PENSION_AGE=50;
+
+/* ================= 스펙·직업 ================= */
+const CERTS={
+  code:{n:'정보처리기사',c:150},cook:{n:'조리기능사',c:100},realty:{n:'공인중개사',c:180},
+  invest:{n:'투자자산운용사',c:200},sns:{n:'영상편집 수료',c:90},
+};
+const JOBS={
+  none:{n:'백수',titles:['백수'],sal:[0],trait:'월급이 없어요. 직장 칸에 가면 알바를 구할 수 있고, 스펙을 쌓아 시험장에서 직업에 도전하세요.'},
+  alba:{n:'알바생',titles:['알바생'],sal:[120],trait:'시간이 자유로워요: 인턴십 칸에서 경험을 2씩 쌓아요.'},
+  office:{n:'회사원',titles:['사원','대리','과장','부장','임원'],sal:[230,320,420,550,750],req:{edu:2},pass:.6,fee:30,trait:'성과급: 월급날마다 20% 확률로 월급 절반이 보너스로 나와요.'},
+  civil:{n:'공무원',titles:['9급','7급','5급','국장'],sal:[200,270,360,480],req:{},pass:.22,fee:20,trait:'철밥통: 강등·해고가 없고, 50세 이후 은퇴하면 공무원연금 1,500만을 받아요. 대신 붙기가 어려워요(떨어질수록 합격률 +8%).'},
+  doctor:{n:'의사',titles:['레지던트','전문의','과장','병원장'],sal:[350,650,850,1100],req:{edu:3,exp:2},pass:.4,fee:80,trait:'병원비 이벤트를 면제받아요. 야근 칸에서는 수당이 2배지만 주사위를 2개 써요.'},
+  lawyer:{n:'변호사',titles:['어쏘','파트너','대표변호사'],sal:[400,650,950],req:{edu:3},pass:.35,fee:80,trait:'법을 알아요: 세무서 세금이 절반이고, 이웃 땅 통행료를 10% 깎아요.'},
+  dev:{n:'프로그래머',titles:['주니어','시니어','CTO'],sal:[280,450,700],req:{cert:'code',exp:1},pass:.55,fee:30,trait:'스톡옵션: 월급날마다 마을전자 주식 1주를 받아요.'},
+  chef:{n:'셰프',titles:['주방보조','요리사','오너셰프'],sal:[180,320,600],req:{cert:'cook',exp:2},pass:.6,fee:20,trait:'음식 거리 통행료가 면제이고, 내 음식 거리 땅은 이웃이 내는 통행료가 1.5배예요.'},
+  realtor:{n:'공인중개사',titles:['중개보조','중개사','대표'],sal:[220,340,520],req:{cert:'realty'},pass:.7,fee:30,trait:'빈 땅은 20%, 건물과 인수는 10% 싸게 해요. 땅을 1곳 더(4곳) 가질 수 있어요.'},
+  fund:{n:'펀드매니저',titles:['애널리스트','매니저','본부장'],sal:[300,480,700],req:{cert:'invest',edu:2},pass:.4,fee:50,trait:'주식을 5% 싸게 사고 5% 비싸게 팔아요. 대출 이자가 1%p 낮아요.'},
+  tuber:{n:'유튜버',titles:['새싹','실버버튼','골드버튼'],sal:[[0,300],[100,700],[300,1500]],req:{cert:'sns',exp:2},pass:.3,fee:10,trait:'월급이 매번 랜덤이에요. 황금열쇠에서 좋은 일이 생기면 2배로 받아요.'},
+};
+const EXAM_JOBS=['office','civil','doctor','lawyer','dev','chef','realtor','fund','tuber'];
+const salRange=(j,r)=>{const s=JOBS[j].sal[r];return Array.isArray(s)?s:[s,s]};
+function salText(j){const job=JOBS[j];const lo=salRange(j,0)[0],hi=salRange(j,job.sal.length-1)[1];return lo===hi?won(lo):`${won(lo)}~${won(hi)}`}
+
+/* ================= 소지품 =================
+   새 상품은 쇼핑몰 정가, 가게에 되팔면 헐값(대부분 40%). 중고마켓 경매로 이웃에게 팔면 더 받을 수 있어요 */
+const ITEMS={
+  bike:{n:'로드자전거',c:80,r:.4,e:'인턴십 활동비 2배'},
+  necklace:{n:'금목걸이',c:250,r:.6,e:'황금열쇠 좋은 일 +30%'},
+  suit:{n:'맞춤정장',c:300,r:.3,e:'직업 시험 합격률 +5%p'},
+  car:{n:'경차',c:400,r:.4,e:'야근 칸에서 주사위를 쓰지 않아요'},
+  bag:{n:'명품가방',c:600,r:.5,e:'결혼 비용 절반, 결혼기념일 선물비 면제'},
+  watch:{n:'명품시계',c:900,r:.5,e:'승진 확률 +10%p'},
+  art:{n:'미술품',c:1500,r:.8,e:'되팔아도 값이 거의 안 떨어져요 (80%)'},
+  sedan:{n:'외제차',c:2500,r:.4,e:'이웃 땅 인수가 -10%'},
+  yacht:{n:'요트',c:6000,r:.4,e:'월급날마다 요트 대여 수익 +250만'},
+};
+const has=k=>me.items.some(x=>x.k===k);
+const itemResale=k=>Math.round(ITEMS[k].c*ITEMS[k].r);
+const AUCTION_MS=24*36e5, CLAIM_DAYS=3;
+
+/* ================= 선거·정책 ================= */
+const OFFICES={pres:{n:'대통령',seats:1,age:35,net:5000,fee:1000,pay:400},mp:{n:'국회의원',seats:3,age:25,net:2000,fee:300,pay:200}};
+const PRES_POL={
+  rate_up:{n:'기준금리 인상',d:'예금 이자 2→4%, 대출 이자 4→6%'},
+  rate_down:{n:'기준금리 인하',d:'예금 이자 2→1%, 대출 이자 4→2%'},
+  realty_cool:{n:'부동산 규제',d:'통행료 -20%, 인수가 +20%'},
+  realty_boom:{n:'부동산 부양',d:'통행료 +20%, 건설비 -20%'},
+  welfare:{n:'복지 확대',d:'월급날 생활비 절반 지원, 세율 10→15%'},
+  tax_cut:{n:'감세',d:'세무서 세율 10→5%'},
+  min_wage:{n:'최저임금 인상',d:'알바 월급 +60만, 백수 실업급여 80만'},
+  birth:{n:'출산 장려',d:'출산비 무료, 축하금 +200만'},
+  luxury_tax:{n:'사치세',d:'쇼핑몰 상품 가격 +30%'},
+};
+const MP_LAW={
+  edu_aid:{n:'교육비 지원법',d:'학비·자격증 비용 -30%'},
+  fair_exam:{n:'시험 공정법',d:'모든 직업 시험 합격률 +8%p'},
+  housing:{n:'주택 공급법',d:'빈 땅 매입가 -15%'},
+  wed_aid:{n:'결혼 지원법',d:'결혼 비용 400만 → 200만'},
+  no_night:{n:'야근 제한법',d:'야근 칸에서 주사위를 쓰지 않아요'},
+  takeover_lim:{n:'인수 제한법',d:'땅 인수가 +30%'},
+  loan_ease:{n:'대출 완화법',d:'대출 한도 +50%'},
+};
+const ALL_POL={...PRES_POL,...MP_LAW};
+const WEEK=7*864e5, MON0=Date.UTC(2026,9,25,15); // 2026-10-26(월) 00:00 KST
+const weekId=(t=Date.now())=>Math.floor((t-MON0)/WEEK);
+function weekLabel(w){const d=new Date(MON0+w*WEEK+9*36e5);return `${d.getUTCMonth()+1}월 ${d.getUTCDate()}일 주`}
+function untilMs(ms){const d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5),m=Math.floor(ms%36e5/6e4);return ms<=0?'마감':d?`${d}일 ${h}시간`:h?`${h}시간 ${m}분`:`${m}분`}
+
+/* ================= 주식 ================= */
+const STOCKS=[{n:'동네편의점',b:40,v:.05},{n:'마을전자',b:120,v:.08},{n:'행복건설',b:70,v:.07},{n:'보실제약',b:55,v:.13},{n:'코인마트',b:20,v:.22}];
+const EPOCH=Date.UTC(2026,9,1), STEP=600000;
+function hrnd(a,b){let h=(Math.imul(a,374761393)+Math.imul(b+1,668265263))|0;h=Math.imul(h^(h>>>13),1274126177);h^=h>>>16;return (h>>>0)/4294967296}
+let walk={t:0,x:STOCKS.map(()=>0),hist:STOCKS.map(()=>[])};
+function priceAt(si,x){return Math.max(1,Math.round(STOCKS[si].b*Math.exp(x)))}
+function advanceMarket(){
+  const target=Math.floor((Date.now()-EPOCH)/STEP);
+  while(walk.t<target){
+    walk.t++;
+    STOCKS.forEach((s,i)=>{
+      const n=(hrnd(walk.t,i*3)+hrnd(walk.t,i*3+1)+hrnd(walk.t,i*3+2)-1.5)*1.4;
+      walk.x[i]=walk.x[i]*.97+n*s.v;
+      if(target-walk.t<18){walk.hist[i].push(priceAt(i,walk.x[i]));if(walk.hist[i].length>18)walk.hist[i].shift()}
+    });
+  }
+}
+const price=i=>priceAt(i,walk.x[i]);
+const prevPrice=i=>{const h=walk.hist[i];return h.length>1?h[h.length-2]:price(i)};
+
+/* ================= 상태 ================= */
+let db=null,user=null,myId=null;
+let me=null, others={}, myPaid={}, logs=[], busy=false;
+let reg={}, cands={}, votes={}, markets={}, bids={};
+let gotCands=false,gotVotes=false,gotPlayers=false,regReady=false,gotMarket=false,gotBids=false;
+let saving=Promise.resolve();
+const ME=()=>myId||'me';
+
+function freshLife(keep={}){
+  return {nick:keep.nick||'',age:20,laps:0,cash:600,savings:0,loan:0,job:'none',rank:0,edu:0,exp:0,certs:[],fails:{},married:false,finance:null,children:[],preg:null,posId:'0',
+    shares:STOCKS.map(()=>0),items:[],
+    rolls:keep.rolls??MAX_ROLLS,rollT:keep.rollT??Date.now(),collected:keep.collected||0,best:keep.best||0,lives:keep.lives||1,
+    lastLife:keep.lastLife||null,net:600,updated:Date.now(),board28:true,v4:true,localReg:keep.localReg||{}};
+}
+function normalize(p){
+  if(typeof p.job==='number'){const j=p.job;p.job=j===0?'none':j===1?'alba':'office';p.rank=j>=2?Math.min(4,j-2):0}
+  if(!JOBS[p.job]) p.job='none';
+  p.rank=Math.min(p.rank||0,JOBS[p.job].sal.length-1);
+  p.exp=p.exp||0;p.certs=Array.isArray(p.certs)?p.certs:[];p.fails=p.fails||{};
+  p.edu=Math.min(p.edu||0,EDU.length-1);
+  p.shares=STOCKS.map((_,i)=>p.shares?.[i]||0);
+  p.items=Array.isArray(p.items)?p.items.filter(x=>x&&ITEMS[x.k]):[];
+  p.loan=p.loan||0;p.savings=p.savings||0;
+  if(!p.board28){ // 24칸 시절 데이터
+    const OLD=['','골목시장','','분식집거리','','놀이터','','학원가','','공원앞','','버스터미널','','먹자골목','','영화관','','대학가','','호수공원','','백화점','','신도시'];
+    const nl={};for(const [i,l] of Object.entries(p.lands||{})){const c=BASE.find(c=>c.n===OLD[i]);if(c)nl[c.id]=l}
+    p.lands=nl;p.pos=0;p.board28=true;
+  }
+  if(!Array.isArray(p.children)) p.children=[...Array(p.kids||0)].map((_,i)=>({born:(p.laps||((p.age||20)-20)*10)-50-i*20}));
+  delete p.kids;
+  if(p.married&&!p.finance) p.finance='joint';
+  if(p.preg===undefined) p.preg=null;
+  if(typeof p.laps!=='number') p.laps=Math.max(0,((p.age||20)-20)*LAPS_PER_YEAR);
+  p.age=20+Math.floor(p.laps/LAPS_PER_YEAR);
+  if(!p.posId) p.posId=String(typeof p.pos==='number'&&p.pos<28?p.pos:0);
+  delete p.pos;
+  p.localReg=p.localReg||{};
+  return p;
+}
+/* ================= 가족 ================= */
+const ORD=['첫째','둘째','셋째','넷째','다섯째'];
+const KID_JOBS=[{n:'백수',w:10,lo:0,hi:0},{n:'알바생',w:20,lo:10,hi:40},{n:'회사원',w:35,lo:30,hi:100},{n:'공무원',w:15,lo:40,hi:90},{n:'의사',w:8,lo:100,hi:300},{n:'유튜버',w:12,lo:0,hi:400}];
+const MAX_KIDS=3, PREG_LAPS=8, ADULT=20, ALLOW_END=50;
+const childAge=c=>Math.max(0,Math.floor((me.laps-c.born)/LAPS_PER_YEAR));
+const childCost=a=>a<7?50:a<13?70:a<ADULT?100:0;
+const childStage=a=>a<1?'갓난아기':a<7?'어린이집':a<13?'초등학생':a<16?'중학생':a<ADULT?'고등학생':'';
+function pickKidJob(){let r=R()*100;for(let i=0;i<KID_JOBS.length;i++){r-=KID_JOBS[i].w;if(r<=0)return i}return 2}
+const adults=()=>me.children.filter(c=>{const a=childAge(c);return a>=ADULT&&a<ALLOW_END});
+const minors=()=>me.children.filter(c=>childAge(c)<ADULT);
+const FIN={joint:{n:'공동 관리',d:'배우자 수입 160만이 매 월급날 들어오고, 결혼 때 배우자 모은 돈이 합쳐져요. 생활비·양육비는 전부 내가 내요.'},split:{n:'각자 관리',d:'배우자 수입은 따로지만, 생활비와 양육비를 반씩 나눠 내요. 아이가 많을수록 유리해요.'}};
+function title(p=me){const j=JOBS[p.job]||JOBS.none;return p.job==='none'||p.job==='alba'?j.n:`${j.n} · ${j.titles[p.rank||0]}`}
+
+/* ================= 토지대장 ================= */
+const landP=id=>(reg[id]&&reg[id].p)||CELL[id].p;
+const landValue=id=>{const r=reg[id];const p=landP(id);return p+(r?r.l:0)*Math.round(p*BUILD_R)};
+const myLands=()=>ALL_LAND.filter(id=>reg[id]&&reg[id].owner===ME());
+const landCap=()=>MAX_LANDS+(me.job==='realtor'?1:0);
+function playerInfo(id){if(id===ME())return me;return others[id]||{}}
+function ownerOf(id){const r=reg[id];if(!r||!r.owner)return null;const p=playerInfo(r.owner);return {id:r.owner,l:r.l||0,nick:p.nick,job:p.job,items:p.items||[]}}
+const isMine=o=>o&&o.id===ME();
+async function writeLand(id,expectOwner,data){
+  if(!db){reg[id]=data;me.localReg={...reg};return true}
+  try{
+    await FS.runTransaction(async tx=>{
+      const ref=FS.doc('lands/'+id);const cur=await tx.get(ref);
+      const owner=cur.exists?(cur.data().owner||null):null;
+      if(owner!==expectOwner) throw new Error('owner-changed');
+      tx.set(ref,data);
+    });
+    reg[id]=data;return true;
+  }catch(e){return false}
+}
+
+/* ================= 정책 ================= */
+function results(w){
+  const out={};
+  for(const off of ['pres','mp']){
+    const list=Object.entries(cands).filter(([,c])=>c.weeks&&c.weeks[w]&&c.weeks[w].office===off).map(([id,c])=>({id,t:c.weeks[w].t||0,v:0}));
+    const byId=Object.fromEntries(list.map(x=>[x.id,x]));
+    let total=0;
+    for(const v of Object.values(votes)){const pick=v.weeks&&v.weeks[w]&&v.weeks[w][off];if(pick&&byId[pick]){byId[pick].v++;total++}}
+    list.sort((a,b)=>b.v-a.v||a.t-b.t);
+    list.forEach((x,k)=>{x.share=total?x.v/total:0;x.won=k<OFFICES[off].seats&&x.v>0});
+    out[off]=list;out[off+'Total']=total;
+  }
+  return out;
+}
+let T={w:-1,pres:[],mp:[],pol:new Set()};
+function refreshTerm(){
+  const w=weekId()-1,res=results(w);
+  const pres=res.pres.filter(x=>x.won),mp=res.mp.filter(x=>x.won),pol=[];
+  pres.forEach(x=>{const p=cands[x.id].weeks[w].policy;if(p&&PRES_POL[p])pol.push(p)});
+  mp.forEach(x=>{const p=cands[x.id].weeks[w].policy;if(p&&MP_LAW[p])pol.push(p)});
+  T={w,pres,mp,pol:new Set(pol)};
+}
+const P=id=>T.pol.has(id);
+const myOffice=()=>T.pres.some(x=>x.id===ME())?'pres':T.mp.some(x=>x.id===ME())?'mp':null;
+
+/* ================= 금액 계산 (직업·정책·소지품 반영) ================= */
+function tollFor(id,o){
+  const c=CELL[id];
+  if(c.food&&me.job==='chef') return 0;
+  let t=landP(id)*TOLL[o.l];
+  if(c.food&&o.job==='chef') t*=1.5;
+  if(me.job==='lawyer') t*=.9;
+  if(P('realty_cool')) t*=.8;
+  if(P('realty_boom')) t*=1.2;
+  return Math.round(t);
+}
+const tollShown=(id,o)=>{let t=landP(id)*TOLL[o.l];if(CELL[id].food&&o.job==='chef')t*=1.5;if(P('realty_cool'))t*=.8;if(P('realty_boom'))t*=1.2;return Math.round(t)};
+const firstHome=()=>myLands().length===0&&me.age<=30;
+const buyPrice=id=>Math.round(landP(id)*(me.job==='realtor'?.8:1)*(P('housing')?.85:1)*(firstHome()?.7:1));
+const buildCost=id=>Math.round(landP(id)*BUILD_R*(me.job==='realtor'?.9:1)*(P('realty_boom')?.8:1));
+const takeoverPrice=id=>Math.round(landValue(id)*((reg[id]&&reg[id].l>=3)?TAKEOVER_BLD:TAKEOVER_R)*(me.job==='realtor'?.9:1)*(has('sedan')?.9:1)*(P('realty_cool')?1.2:1)*(P('takeover_lim')?1.3:1));
+const buyPx=i=>Math.round(price(i)*(me.job==='fund'?.95:1));
+const sellPx=i=>Math.round(price(i)*(me.job==='fund'?1.05:1));
+const eduCost=n=>Math.round(n*(P('edu_aid')?.7:1));
+const shopPrice=k=>Math.round(ITEMS[k].c*(P('luxury_tax')?1.3:1));
+const taxRate=()=>P('tax_cut')?.05:P('welfare')?.15:.1;
+const depRate=()=>P('rate_up')?.04:P('rate_down')?.01:.02;
+const loanRate=()=>(P('rate_up')?.06:P('rate_down')?.02:.04)-(me.job==='fund'?.01:0);
+const avgSalary=()=>{const [lo,hi]=salRange(me.job,me.rank);return Math.round((lo+hi)/2)};
+function loanLimit(){
+  const base=avgSalary()*4+myLands().reduce((s,id)=>s+landValue(id),0)*.5+me.savings*.5;
+  return Math.max(0,Math.round(base*(P('loan_ease')?1.5:1)/10)*10);
+}
+function netWorth(){
+  let n=me.cash+me.savings-me.loan;
+  myLands().forEach(id=>n+=landValue(id));
+  me.shares.forEach((q,i)=>n+=q*price(i));
+  me.items.forEach(x=>n+=itemResale(x.k));
+  return Math.round(n);
+}
+function payNow(){
+  if(me.job==='none') return P('min_wage')?80:0;
+  const [lo,hi]=salRange(me.job,me.rank);
+  let p=lo===hi?lo:Math.round((lo+R()*(hi-lo))/10)*10;
+  if(me.job==='alba'&&P('min_wage')) p+=60;
+  return p;
+}
+function refillRolls(){
+  if(me.rolls>=MAX_ROLLS){me.rollT=Date.now();return}
+  const add=Math.floor((Date.now()-me.rollT)/ROLL_MS);
+  if(add>0){me.rolls=Math.min(MAX_ROLLS,me.rolls+add);me.rollT+=add*ROLL_MS;if(me.rolls>=MAX_ROLLS)me.rollT=Date.now()}
+}
+
+/* ================= 시험 자격 ================= */
+function reqList(jid){
+  const r=JOBS[jid].req||{},out=[];
+  if(r.edu) out.push({t:EDU[r.edu]+' 이상',ok:me.edu>=r.edu});
+  if(r.cert) out.push({t:CERTS[r.cert].n,ok:me.certs.includes(r.cert)});
+  if(r.exp) out.push({t:`경험 ${r.exp} 이상`,ok:me.exp>=r.exp});
+  if(!out.length) out.push({t:'조건 없음',ok:true});
+  return out;
+}
+const eligible=jid=>reqList(jid).every(x=>x.ok);
+function passRate(jid){
+  const j=JOBS[jid],r=j.req||{};
+  const p=j.pass+(me.fails[jid]||0)*(jid==='civil'?.08:.05)+Math.max(0,me.exp-(r.exp||0))*.03+Math.max(0,me.edu-(r.edu||0))*.04+(P('fair_exam')?.08:0)+(has('suit')?.05:0);
+  return Math.min(.9,p);
+}
+
+/* ================= 저장 ================= */
+function chain(fn){saving=saving.then(fn).catch(e=>{if(e&&e.code==='quota_exceeded')addLog('동네 저장 공간이 가득 차서 저장하지 못했어요.')});return saving}
+function save(){
+  me.net=netWorth();me.updated=Date.now();me.landCount=myLands().length;
+  if(!db) me.localReg={...reg};
+  const snap=clone(me);if(db) delete snap.localReg;
+  try{localStorage.setItem('lifemarble.me',JSON.stringify({...snap,localReg:db?(me.localReg||{}):reg}));localStorage.setItem('lifemarble.log',JSON.stringify(logs.slice(0,40)))}catch(e){}
+  if(db&&myId&&me.nick) chain(()=>db.doc('players/'+myId).set(snap));
+}
+function payLedger(to,amt){
+  if(!db||!myId||to==='me'||!to||amt<=0) return;
+  myPaid[to]=(myPaid[to]||0)+amt;
+  const body={paid:{...myPaid}};chain(()=>db.doc('ledger/'+myId).set(body));
+}
+function writeElection(col,weeksObj){
+  const w=weekId(),pruned={};
+  for(const [k,v] of Object.entries(weeksObj)) if(+k>=w-2) pruned[k]=v;
+  const body={weeks:pruned};
+  if(col==='cand') cands[myId]=body; else votes[myId]=body;
+  return chain(()=>db.doc(col+'/'+myId).set(body));
+}
+function writeMarket(list){
+  const keys=Object.entries(list).sort((a,b)=>b[1].t-a[1].t).slice(0,12).map(x=>x[0]);
+  const body={list:Object.fromEntries(keys.map(k=>[k,list[k]]))};
+  markets[myId]=body;return chain(()=>db.doc('market/'+myId).set(body));
+}
+function writeBids(b){bids[myId]=b;return chain(()=>db.doc('bids/'+myId).set(b))}
+
+/* ================= 일지 ================= */
+function addLog(t){
+  const d=new Date();logs.unshift({t,at:`${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`});
+  logs=logs.slice(0,40);renderLog();
+}
+function renderLog(){
+  const ul=$('log');ul.innerHTML='';
+  for(const l of logs){const li=el('li');li.append(el('span','t',l.at),l.t);ul.append(li)}
+  if(!logs.length) ul.append(el('li','note','아직 기록이 없어요. 주사위를 굴려보세요.'));
+}
+
+/* ================= 렌더: 판·내 정보 ================= */
+function renderBoard(){
+  const board=$('board');
+  board.querySelectorAll('.cell').forEach(c=>c.remove());
+  const otherAt={};
+  for(const p of Object.values(others)){const pid=p.posId||String(p.pos||0);otherAt[pid]=(otherAt[pid]||0)+1}
+  BOARD.forEach((id,i)=>{
+    const c=CELL[id],[r,col]=pos(i);
+    const e=el('div','cell'+(i%SIDE===0?' corner':'')+(me.posId===id?' here':''));
+    e.style.gridArea=`${r}/${col}`;e.style.setProperty('--kind',K[c.k]);
+    e.append(el('div','nm',c.n));
+    const sub=el('div','sub');
+    if(c.k==='land'){
+      const o=ownerOf(id),deals=reg[id]?.deals||0;
+      if(o){
+        e.classList.add(isMine(o)?'owned-me':'owned-other');
+        e.append(el('div','bld',BLD[o.l]+(o.l?' '+'▮'.repeat(o.l):'')));
+        const t=isMine(o)?tollShown(id,o):tollFor(id,o);
+        sub.textContent=(isMine(o)?'내 땅':(o.nick||nameOf(o.id)))+' · '+won(t);
+        e.title=`${c.n} — ${isMine(o)?'내 땅':nameOf(o.id)+'의 땅'} · 시세 ${won(landP(id))}${deals?` (인수 ${deals}회로 상승)`:''} · 통행료 ${won(t)} · 인수가 ${won(takeoverPrice(id))}${o.l>=3?' (빌딩 2배)':''}`;
+      } else {sub.textContent=won(buyPrice(id))+(deals?` ↑${deals}`:'');e.title=`${c.n} — 빈 땅 ${won(buyPrice(id))}${deals?` (인수 ${deals}회로 상승)`:''}`}
+    } else sub.textContent=c.s||'';
+    if(c.district) e.title=(e.title?e.title+' · ':'')+`${c.district}차 확장 지구`;
+    e.append(sub);
+    const tk=el('div','tokens');
+    for(let k=0;k<Math.min(3,otherAt[id]||0);k++) tk.append(el('span','otok'));
+    if(me.posId===id) tk.append(el('span','tok'));
+    e.append(tk);board.append(e);
+  });
+  const cnt=1+Object.keys(others).length;
+  $('boardNote').textContent=`판 ${SIDE+1}×${SIDE+1} · 주민 ${cnt}명${LEVEL<EXP.length?` · ${(LEVEL+1)*10+1}명이 되면 4칸 확장`:' · 최대 크기'}`;
+}
+function renderStats(){
+  refillRolls();
+  const [lo,hi]=salRange(me.job,me.rank),off=myOffice();
+  const s=[
+    ['나이',`${me.age}세 · 생일까지 ${LAPS_PER_YEAR-me.laps%LAPS_PER_YEAR}바퀴`],['직업',title()+(off?` · ${OFFICES[off].n}`:'')],['월급',lo===hi?won(lo):`${won(lo)}~${won(hi)}`],
+    ['학력',EDU[me.edu]],['경험',me.exp+''],['가족',me.married?(`기혼(${FIN[me.finance||'joint'].n.slice(0,2)}) · 자녀 ${me.children.length}${me.preg?' · 임신 중':''}`):'미혼'],
+    ['현금',won(me.cash)],['보유 땅',`${myLands().length}/${landCap()}곳`],['소지품',me.items.length+'개']
+  ];
+  const box=$('stats');box.innerHTML='';
+  for(const [k,v] of s){const d=el('div','stat');d.append(el('div','k',k),el('div','v num',v));box.append(d)}
+  const tr=$('trait');tr.innerHTML='';tr.append(el('b','',JOBS[me.job].n+' 특징'),' '+JOBS[me.job].trait);
+  const ch=$('certs');ch.innerHTML='';
+  Object.entries(CERTS).forEach(([k,c])=>{const sp=el('span','chip'+(me.certs.includes(k)?'':' off'),c.n);sp.title=me.certs.includes(k)?'보유':'미보유 · 자격증학원 '+won(eduCost(c.c));ch.append(sp)});
+  renderFamily();
+  $('net').textContent=won(netWorth());
+  $('lives').textContent=`${me.lives}번째 인생${me.best?' · 최고 '+won(me.best):''}`;
+  const ll=$('lifeline');ll.innerHTML='';ll.append(el('b','',`${me.age}세 ${title()}`),` · 현금 ${won(me.cash)}`);
+  const pl=$('policyLine');pl.innerHTML='';
+  [...T.pol].forEach(id=>{const s=el('span','pol',ALL_POL[id].n);s.title=ALL_POL[id].d;pl.append(s)});
+  const left=me.rolls>=MAX_ROLLS?'가득':`${Math.ceil((ROLL_MS-(Date.now()-me.rollT))/60000)}분 뒤 +1`;
+  const fullMs=me.rolls>=MAX_ROLLS?0:(MAX_ROLLS-me.rolls-1)*ROLL_MS+(ROLL_MS-(Date.now()-me.rollT));
+  const fullAt=new Date(Date.now()+fullMs);
+  $('rolls').textContent=`남은 주사위 ${me.rolls}/${MAX_ROLLS} (${left}${fullMs?` · ${fullAt.getHours()}:${String(fullAt.getMinutes()).padStart(2,'0')}에 가득`:''})`;
+  renderBank();
+}
+
+function renderFamily(){
+  const f=$('family');f.innerHTML='';
+  if(!me.married){return}
+  f.append(el('div','fam-h',`${FIN[me.finance||'joint'].n} — ${FIN[me.finance||'joint'].d}`));
+  if(me.preg) f.append(el('div','fam-row',`임신 중 · 출산까지 ${Math.max(0,me.preg.due-me.laps)}바퀴`));
+  me.children.forEach((c,i)=>{
+    const a=childAge(c);
+    let t;
+    if(a<ADULT) t=`${ORD[i]||(i+1)+'째'} ${a}살 ${childStage(a)} · 양육비 ${won(childCost(a)*(me.finance==='split'?.5:1))}/바퀴`;
+    else if(a<ALLOW_END) t=`${ORD[i]||(i+1)+'째'} ${a}살 ${c.job!=null?KID_JOBS[c.job].n:'독립 준비'} · ${c.job===0?'가끔 손을 벌려요':'가끔 용돈을 보내요'}`;
+    else t=`${ORD[i]||(i+1)+'째'} ${a}살 · 자기 가정을 꾸렸어요`;
+    f.append(el('div','fam-row',t));
+  });
+}
+
+/* ================= 은행 ================= */
+function renderBank(){
+  const kv=$('bankKv');kv.innerHTML='';
+  const lim=loanLimit();
+  [['예금',won(me.savings)],['예금 이자',pct(depRate())+' / 월급날'],['대출',won(me.loan)],['대출 이자',(loanRate()*100).toFixed(0)+'% / 월급날'],
+   ['현금',won(me.cash)],['대출 한도',won(lim)],['추가 대출 가능',won(Math.max(0,lim-me.loan))],['순자산',won(netWorth())]]
+   .forEach(([k,v])=>{const d=el('div','stat');d.append(el('div','k',k),el('div','v num',v));kv.append(d)});
+  $('bankNote').textContent=P('rate_up')?'기준금리 인상 중':P('rate_down')?'기준금리 인하 중':'기준금리 보통';
+  const a=amt();
+  $('bDep').disabled=busy||!a||me.cash<a;$('bWd').disabled=busy||!a||me.savings<a;
+  $('bLoan').disabled=busy||!a||me.loan+a>lim;$('bRepay').disabled=busy||!a||me.loan<=0||me.cash<Math.min(a,me.loan);
+}
+function amt(){const v=Math.floor(Number($('amtIn').value)/10)*10;return v>0?v:0}
+function bankMsg(t){$('bankMsg').textContent=t}
+$('amtIn').addEventListener('input',renderBank);
+$('bDep').onclick=()=>{const a=amt();if(!a||me.cash<a)return;me.cash-=a;me.savings+=a;addLog(`예금 ${won(a)}`);bankMsg(`${won(a)}을 예금했어요.`);save();renderAll()};
+$('bWd').onclick=()=>{const a=amt();if(!a||me.savings<a)return;me.savings-=a;me.cash+=a;addLog(`출금 ${won(a)}`);bankMsg(`${won(a)}을 찾았어요.`);save();renderAll()};
+$('bLoan').onclick=()=>{const a=amt();if(!a||me.loan+a>loanLimit()){bankMsg(`한도를 넘어요. 지금 더 빌릴 수 있는 돈은 ${won(Math.max(0,loanLimit()-me.loan))}이에요.`);return}
+  me.loan+=a;me.cash+=a;addLog(`대출 ${won(a)} (이자 ${(loanRate()*100).toFixed(0)}%)`);bankMsg(`${won(a)}을 빌렸어요. 월급날마다 이자 ${(loanRate()*100).toFixed(0)}%가 대출에 붙어요.`);save();renderAll()};
+$('bRepay').onclick=()=>{const a=Math.min(amt(),me.loan);if(!a||me.cash<a)return;me.loan-=a;me.cash-=a;addLog(`대출 상환 ${won(a)}`);bankMsg(me.loan?`${won(a)} 갚았어요. 남은 대출 ${won(me.loan)}.`:'대출을 모두 갚았어요!');save();renderAll()};
+
+/* ================= 소지품·쇼핑·중고마켓 ================= */
+let listingFor=null;
+function renderItems(){
+  const inv=$('inv');inv.innerHTML='';
+  $('itemNote').textContent=P('luxury_tax')?'사치세 시행 중 +30%':'';
+  if(!me.items.length) inv.append(el('div','note','가진 물건이 없어요. 아래 쇼핑몰에서 사거나 중고마켓 경매에 참여해 보세요.'));
+  me.items.forEach(x=>{
+    const I=ITEMS[x.k];const d=el('div','it');
+    const ib=el('div','ib');
+    const sb=el('button','mini',`가게에 팔기 ${won(itemResale(x.k))}`);sb.disabled=busy;
+    sb.onclick=()=>{me.items=me.items.filter(y=>y.id!==x.id);me.cash+=itemResale(x.k);addLog(`${I.n}을 가게에 ${won(itemResale(x.k))}에 팔았어요`);save();renderAll()};
+    ib.append(sb);
+    if(db){const mb=el('button','mini','중고마켓에 올리기');mb.disabled=busy;mb.onclick=()=>{listingFor=listingFor===x.id?null:x.id;renderItems()};ib.append(mb)}
+    d.append(el('div','in',I.n),ib,el('div','ie',`${I.e} · 정가 ${won(I.c)}`));
+    if(listingFor===x.id){
+      const f=el('div','form');const inp=el('input');inp.type='number';inp.step='10';inp.min='10';inp.value=Math.round(I.c*.7/10)*10;inp.id='startIn';inp.setAttribute('aria-label','시작가(만 원)');
+      const go=el('button','mini','24시간 경매 시작');
+      go.onclick=()=>{const st=Math.max(10,Math.floor(Number(inp.value)/10)*10);listItem(x,st)};
+      f.append(el('span','note','시작가'),inp,el('span','note','만'),go);d.append(f);
+    }
+    inv.append(d);
+  });
+  const shop=$('shop');shop.innerHTML='';
+  Object.entries(ITEMS).forEach(([k,I])=>{
+    const d=el('div','it');const pr=shopPrice(k);
+    const b=el('button','mini',`사기 ${won(pr)}`);b.disabled=busy||me.cash<pr;
+    b.onclick=()=>{if(me.cash<pr)return;me.cash-=pr;me.items.push({k,id:Date.now().toString(36)+Math.floor(R()*1e4)});addLog(`${I.n}을 ${won(pr)}에 샀어요`);save();renderAll()};
+    const ib=el('div','ib');ib.append(b);
+    const nm=el('div','in',I.n);if(has(k)) nm.append(el('span','tag','보유'));
+    d.append(nm,ib,el('div','ie',`${I.e} · 되팔면 ${pct(I.r)}`));shop.append(d);
+  });
+  renderMarket();
+}
+function allListings(){
+  const out=[];
+  for(const [sid,m] of Object.entries(markets)) for(const [lid,L] of Object.entries((m&&m.list)||{})) out.push({sid,lid,key:`${sid}~${lid}`,...L});
+  return out;
+}
+function topBid(key,start){
+  let best=null;
+  for(const [bid,b] of Object.entries(bids)){const a=b&&b.b&&b.b[key];if(a&&a>=start&&(!best||a>best.a))best={id:bid,a}}
+  return best;
+}
+function renderMarket(){
+  const box=$('market');box.innerHTML='';
+  if(!db){box.append(el('div','note','중고마켓은 온라인으로 열었을 때 이웃들과 경매로 사고팔 수 있어요.'));return}
+  const now=Date.now();
+  const live=allListings().filter(L=>!L.closed).sort((a,b)=>a.ends-b.ends);
+  if(!live.length) box.append(el('div','note','지금 올라온 물건이 없어요. 내 소지품을 경매에 올려 보세요.'));
+  live.forEach(L=>{
+    const I=ITEMS[L.item&&L.item.k];if(!I) return;
+    const tb=topBid(L.key,L.start),ended=now>=L.ends,mine=L.sid===ME();
+    const d=el('div','it');
+    const nm=el('div','in',I.n);nm.append(el('span','tag'+(L.ends-now<36e5&&!ended?' hot':''),ended?'마감':untilMs(L.ends-now)+' 남음'));
+    const ib=el('div','ib');
+    const minNext=tb?Math.ceil(tb.a*1.05/10)*10:L.start;
+    if(!mine&&!ended){
+      const f=el('div','form');f.style.gridColumn='auto';
+      const inp=el('input');inp.type='number';inp.step='10';inp.value=minNext;inp.setAttribute('aria-label',`${I.n} 입찰가(만 원)`);inp.id='bid-'+L.key;
+      const bb=el('button','mini','입찰');
+      bb.onclick=async()=>{
+        const a=Math.floor(Number(inp.value)/10)*10;
+        if(a<minNext){inp.value=minNext;return}
+        if(me.cash+me.savings<a){addLog(`입찰 실패: ${won(a)}을 낼 돈(현금+예금)이 부족해요`);return}
+        const b=clone(bids[myId]||{b:{},won:{}});b.b=b.b||{};b.won=b.won||{};b.b[L.key]=a;
+        await writeBids(b);addLog(`${nameOf(L.sid)}의 ${I.n}에 ${won(a)} 입찰`);renderItems();
+      };
+      f.append(inp,bb);ib.append(f);
+    }
+    d.append(nm,ib);
+    const myBid=bids[myId]&&bids[myId].b&&bids[myId].b[L.key];
+    d.append(el('div','ie',`판매자 ${nameOf(L.sid)}${mine?' (나)':''} · 시작가 ${won(L.start)} · ${tb?`최고 ${won(tb.a)} (${tb.id===ME()?'나':nameOf(tb.id)})`:'입찰 없음'}${myBid&&!mine?` · 내 입찰 ${won(myBid)}`:''} · ${I.e}${ended&&tb&&tb.id===ME()?' · 낙찰! 곧 정산돼요':''}`));
+    box.append(d);
+  });
+}
+async function listItem(x,start){
+  if(!db) return;
+  const list=clone((markets[myId]&&markets[myId].list)||{});
+  const lid=Date.now().toString(36);
+  list[lid]={item:{k:x.k,id:x.id},start,t:Date.now(),ends:Date.now()+AUCTION_MS};
+  me.items=me.items.filter(y=>y.id!==x.id);listingFor=null;
+  await writeMarket(list);addLog(`${ITEMS[x.k].n}을 시작가 ${won(start)}에 중고마켓에 올렸어요 (24시간)`);save();renderAll();
+}
+/* 경매 정산: 낙찰자는 대금을 내고 물건을 받고, 판매자는 팔렸거나 유찰된 물건을 정리 */
+let settlingMarket=false;
+async function settleMarket(){
+  if(!db||!gotMarket||!gotBids||busy||settlingMarket) return;
+  settlingMarket=true;
+  try{
+    const now=Date.now();let changed=false;
+    const myB=clone(bids[myId]||{b:{},won:{}});myB.b=myB.b||{};myB.won=myB.won||{};
+    let bidsChanged=false;
+    for(const L of allListings()){
+      if(L.closed||now<L.ends||L.sid===ME()) continue;
+      const tb=topBid(L.key,L.start);
+      if(tb&&tb.id===ME()&&!myB.won[L.key]){
+        me.cash-=tb.a;payLedger(L.sid,tb.a);
+        me.items.push({k:L.item.k,id:L.item.id+'b'});
+        myB.won[L.key]=true;bidsChanged=true;changed=true;
+        addLog(`경매 낙찰! ${nameOf(L.sid)}의 ${ITEMS[L.item.k].n}을 ${won(tb.a)}에 샀어요`);
+      }
+    }
+    const list=clone((markets[myId]&&markets[myId].list)||{});let listChanged=false;
+    for(const [lid,L] of Object.entries(list)){
+      if(L.closed||now<L.ends) continue;
+      const key=`${myId}~${lid}`,tb=topBid(key,L.start);
+      if(!tb){L.closed='unsold';me.items.push(L.item);listChanged=true;changed=true;addLog(`${ITEMS[L.item.k].n} 경매가 유찰돼서 돌려받았어요`)}
+      else if(bids[tb.id]&&bids[tb.id].won&&bids[tb.id].won[key]){L.closed='sold';L.price=tb.a;listChanged=true;addLog(`${ITEMS[L.item.k].n}이 ${won(tb.a)}에 팔렸어요 (대금은 장부로 들어와요)`)}
+      else if(now>L.ends+CLAIM_DAYS*864e5){L.closed='unsold';me.items.push(L.item);listChanged=true;changed=true;addLog(`${ITEMS[L.item.k].n} 낙찰자가 ${CLAIM_DAYS}일 동안 오지 않아 물건을 돌려받았어요`)}
+    }
+    const known=new Set(allListings().filter(L=>!L.closed).map(L=>L.key));
+    for(const k of Object.keys(myB.b)) if(!known.has(k)&&!myB.won[k]){delete myB.b[k];bidsChanged=true}
+    for(const k of Object.keys(myB.won)) if(!allListings().some(L=>L.key===k&&!L.closed)){delete myB.won[k];delete myB.b[k];bidsChanged=true}
+    if(bidsChanged) await writeBids(myB);
+    if(listChanged) await writeMarket(list);
+    if(changed){await ensureCash();save();renderAll()}
+  } finally {settlingMarket=false}
+}
+
+/* ================= 렌더: 직업·주식·랭킹 ================= */
+function renderJobs(){
+  const box=$('jobs');box.innerHTML='';
+  ['alba',...EXAM_JOBS].forEach(jid=>{
+    const j=JOBS[jid];const d=el('div','job'+(me.job===jid?' cur':''));
+    d.append(el('div','jn',j.n+(me.job===jid?' (현재)':'')),el('div','js num',salText(jid)),el('div','jt',j.trait));
+    const jr=el('div','jr');
+    if(jid==='alba') jr.append(el('span','note','직장 칸에서 바로 구할 수 있어요 (백수일 때)'));
+    else{reqList(jid).forEach(x=>jr.append(el('span','req '+(x.ok?'ok':'no'),x.t)));jr.append(el('span','note',`합격률 ${pct(passRate(jid))} · 응시료 ${won(j.fee)}${me.fails[jid]?` · 낙방 ${me.fails[jid]}회`:''}`))}
+    d.append(jr);box.append(d);
+  });
+}
+function spark(h){
+  if(h.length<2) return '';
+  const mn=Math.min(...h),mx=Math.max(...h),sp=mx-mn||1;
+  const xy=h.map((v,i)=>[(i/(h.length-1)*60+2).toFixed(1),(19-(v-mn)/sp*16).toFixed(1)]);
+  const up=h[h.length-1]>=h[0],last=xy[xy.length-1];
+  return `<svg class="spark" viewBox="0 0 64 22" aria-hidden="true"><polyline points="${xy.map(p=>p.join(',')).join(' ')}" fill="none" stroke="var(${up?'--up':'--down'})" stroke-width="1.5"/><circle cx="${last[0]}" cy="${last[1]}" r="2" fill="var(${up?'--up':'--down'})"/></svg>`;
+}
+function renderStocks(){
+  advanceMarket();
+  const box=$('stocks');box.innerHTML='';
+  STOCKS.forEach((s,i)=>{
+    const p=price(i),pv=prevPrice(i),ch=pv?((p-pv)/pv*100):0,bp=buyPx(i),sp=sellPx(i);
+    const row=el('div','row');
+    row.innerHTML=`<div><div class="n"></div><div class="h"></div></div>${spark(walk.hist[i])}
+      <div class="px"><div class="num">${won(p)}</div><div class="chg num ${ch>0?'up':ch<0?'down':''}">${ch>0?'▲':ch<0?'▼':''}${Math.abs(ch).toFixed(1)}%</div></div>
+      <div class="trade"><button class="mini">사기</button><button class="mini">팔기</button></div>`;
+    row.querySelector('.n').textContent=s.n;
+    row.querySelector('.h').textContent=me.shares[i]?`${me.shares[i]}주 보유 · ${won(me.shares[i]*p)}`:'보유 없음';
+    const [bb,sb]=row.querySelectorAll('.mini');
+    bb.disabled=busy||me.cash<bp;sb.disabled=busy||!me.shares[i];
+    bb.setAttribute('aria-label',`${s.n} 1주 사기 ${won(bp)}`);sb.setAttribute('aria-label',`${s.n} 1주 팔기 ${won(sp)}`);
+    bb.onclick=()=>{if(me.cash<bp)return;me.cash-=bp;me.shares[i]++;addLog(`${s.n} 1주 매수 (${won(bp)})`);save();renderAll()};
+    sb.onclick=()=>{if(!me.shares[i])return;me.cash+=sp;me.shares[i]--;addLog(`${s.n} 1주 매도 (${won(sp)})`);save();renderAll()};
+    box.append(row);
+  });
+}
+let names={};
+async function loadNames(ids){
+  if(!user||!user.profiles) return;
+  const need=ids.filter(x=>x&&x!=='me'&&!(x in names));
+  if(!need.length) return;
+  try{const ps=await user.profiles(need);for(const id of need)names[id]=(ps[id]&&ps[id].name)||''}catch(e){}
+}
+function nameOf(id){
+  if(id===ME()) return me.nick||names[id]||'나';
+  const p=others[id]||{};return p.nick||names[id]||'이웃 주민';
+}
+async function renderRank(){
+  const list=[{id:ME(),net:netWorth(),age:me.age,t:title(me),best:me.best}];
+  for(const [id,p0] of Object.entries(others)){const p=normalize(clone(p0));list.push({id,net:p0.net||0,age:p.age,t:title(p),best:p.best||0})}
+  list.sort((a,b)=>b.net-a.net);
+  await loadNames(list.map(x=>x.id));
+  const ol=$('rank');ol.innerHTML='';
+  list.slice(0,10).forEach((x,i)=>{
+    const mine=x.id===ME();const li=el('li',mine?'me':'');
+    const mid=el('div','');mid.style.minWidth='0';mid.append(el('div','who',nameOf(x.id)+(mine?' (나)':'')),el('div','meta',`${x.age||20}세 ${x.t}${x.best?' · 최고 '+won(x.best):''}`));
+    li.append(el('span','num',String(i+1)),mid,el('span','num',won(x.net)));ol.append(li);
+  });
+  $('rankNote').textContent=db?`주민 ${list.length}명`:'혼자 하기 모드';
+}
+
+/* ================= 선거 패널 ================= */
+function candEligible(off){
+  const o=OFFICES[off];
+  return [{t:`${o.age}세 이상`,ok:me.age>=o.age},{t:`순자산 ${won(o.net)} 이상`,ok:netWorth()>=o.net},{t:`기탁금 ${won(o.fee)}`,ok:me.cash>=o.fee}];
+}
+async function renderElection(){
+  const box=$('election');box.innerHTML='';
+  const w=weekId();$('weekNote').textContent=weekLabel(w);
+  if(!db){box.append(el('div','note','선거는 온라인으로 열었을 때 이웃들과 함께 진행돼요. 매주 월요일 0시에 개표하고, 당선자는 그 주 동안 정책을 펼쳐요.'));return}
+  const ids=new Set(Object.keys(cands));T.pres.concat(T.mp).forEach(x=>ids.add(x.id));
+  await loadNames([...ids]);
+  box.innerHTML='';
+  const s1=el('div','el-sec');s1.append(el('div','el-h',`이번 주 임기 (${weekLabel(T.w)} 선거 결과)`));
+  const off=el('div','office');
+  const addRole=(role,list,set)=>{
+    if(!list.length){off.append(el('span','role',role),el('span','note','당선자 없음'));return}
+    list.forEach(x=>{
+      off.append(el('span','role',role),el('span','',`${nameOf(x.id)}${x.id===ME()?' (나)':''} · 득표 ${pct(x.share)}`));
+      const p=cands[x.id].weeks[T.w].policy;
+      off.append(el('span','pol-d',p&&set[p]?`${set[p].n} — ${set[p].d}`:'정책을 아직 고르지 않았어요'));
+    });
+  };
+  addRole('대통령',T.pres,PRES_POL);addRole('국회의원',T.mp,MP_LAW);s1.append(off);
+  const mo=myOffice();
+  if(mo&&!cands[myId].weeks[T.w].policy){
+    const set=mo==='pres'?PRES_POL:MP_LAW;
+    s1.append(el('div','el-h',mo==='pres'?'대통령으로서 이번 주 정책을 하나 고르세요. 모든 주민에게 적용돼요.':'국회의원으로서 이번 주 통과시킬 법안을 하나 고르세요.'));
+    const pk=el('div','picks');
+    Object.entries(set).forEach(([k,v])=>{const b=el('button','mini',v.n);b.title=v.d;b.onclick=async()=>{
+      const weeks=clone(cands[myId].weeks);weeks[T.w].policy=k;
+      await writeElection('cand',weeks);addLog(`${OFFICES[mo].n}으로서 「${v.n}」을 시행했어요`);refreshTerm();renderAll()};pk.append(b)});
+    s1.append(pk);
+  }
+  box.append(s1);
+  const res=results(w);
+  const s2=el('div','el-sec');
+  s2.append(el('div','el-h',`이번 주 선거 · 개표까지 ${untilMs(MON0+(w+1)*WEEK-Date.now())} · 당선자는 다음 주 임기`));
+  const myVote=(votes[myId]&&votes[myId].weeks&&votes[myId].weeks[w])||{};
+  const myCand=cands[myId]&&cands[myId].weeks&&cands[myId].weeks[w];
+  for(const offk of ['pres','mp']){
+    const O=OFFICES[offk];
+    s2.append(el('div','el-h',`${O.n} (${O.seats}명 선출) · 총 ${res[offk+'Total']}표`));
+    if(!res[offk].length) s2.append(el('div','note','아직 출마한 주민이 없어요.'));
+    res[offk].forEach(x=>{
+      const r=el('div','cand');
+      const left=el('div','');left.append(el('div','cn',`${nameOf(x.id)}${x.id===ME()?' (나)':''}`));
+      const p=x.id===ME()?me:others[x.id];
+      left.append(el('div','pct',p?`${p.age}세 ${title(normalize(clone(p)))}`:''));
+      const bw=el('div','');const bar=el('div','bar');const fill=el('i');fill.style.width=pct(x.share);bar.append(fill);bw.append(bar,el('div','pct',`${x.v}표 · ${pct(x.share)}`));
+      const vb=el('button','mini',myVote[offk]===x.id?'투표함':'투표');vb.disabled=myVote[offk]===x.id;
+      vb.onclick=async()=>{
+        const weeks=clone((votes[myId]&&votes[myId].weeks)||{});weeks[w]={...(weeks[w]||{}),[offk]:x.id};
+        await writeElection('vote',weeks);addLog(`${O.n} 선거에서 ${nameOf(x.id)}에게 투표했어요`);renderElection()};
+      r.append(left,bw,vb);s2.append(r);
+    });
+  }
+  if(myCand) s2.append(el('div','note',`이번 주 ${OFFICES[myCand.office].n} 후보로 출마했어요. 기탁금 ${won(myCand.fee)} — 득표율 15% 이상 전액, 10~15% 절반을 돌려받아요.`));
+  else{
+    s2.append(el('div','el-h','출마하기 — 당선되면 다음 주 정책 결정권과 월급날 수당(대통령 400만·국회의원 200만)'));
+    const pk=el('div','picks');
+    for(const offk of ['pres','mp']){
+      const O=OFFICES[offk],req=candEligible(offk),ok=req.every(x=>x.ok);
+      const wrap=el('div','');
+      const b=el('button','btn'+(ok?' primary':''),`${O.n} 출마 (${won(O.fee)})`);b.disabled=!ok||busy;
+      b.onclick=async()=>{
+        if(!candEligible(offk).every(x=>x.ok))return;
+        me.cash-=O.fee;
+        const weeks=clone((cands[myId]&&cands[myId].weeks)||{});weeks[w]={office:offk,fee:O.fee,t:Date.now(),refunded:false};
+        await writeElection('cand',weeks);addLog(`${O.n} 선거에 출마했어요 (기탁금 ${won(O.fee)})`);save();renderAll();
+      };
+      const rl=el('div','req-line');req.forEach(x=>rl.append(el('span','req '+(x.ok?'ok':'no'),x.t)));
+      wrap.append(b,rl);pk.append(wrap);
+    }
+    s2.append(pk);
+  }
+  box.append(s2);
+}
+async function settleElections(){
+  if(!db||!gotCands||!gotVotes||!cands[myId]) return;
+  const w=weekId(),weeks=clone(cands[myId].weeks||{});let changed=false;
+  for(const [k,c] of Object.entries(weeks)){
+    if(+k>=w||c.refunded) continue;
+    const res=results(+k),x=res[c.office].find(y=>y.id===myId),share=x?x.share:0;
+    const back=share>=.15?c.fee:share>=.1?Math.round(c.fee/2):0;
+    c.refunded=true;changed=true;if(back) me.cash+=back;
+    addLog(`${weekLabel(+k)} ${OFFICES[c.office].n} 선거: 득표 ${pct(share)}${x&&x.won?' — 당선!':' — 낙선'} · 기탁금 ${back?won(back)+' 반환':'반환 없음'}`);
+  }
+  if(changed){await writeElection('cand',weeks);save();renderAll()}
+}
+
+function renderAll(){renderBoard();renderStats();renderItems();renderElection();renderJobs();renderStocks();renderRank()}
+
+/* ================= 선택지 ================= */
+function setMsg(t){$('msg').textContent=t}
+function choose(text,opts){
+  setMsg(text);
+  return new Promise(res=>{
+    const a=$('actions');a.innerHTML='';
+    opts.forEach(o=>{const b=el('button','btn'+(o.primary?' primary':''),o.label);b.disabled=!!o.disabled;b.onclick=()=>{a.innerHTML='';res(o.v)};a.append(b)});
+    a.querySelector('button:not(:disabled)')?.focus({preventScroll:true});
+  });
+}
+function idleActions(){
+  const a=$('actions');a.innerHTML='';
+  const b=el('button','btn primary','주사위 굴리기');b.id='rollBtn';b.disabled=busy||me.rolls<1;b.onclick=roll;a.append(b);
+  const er=el('button','btn','조기 은퇴');er.disabled=busy;er.onclick=earlyRetire;a.append(er);
+}
+
+/* ================= 돈 ================= */
+function gain(n,why){me.cash+=n;if(why)addLog(`${why} +${won(n)}`)}
+function spend(n,why){me.cash-=n;if(why)addLog(`${why} -${won(n)}`)}
+function lucky(n,why){const g=Math.round(n*(me.job==='tuber'?2:1)*(has('necklace')?1.3:1));gain(g,why+(g!==n?' (보너스 적용)':''));return g}
+async function releaseLand(id){const r=reg[id];await writeLand(id,ME(),{owner:null,l:0,p:r.p||CELL[id].p,deals:r.deals||0,t:Date.now()})}
+async function ensureCash(){
+  if(me.cash>=0) return true;
+  if(me.savings>0){const t=Math.min(me.savings,-me.cash);me.savings-=t;me.cash+=t;addLog(`돈이 모자라 예금 ${won(t)}을 깼어요`)}
+  if(me.cash<0){const room=loanLimit()-me.loan;if(room>0){const t=Math.min(room,Math.ceil(-me.cash/10)*10);me.loan+=t;me.cash+=t;addLog(`돈이 모자라 은행에서 ${won(t)}을 자동 대출했어요`)}}
+  for(let i=0;i<STOCKS.length&&me.cash<0;i++) while(me.shares[i]>0&&me.cash<0){me.shares[i]--;me.cash+=price(i)}
+  while(me.cash<0&&me.items.length){me.items.sort((a,b)=>itemResale(a.k)-itemResale(b.k));const x=me.items.shift();me.cash+=itemResale(x.k);addLog(`${ITEMS[x.k].n}을 급하게 ${won(itemResale(x.k))}에 팔았어요`)}
+  for(const id of myLands().sort((a,b)=>landValue(a)-landValue(b))){if(me.cash>=0)break;
+    const v=Math.round(landValue(id)*.7);await releaseLand(id);me.cash+=v;addLog(`${CELL[id].n} 땅을 급매로 ${won(v)}에 팔았어요`)}
+  return me.cash>=0;
+}
+
+/* ================= 월급날 ================= */
+function payday(){
+  me.laps++;
+  let bday='';
+  if(me.laps%LAPS_PER_YEAR===0){me.age++;bday=` · ${me.age}세 생일!`}
+  const pay=payNow(),joint=me.married&&me.finance!=='split',split=me.married&&me.finance==='split';
+  const inc=pay+(joint?160:0);
+  let cost=40+(myLands().length?0:60)+(me.preg?30:0);
+  let famCost=0,allow=0;const famNotes=[];
+  me.children.forEach((c,i)=>{
+    const a=childAge(c);
+    if(a<ADULT){famCost+=childCost(a);return}
+    if(a>=ALLOW_END) return;
+    if(c.job==null){c.job=pickKidJob();famNotes.push(`${ORD[i]}가 스무 살이 되어 ${KID_JOBS[c.job].n}이 됐어요`)}
+    const J=KID_JOBS[c.job];
+    if(c.job===0){if(R()<.2){allow-=50;famNotes.push(`백수 ${ORD[i]}가 용돈을 달래요 -50만`)}}
+    else if(R()<.35){const v=Math.round((J.lo+R()*(J.hi-J.lo))/10)*10;if(v>0){allow+=v;famNotes.push(`${J.n} ${ORD[i]}가 용돈 ${won(v)}을 보냈어요`)}}
+  });
+  if(split){cost=Math.round(cost/2);famCost=Math.round(famCost/2)}
+  if(P('welfare')) cost=Math.round(cost/2);
+  me.cash-=famCost;me.cash+=allow;
+  const it=Math.floor(me.savings*depRate());me.savings+=it;
+  const li=Math.round(me.loan*loanRate());me.loan+=li;
+  me.cash+=inc-cost;
+  if(me.job!=='none'&&me.exp<10) me.exp++;
+  let extra='';
+  if(me.job==='office'&&R()<.2){const b=Math.round(pay/2);me.cash+=b;extra+=`, 성과급 ${won(b)}`}
+  if(me.job==='dev'){me.shares[1]++;extra+=', 스톡옵션 마을전자 1주'}
+  if(has('yacht')){me.cash+=250;extra+=', 요트 대여 +250만'}
+  const lv=myLands().reduce((s,id)=>s+landValue(id),0);
+  if(lv){const ht=Math.round(lv*HOLD_TAX);me.cash-=ht;extra+=`, 보유세 ${won(ht)}`}
+  const mo=myOffice();if(mo){me.cash+=OFFICES[mo].pay;extra+=`, ${OFFICES[mo].n} 수당 ${won(OFFICES[mo].pay)}`}
+  if(me.preg&&me.laps>=me.preg.due) giveBirth();
+  famNotes.forEach(n=>addLog(n));
+  addLog(`월급날 ${me.laps}바퀴째${bday} — 수입 ${won(inc)}${joint?'(배우자 포함)':''}, 생활비 ${won(cost)}${famCost?`, 양육비 ${won(famCost)}`:''}${split?'(반반)':''}${myLands().length?'':'(월세 포함)'}${it?`, 예금이자 +${won(it)}`:''}${li?`, 대출이자 ${won(li)} 누적`:''}${extra}`);
+}
+
+function giveBirth(){
+  const cost=P('birth')?0:150;
+  const twins=R()<.08&&me.children.length<MAX_KIDS+1;
+  const n=twins?2:1;
+  for(let k=0;k<n;k++) me.children.push({born:me.laps});
+  me.preg=null;
+  me.cash-=Math.round(cost*(me.finance==='split'?.5:1));
+  if(P('birth')) me.cash+=200;
+  const ord=me.children.length;
+  addLog(twins?`쌍둥이가 태어났어요! (${ORD[ord-2]}·${ORD[ord-1]}) 출산비 ${won(cost)}`:`${ORD[ord-1]}가 태어났어요! 출산비 ${won(cost)}${P('birth')?', 출산 축하금 +200만':''}`);
+}
+
+/* ================= 황금열쇠 ================= */
+const KEYS=[
+ ()=>`복권 4등 당첨! +${won(lucky(200,'황금열쇠: 동네 복권 당첨'))}`,
+ ()=>{spend(60,'황금열쇠: 과속 딱지');return '과속 딱지… -60만'},
+ ()=>{spend(50,'황금열쇠: 친구 결혼식 축의금');return '친구 결혼식 축의금 -50만'},
+ ()=>me.job==='none'?`중고거래 대박 +${won(lucky(100,'황금열쇠: 중고거래'))}`:`연말 보너스 +${won(lucky(Math.max(80,avgSalary()),'황금열쇠: 연말 보너스'))}`,
+ ()=>{
+   if(me.job==='civil') return '구조조정 소문이 돌았지만 공무원은 끄떡없어요';
+   if(me.job==='none') return '구조조정 뉴스를 봤어요. 아직 다닐 회사가 없네요';
+   if(me.rank>0&&R()<.5){me.rank--;addLog(`황금열쇠: 구조조정으로 ${title()}(으)로 강등`);return `구조조정… ${title()}(으)로 강등됐어요`}
+   if(me.rank===0&&me.job!=='alba'&&R()<.25){const was=JOBS[me.job].n;me.job='none';addLog(`황금열쇠: ${was} 일자리를 잃었어요`);return `회사가 어려워져 ${was} 일을 잃었어요… 다시 시험을 보세요`}
+   return '구조조정 소문이 돌았지만 무사했어요';
+ },
+ ()=>{const ad=adults().filter(c=>c.job!==0).length;if(ad) return `다 큰 자식들이 효도 여행을 보내줬어요 +${won(lucky(ad*120,'황금열쇠: 자녀 효도'))}`;
+   if(minors().length){const f=Math.round(80*(me.finance==='split'?.5:1));spend(f,'황금열쇠: 아이 학원비 추가');return `아이 학원비가 올랐어요 -${won(f)}`}
+   spend(40,'황금열쇠: 부모님 용돈');return '부모님 용돈 드리기 -40만'},
+ ()=>{if(me.married&&me.finance!=='split'){const f=Math.round(60+R()*140);spend(f,'황금열쇠: 배우자 충동구매');return `공동 통장에서 배우자가 충동구매를 했어요 -${won(f)}`}
+   if(me.married){gain(50,'황금열쇠: 배우자가 밥 샀어요');return '각자 관리라 배우자가 데이트 비용을 냈어요 +50만'}
+   return `소개팅 커피값 -${won((spend(20),20))}`},
+ ()=>`동네 상품권 당첨 +${won(lucky(100,'황금열쇠: 상품권'))}`,
+ ()=>{const i=Math.floor(R()*STOCKS.length);const q=me.job==='tuber'?4:2;me.shares[i]+=q;addLog(`황금열쇠: ${STOCKS[i].n} ${q}주 받음`);return `지인이 ${STOCKS[i].n} ${q}주를 줬어요`},
+ ()=>{if(me.job==='doctor')return '감기 기운이 있었지만 직접 처방했어요 (병원비 면제)';const d=Math.round(me.cash*.05);if(d>0){spend(d,'황금열쇠: 병원비');return `감기로 병원비 -${won(d)}`}return '감기에 걸렸지만 금방 나았어요'},
+ ()=>{if(me.exp<10)me.exp++;addLog('황금열쇠: 봉사활동으로 경험 +1');return '주말 봉사활동! 경험 +1'},
+ ()=>{if(me.items.length){const x=me.items[Math.floor(R()*me.items.length)];const f=Math.round(ITEMS[x.k].c*.05);spend(f,`황금열쇠: ${ITEMS[x.k].n} 수리비`);return `${ITEMS[x.k].n}이 고장났어요. 수리비 -${won(f)}`}return `길에서 지갑을 주워 돌려줬어요. 사례금 +${won(lucky(30,'황금열쇠: 사례금'))}`},
+];
+
+/* ================= 칸 효과 ================= */
+async function resolve(id){
+  const c=CELL[id];
+  if(c.k==='pay'){gain(Math.round(avgSalary()*.5),'월급날 칸 보너스');setMsg('월급날 칸에 멈췄어요. 보너스로 반 달치 더!');return}
+  if(c.k==='land') return landCell(id);
+  if(c.k==='key'){setMsg('황금열쇠 — '+KEYS[Math.floor(R()*KEYS.length)]());return}
+  if(c.k==='work') return workCell();
+  if(c.k==='academy') return academyCell();
+  if(c.k==='intern'){
+    const g=me.job==='alba'?2:1,pay=has('bike')?60:30;me.exp=Math.min(10,me.exp+g);gain(pay,`인턴십 활동비 (경험 +${g})`);
+    setMsg(`인턴십으로 경험 +${g}! (지금 경험 ${me.exp}) 활동비 +${won(pay)}`);return;
+  }
+  if(c.k==='exam') return examCell();
+  if(c.k==='school'){
+    if(me.edu>=EDU.length-1){gain(50,'후배 특강료');setMsg('더 배울 게 없어요. 후배 특강료 +50만');return}
+    const cost=eduCost(EDU_COST[me.edu]);
+    const v=await choose(`${EDU[me.edu+1]} 과정에 등록할까요? 학비 ${won(cost)}${P('edu_aid')?' (교육비 지원)':''} — 회사원·의사·변호사 조건이 열려요`,[{label:'등록',v:1,primary:true,disabled:me.cash<cost},{label:'안 함',v:0}]);
+    if(v){spend(cost);me.edu++;addLog(`${EDU[me.edu]} (학비 ${won(cost)})`);setMsg(`${EDU[me.edu]}이 되었어요!`)} else setMsg('공부는 다음에.');
+    return;
+  }
+  if(c.k==='bank'){
+    const b=Math.floor(me.savings*.05);if(b)gain(b,'은행 칸 예금 보너스');
+    const half=Math.floor(me.cash/2/10)*10;
+    const v=await choose(`은행이에요.${b?` 예금 보너스 +${won(b)}.`:''} 현금 절반(${won(half)})을 예금할까요? 예금 이자 ${pct(depRate())}${me.loan?` · 남은 대출 ${won(me.loan)}`:''}`,[
+      {label:'예금하기',v:'dep',primary:true,disabled:half<=0},
+      {label:`대출 갚기 ${won(Math.min(me.loan,Math.max(0,me.cash)))}`,v:'repay',disabled:!me.loan||me.cash<=0},
+      {label:'그냥 나가기',v:0}]);
+    if(v==='dep'){me.cash-=half;me.savings+=half;addLog(`예금 ${won(half)}`);setMsg('예금했어요. 월급날마다 이자가 붙어요.')}
+    else if(v==='repay'){const a=Math.min(me.loan,me.cash);me.loan-=a;me.cash-=a;addLog(`대출 상환 ${won(a)}`);setMsg(me.loan?`${won(a)} 갚았어요.`:'대출을 모두 갚았어요!')}
+    else setMsg('은행을 나왔어요.');
+    return;
+  }
+  if(c.k==='wed'){
+    if(me.married){
+      if(!has('bag')) spend(50,'결혼기념일 선물');
+      const cur=me.finance||'joint',other=cur==='joint'?'split':'joint';
+      const v=await choose(`결혼기념일이에요.${has('bag')?' 명품가방 덕분에 선물은 생략!':' 선물 -50만.'} 지금은 「${FIN[cur].n}」이에요. 돈 관리 방식을 바꿀까요?`,[{label:`${FIN[other].n}로 바꾸기`,v:1},{label:'그대로',v:0,primary:true}]);
+      if(v){me.finance=other;addLog(`돈 관리를 ${FIN[other].n}로 바꿨어요`);setMsg(`${FIN[other].n}로 바꿨어요. ${FIN[other].d}`)} else setMsg('지금 방식 그대로 가기로 했어요.');
+      return;
+    }
+    if(me.job==='none'||me.job==='alba'){setMsg('번듯한 직업을 얻으면 결혼할 수 있어요.');return}
+    const cost=Math.round((P('wed_aid')?200:400)*(has('bag')?.5:1));
+    const v=await choose(`예식장이에요. 결혼할까요? 비용 ${won(cost)} · 이후 월급날마다 배우자 수입 +160만`,[{label:'결혼하기',v:1,primary:true,disabled:me.cash<cost},{label:'아직은',v:0}]);
+    if(!v){setMsg('결혼은 조금 더 생각해 보기로.');return}
+    spend(cost);me.married=true;addLog(`결혼했어요! (예식 비용 ${won(cost)})`);
+    const f=await choose('결혼 축하해요! 신혼 돈 관리는 어떻게 할까요? (결혼기념일마다 바꿀 수 있어요)',[
+      {label:'공동 관리',v:'joint',primary:true},{label:'각자 관리',v:'split'}]);
+    me.finance=f;
+    if(f==='joint'){const d=Math.round((300+R()*700)/10)*10;gain(d,'배우자가 모은 돈 합치기');setMsg(`공동 관리로 시작해요. 배우자가 모은 돈 ${won(d)}이 합쳐졌어요. 월급날마다 배우자 수입 160만이 들어와요.`)}
+    else setMsg('각자 관리로 시작해요. 생활비와 양육비를 반씩 나눠 내요.');
+    return;
+  }
+  if(c.k==='baby'){
+    if(!me.married){spend(20,'친구 출산 선물');setMsg('친구 출산 선물 -20만');return}
+    if(me.preg){gain(30,'정기검진 바우처');setMsg(`정기검진을 받았어요. 출산까지 ${Math.max(0,me.preg.due-me.laps)}바퀴 남았어요. (바우처 +30만)`);return}
+    if(me.children.length>=MAX_KIDS){gain(80,'아이들 재롱잔치 상금');setMsg('아이들 재롱잔치 상금 +80만');return}
+    const cost=P('birth')?0:150;
+    const v=await choose(`아이를 가질까요? ${PREG_LAPS}바퀴 뒤 월급날에 태어나요. 출산비 ${won(cost)}${P('birth')?' (출산 장려 정책, 축하금 +200만)':''} · 임신 중 생활비 +30만, 태어나면 스무 살까지 양육비(50→70→100만), 이후엔 가끔 용돈이 와요.`,[{label:'임신하기',v:1,primary:true},{label:'다음에',v:0}]);
+    if(v){me.preg={due:me.laps+PREG_LAPS};addLog(`임신했어요! ${PREG_LAPS}바퀴 뒤 출산 예정`);setMsg(`축하해요, 임신이에요! ${PREG_LAPS}바퀴 뒤 월급날에 아기가 태어나요.`)} else setMsg('지금은 둘이서 행복하게.');
+    return;
+  }
+  if(c.k==='stock'){const k=Math.floor(R()*STOCKS.length);me.shares[k]++;addLog(`증권사 이벤트: ${STOCKS[k].n} 1주`);setMsg(`증권사 계좌 개설 이벤트! ${STOCKS[k].n} 1주를 받았어요.`);return}
+  if(c.k==='night'){
+    if(me.job==='none'){setMsg('야근할 회사가 없어요. 대신 푹 잤어요.');return}
+    const dr=me.job==='doctor';
+    const g=Math.max(20,Math.round(avgSalary()*.3*(dr?2:1)));gain(g,'야근 수당');
+    const free=P('no_night')||has('car');
+    const used=free?0:Math.min(me.rolls,dr?2:1);me.rolls-=used;
+    setMsg(`야근했어요. 수당 +${won(g)}${used?`, 대신 주사위 ${used}개를 썼어요.`:` (${has('car')?'차로 퇴근해서':'야근 제한법 덕분에'} 주사위는 그대로)`}`);return;
+  }
+  if(c.k==='tax'){
+    const rate=taxRate()*(me.job==='lawyer'?.5:1);
+    const t=Math.max(0,Math.round(me.cash*rate));spend(t,`세무서 세금 ${pct(rate)}`);setMsg(`세금을 냈어요 -${won(t)} (세율 ${pct(rate)})`);return;
+  }
+}
+async function workCell(){
+  if(me.job==='none'){me.job='alba';me.rank=0;addLog('알바를 구했어요');setMsg('편의점 알바를 구했어요! 정식 직업은 스펙을 쌓아 시험장에서 도전하세요.');return}
+  if(me.job==='alba'){gain(40,'알바 주휴수당');setMsg('알바는 승진이 없어요. 시험장에서 직업 시험을 보세요. (주휴수당 +40만)');return}
+  const j=JOBS[me.job];
+  if(me.rank>=j.titles.length-1){const b=Math.round(avgSalary()*.3);gain(b,`${j.titles[me.rank]} 특별상여`);setMsg(`최고 직급 ${j.titles[me.rank]}! 특별상여 +${won(b)}`);return}
+  const pr=Math.min(.9,.3+me.edu*.07+me.exp*.03+(me.job==='civil'?.15:0)+(has('watch')?.1:0));
+  const v=await choose(`${j.n} 승진 심사를 볼까요? ${j.titles[me.rank]} → ${j.titles[me.rank+1]}, 성공 확률 ${pct(pr)}`,[{label:'도전',v:1,primary:true},{label:'다음에',v:0}]);
+  if(!v){setMsg('이번엔 조용히 일만 했어요.');return}
+  if(R()<pr){me.rank++;addLog(`${title()}(으)로 승진!`);setMsg(`승진 성공! 이제 ${title()}, 월급 ${won(avgSalary())}`)}
+  else setMsg('아쉽게 승진에서 떨어졌어요.');
+}
+async function academyCell(){
+  const left=Object.entries(CERTS).filter(([k])=>!me.certs.includes(k));
+  if(!left.length){gain(60,'학원 강사 알바');setMsg('자격증을 다 땄어요. 학원 강사 알바 +60만');return}
+  const v=await choose(`자격증학원이에요. 어떤 자격증을 딸까요?${P('edu_aid')?' (교육비 지원 30% 할인 중)':''}`,[
+    ...left.map(([k,c])=>({label:`${c.n} ${won(eduCost(c.c))}`,v:k,disabled:me.cash<eduCost(c.c)})),{label:'안 함',v:0}]);
+  if(!v){setMsg('구경만 하고 나왔어요.');return}
+  const cost=eduCost(CERTS[v].c);spend(cost);me.certs.push(v);
+  const opens=EXAM_JOBS.filter(j=>JOBS[j].req&&JOBS[j].req.cert===v).map(j=>JOBS[j].n);
+  addLog(`${CERTS[v].n} 취득 (${won(cost)})`);
+  setMsg(`${CERTS[v].n} 취득! ${opens.length?opens.join('·')+' 시험 조건에 한 걸음 가까워졌어요.':''}`);
+}
+async function examCell(){
+  const opts=EXAM_JOBS.filter(j=>j!==me.job&&eligible(j));
+  if(!opts.length){
+    const near=EXAM_JOBS.filter(j=>j!==me.job).map(j=>({j,miss:reqList(j).filter(x=>!x.ok)})).sort((a,b)=>a.miss.length-b.miss.length)[0];
+    setMsg(`응시할 수 있는 시험이 없어요. 가까운 목표: ${JOBS[near.j].n} — ${near.miss.map(x=>x.t).join(', ')} 필요`);return;
+  }
+  const v=await choose(`시험장이에요. 어떤 시험을 볼까요?${me.job!=='none'&&me.job!=='alba'?` 붙으면 ${JOBS[me.job].n}을 그만두고 새로 시작해요.`:''}`,[
+    ...opts.map(j=>({label:`${JOBS[j].n} ${pct(passRate(j))}`,v:j,disabled:me.cash<JOBS[j].fee})),{label:'안 봄',v:0}]);
+  if(!v){setMsg('이번엔 시험을 보지 않았어요.');return}
+  const j=JOBS[v],pr=passRate(v);spend(j.fee);
+  setMsg(`${j.n} 시험 채점 중…`);
+  for(let k=0;k<3;k++){$('d1').textContent='✎';$('d2').textContent=['?','…','!'][k];await sleep(260)}
+  if(R()<pr){
+    me.job=v;me.rank=0;addLog(`${j.n} 시험 합격! (응시료 ${won(j.fee)}, ${me.fails[v]?`${me.fails[v]+1}수 끝에`:'한 번에'})`);delete me.fails[v];
+    setMsg(`합격! 오늘부터 ${title()}. 월급 ${salText(v)} — ${j.trait}`);
+  } else {
+    me.fails[v]=(me.fails[v]||0)+1;addLog(`${j.n} 시험 불합격 (${me.fails[v]}회째, 응시료 ${won(j.fee)})`);
+    setMsg(`아쉽게 불합격… 다음엔 합격률이 ${pct(passRate(v))}로 올라가요.`);
+  }
+}
+async function landCell(id){
+  const c=CELL[id],o=ownerOf(id),r=reg[id]||{p:c.p,deals:0},full=myLands().length>=landCap();
+  if(!o){
+    const p=buyPrice(id);
+    if(full){setMsg(`${c.n}이 비어 있지만 이미 땅을 ${landCap()}곳 가지고 있어요. 한도 때문에 살 수 없어요.`);return}
+    const v=await choose(`${c.n} 땅이 비어 있어요. ${won(p)}에 살까요?${firstHome()?' (청년 첫 집 30% 할인)':''}${r.deals?` (인수 ${r.deals}회로 시세 상승)`:''}`,[{label:'사기',v:1,primary:true,disabled:me.cash<p},{label:'지나가기',v:0}]);
+    if(!v){setMsg('구경만 하고 지나갔어요.');return}
+    const ok=await writeLand(id,null,{owner:ME(),l:0,p:r.p||c.p,deals:r.deals||0,t:Date.now()});
+    if(!ok){setMsg('한발 늦었어요. 다른 이웃이 먼저 샀어요.');return}
+    spend(p);addLog(`${c.n} 땅을 ${won(p)}에 샀어요`);setMsg(`${c.n}은 이제 내 땅! 이웃이 밟으면 통행료가 들어와요.`);return;
+  }
+  if(isMine(o)){
+    if(o.l>=3){gain(Math.round(landP(id)*TOLL[3]*.3),`${c.n} 빌딩 임대료`);setMsg('내 빌딩이에요. 임대료가 들어왔어요.');return}
+    const cost=buildCost(id);
+    const v=await choose(`내 땅 ${c.n}. ${won(cost)}으로 ${BLD[o.l+1]}을 올릴까요? 통행료 ${won(tollShown(id,o))} → ${won(tollShown(id,{...o,l:o.l+1}))}${o.l+1===3?' · 빌딩은 인수가가 2배로 뛰어요':''}`,[{label:'건설',v:1,primary:true,disabled:me.cash<cost},{label:'그대로',v:0}]);
+    if(!v){setMsg('이번엔 그대로 두었어요.');return}
+    const ok=await writeLand(id,ME(),{...reg[id],l:o.l+1});
+    if(!ok){setMsg('토지대장 처리가 겹쳤어요. 다음에 다시 시도하세요.');return}
+    spend(cost);addLog(`${c.n}에 ${BLD[o.l+1]} 건설 (${won(cost)})`);setMsg(`${BLD[o.l+1]} 완공!`);return;
+  }
+  const t=tollFor(id,o),who=nameOf(o.id);
+  if(t===0) setMsg(`${who}의 ${c.n}이지만 셰프는 음식 거리 통행료가 면제예요.`);
+  else{
+    spend(t,`${who}의 ${c.n} 통행료`);payLedger(o.id,t);
+    const why=[c.food&&o.job==='chef'?'주인이 셰프라 1.5배':'',me.job==='lawyer'?'변호사 10% 할인':'',P('realty_cool')?'부동산 규제 -20%':'',P('realty_boom')?'부동산 부양 +20%':''].filter(Boolean).join(', ');
+    setMsg(`${who}의 ${c.n}(${BLD[o.l]}) 통행료 -${won(t)}${why?` (${why})`:''}`);
+  }
+  const tp=takeoverPrice(id);
+  if(full||me.cash<tp) return;
+  await sleep(500);
+  const v=await choose(`${c.n}을 인수할까요? 인수가 ${won(tp)} (땅+건물 가치의 ${o.l>=3?'2':'1.3'}배, ${who}에게 지급). 인수하면 시세가 15% 올라요.`,[{label:'인수하기',v:1,primary:true},{label:'그냥 가기',v:0}]);
+  if(!v){setMsg('인수는 하지 않았어요.');return}
+  const ok=await writeLand(id,o.id,{owner:ME(),l:o.l,p:Math.round(landP(id)*INFLATE),deals:(r.deals||0)+1,t:Date.now()});
+  if(!ok){setMsg('그사이 주인이 바뀌었어요. 인수하지 못했어요.');return}
+  spend(tp,`${who}의 ${c.n} 인수`);payLedger(o.id,tp);
+  setMsg(`${c.n} 인수 완료! 시세가 ${won(landP(id))}으로 올랐어요.`);
+}
+
+/* ================= 턴 ================= */
+async function roll(){
+  if(busy) return;
+  refillRolls();
+  if(me.rolls<1){setMsg(`주사위가 다 떨어졌어요. ${ROLL_MS/60000}분마다 하나씩, 최대 ${MAX_ROLLS}개까지 채워져요.`);return}
+  busy=true;me.rolls--;renderStats();renderStocks();renderItems();$('actions').innerHTML='';
+  for(let k=0;k<6;k++){$('d1').textContent=1+Math.floor(R()*6);$('d2').textContent=1+Math.floor(R()*6);await sleep(55)}
+  const a=1+Math.floor(R()*6),b=1+Math.floor(R()*6);
+  $('d1').textContent=a;$('d2').textContent=b;setMsg(`${a+b}칸 이동`);
+  let idx=Math.max(0,BOARD.indexOf(me.posId));
+  for(let s=0;s<a+b;s++){
+    idx=(idx+1)%BOARD.length;me.posId=BOARD[idx];
+    if(idx===0) payday();
+    renderBoard();renderStats();await sleep(110);
+  }
+  await resolve(me.posId);
+  if(!(await ensureCash())){busy=false;return endLife('파산')}
+  if(me.age>=RETIRE){busy=false;return endLife('은퇴')}
+  busy=false;save();renderAll();idleActions();
+}
+async function earlyRetire(){
+  if(busy) return;busy=true;renderAll();
+  const pen=me.job==='civil'&&me.age>=PENSION_AGE;
+  const v=await choose(`${me.age}세에 조기 은퇴할까요? 지금 순자산 ${won(netWorth()+(pen?1500:0))}이 이번 인생 기록으로 남고, 땅은 동네에 돌아가요.${me.job==='civil'&&!pen?` 공무원연금은 ${PENSION_AGE}세부터라 받을 수 없어요.`:''}`,[{label:'은퇴하기',v:1,primary:true},{label:'계속 살기',v:0}]);
+  busy=false;
+  if(v) return endLife('조기 은퇴');
+  setMsg('조금 더 살아보기로 했어요.');renderAll();idleActions();
+}
+async function endLife(why){
+  let pension=0;const retired=why!=='파산';
+  if(retired&&me.job==='civil'&&me.age>=PENSION_AGE){pension=1500;me.cash+=pension;addLog('공무원연금 +1,500만')}
+  const score=retired?netWorth():0,wasBest=score>(me.best||0);
+  me.best=Math.max(me.best||0,score);
+  me.lastLife={why,score,age:me.age,job:me.job,rank:me.rank,kids:me.children.length,at:Date.now()};
+  addLog(retired?`${me.age}세 ${title()}(으)로 ${why}! 최종 순자산 ${won(score)}`:`${me.age}세에 파산… 이번 인생 점수 0`);
+  for(const id of myLands()) await releaseLand(id);
+  save();renderAll();
+  await choose(retired
+    ?`${me.age}세, ${title()}(으)로 ${why}했어요.${pension?' 공무원연금 1,500만 포함,':''} 최종 순자산 ${won(score)}${wasBest?' — 최고 기록!':''} 땅은 동네에 돌아갔어요.`
+    :'빚을 감당하지 못해 파산했어요. 땅과 물건은 모두 정리됐어요.',[{label:'새 인생 시작',v:1,primary:true}]);
+  const lives=(me.lives||1)+1;me=freshLife(me);me.lives=lives;
+  addLog(`${me.lives}번째 인생 시작 — 스무 살 고졸 백수, 현금 600만`);
+  setMsg('새 인생이 시작됐어요. 이번엔 어떤 직업에 도전할까요?');
+  save();renderAll();idleActions();
+}
+
+$('nickBtn').onclick=async()=>{
+  const n=$('nickIn').value.trim();
+  if(n===me.nick) return;
+  if(!db){me.nick=n.slice(0,12);addLog(`닉네임을 "${me.nick}"(으)로 정했어요`);save();renderAll();return}
+  const r=await claimNick(n);
+  if(r!=='ok'){$('nickIn').value=me.nick||'';addLog(r);return}
+  addLog(`닉네임을 "${me.nick}"(으)로 바꿨어요`);renderAll();
+};
+$('nickIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('nickBtn').click()});
+
+/* ================= 온라인 동기화 ================= */
+async function reclaimIdle(){
+  if(!db||!gotPlayers||!regReady||busy) return;
+  const cut=Date.now()-IDLE_DAYS*864e5;
+  for(const id of ALL_LAND){
+    const r=reg[id];if(!r||!r.owner||r.owner===myId) continue;
+    const p=others[r.owner];
+    if(p&&(p.updated||0)>=cut) continue;
+    if(!p&&(r.t||0)>=cut) continue;
+    const ok=await writeLand(id,r.owner,{owner:null,l:0,p:r.p||CELL[id].p,deals:r.deals||0,t:Date.now()});
+    if(ok) addLog(`${CELL[id].n}: 주인이 ${IDLE_DAYS}일 넘게 안 보여서 동네가 환수했어요.`);
+  }
+  renderBoard();
+}
+function onPlayers(snap){
+  const o={};snap.docs.forEach(d=>{if(d.id!==myId&&d.exists){const p=d.data();if(p.board28)o[d.id]=p}});
+  others=o;gotPlayers=true;
+  const L=levelFor(1+Object.keys(o).length);
+  if(L>LEVEL){const prev=LEVEL;buildBoard(L);if(regReady)addLog(`주민이 늘어 동네가 ${L}차 확장됐어요! 새 땅 ${EXP.slice(prev,L).flat().filter(c=>c.k==='land').map(c=>c.n).join('·')}`)}
+  reclaimIdle();
+  if(!busy){renderBoard();renderRank();renderElection();renderMarket()}
+}
+function onLands(snap){
+  const before=regReady?myLands():null;
+  const n={};snap.docs.forEach(d=>{if(d.exists)n[d.id]=d.data()});reg=n;
+  if(before) for(const id of before){const r=reg[id];if(r&&r.owner&&r.owner!==ME()) addLog(`${CELL[id].n}이 ${nameOf(r.owner)}에게 인수됐어요. 인수 대금은 장부로 곧 들어와요.`)}
+  if(!regReady){regReady=true;migrateLands().then(()=>{save();reclaimIdle()})}
+  if(!busy){renderBoard();renderStats()}
+}
+async function migrateLands(){
+  if(!me.lands||!Object.keys(me.lands).length){delete me.lands;return}
+  for(const [id,l] of Object.entries(me.lands)){
+    const c=CELL[id];if(!c||c.k!=='land') continue;
+    if((!reg[id]||!reg[id].owner)&&myLands().length<landCap()) await writeLand(id,null,{owner:myId,l:l.l||0,p:c.p,deals:0,t:l.t||Date.now()});
+    else me.cash+=c.p+(l.l||0)*Math.round(c.p*BUILD_R);
+  }
+  delete me.lands;addLog('땅 기록을 동네 토지대장으로 옮겼어요');save();renderAll();
+}
+function onLedgers(snap){
+  let total=0;
+  snap.docs.forEach(d=>{if(!d.exists)return;const p=d.data().paid||{};if(d.id===myId)myPaid={...p};else total+=Number(p[myId])||0});
+  if(total>me.collected){
+    const diff=total-me.collected;me.collected=total;me.cash+=diff;
+    addLog(`이웃들에게서 통행료·인수·경매 대금이 들어왔어요 +${won(diff)}`);
+    if(!busy){save();renderStats();renderRank()}
+  } else if(total<me.collected) me.collected=total;
+}
+const docsOf=snap=>{const n={};snap.docs.forEach(d=>{if(d.exists)n[d.id]=d.data()});return n};
+function onCands(snap){cands=docsOf(snap);gotCands=true;refreshTerm();settleElections();if(!busy)renderAll()}
+function onVotes(snap){votes=docsOf(snap);gotVotes=true;refreshTerm();settleElections();if(!busy){renderElection();renderStats()}}
+function onMarket(snap){markets=docsOf(snap);gotMarket=true;settleMarket();if(!busy)renderItems()}
+function onBids(snap){bids=docsOf(snap);gotBids=true;settleMarket();if(!busy)renderItems()}
+
+async function boot(){
+  buildBoard(0);
+  let stored=null;
+  try{const s=localStorage.getItem('lifemarble.me');if(s)stored=JSON.parse(s);logs=JSON.parse(localStorage.getItem('lifemarble.log')||'[]')}catch(e){}
+  me=normalize({...freshLife(),...(stored||{})});
+  reg={...me.localReg};
+  if(me.lands){for(const [id,l] of Object.entries(me.lands)) if(CELL[id]&&CELL[id].k==='land'&&!reg[id]) reg[id]={owner:'me',l:l.l||0,p:CELL[id].p,deals:0,t:l.t||Date.now()};delete me.lands}
+  $('nickIn').value=me.nick||'';$('mode').textContent='혼자 하기 · 이 브라우저에 저장';
+  refreshTerm();renderAll();renderLog();idleActions();
+  setInterval(()=>{if(busy)return;renderStats();renderStocks();const rb=$('rollBtn');if(rb)rb.disabled=me.rolls<1;
+    if(weekId()-1!==T.w){refreshTerm();settleElections();renderAll()}
+    settleMarket();renderMarket()},30000);
+
+  startOnline();
+}
+
+/* ================= 로그인·온라인 (Firebase) ================= */
+let FS=null, AUTH=null;
+const NICK_RE=/^[가-힣A-Za-z0-9_]{2,12}$/;
+function makeDb(fs){
+  const wrap=s=>({id:s.id,exists:s.exists,data:()=>s.data()});
+  return {
+    doc:p=>({get:async()=>wrap(await fs.doc(p).get()),set:d=>fs.doc(p).set(d),onSnapshot:(n,e)=>fs.doc(p).onSnapshot(s=>n(wrap(s)),e)}),
+    collection:p=>({onSnapshot:(n,e)=>fs.collection(p).onSnapshot(s=>n({docs:s.docs.map(wrap)}),e)}),
+  };
+}
+async function claimNick(n){
+  if(!NICK_RE.test(n)) return '닉네임은 한글·영문·숫자·_ 로 2~12자여야 해요.';
+  const old=me.nick;
+  try{
+    await FS.runTransaction(async tx=>{
+      const ref=FS.doc('nicknames/'+n);const cur=await tx.get(ref);
+      if(cur.exists&&cur.data().uid!==myId) throw new Error('taken');
+      tx.set(ref,{uid:myId,t:Date.now()});
+      if(old&&old!==n&&NICK_RE.test(old)) tx.delete(FS.doc('nicknames/'+old));
+    });
+  }catch(e){return e.message==='taken'?`"${n}"은 이미 다른 주민이 쓰고 있어요.`:'닉네임 저장에 실패했어요. 잠시 뒤 다시 해보세요.'}
+  me.nick=n;save();return 'ok';
+}
+const AUTH_MSG={
+  'auth/email-already-in-use':'이미 가입된 이메일이에요. 로그인해 주세요.',
+  'auth/invalid-email':'이메일 형식이 올바르지 않아요.',
+  'auth/weak-password':'비밀번호는 6자 이상으로 해주세요.',
+  'auth/wrong-password':'이메일이나 비밀번호가 맞지 않아요.',
+  'auth/invalid-credential':'이메일이나 비밀번호가 맞지 않아요.',
+  'auth/invalid-login-credentials':'이메일이나 비밀번호가 맞지 않아요.',
+  'auth/user-not-found':'가입되지 않은 이메일이에요.',
+  'auth/too-many-requests':'시도가 너무 많아요. 잠시 뒤 다시 해보세요.',
+  'auth/popup-closed-by-user':'구글 로그인 창이 닫혔어요.',
+  'auth/network-request-failed':'인터넷 연결을 확인해 주세요.',
+  'auth/unauthorized-domain':'이 주소가 Firebase 승인 도메인에 없어요. 설정 가이드 4단계를 확인하세요.',
+};
+const authErr=e=>AUTH_MSG[e&&e.code]||('로그인에 실패했어요. ('+((e&&e.code)||'unknown')+')');
+function showAuth(view){
+  $('auth').hidden=false;
+  ['login','signup','nick'].forEach(v=>$('auth-'+v).hidden=v!==view);
+  $('authMsg').textContent='';
+  const f=$('auth-'+view).querySelector('input');if(f)setTimeout(()=>f.focus(),50);
+}
+function hideAuth(){$('auth').hidden=true}
+function authMsg(t,ok){const m=$('authMsg');m.textContent=t;m.className='auth-msg'+(ok?' ok':'')}
+function wireAuth(){
+  $('goSignup').onclick=()=>showAuth('signup');
+  $('goLogin').onclick=()=>showAuth('login');
+  $('soloBtn').onclick=()=>{hideAuth();$('mode').textContent='혼자 하기 · 로그인하면 이웃과 함께해요';$('loginBtn').hidden=false};
+  $('loginBtn').onclick=()=>showAuth('login');
+  $('loginForm').onsubmit=async e=>{e.preventDefault();
+    try{await AUTH.signInWithEmailAndPassword($('liEmail').value.trim(),$('liPw').value)}catch(err){authMsg(authErr(err))}};
+  $('signupForm').onsubmit=async e=>{e.preventDefault();
+    if($('suPw').value!==$('suPw2').value){authMsg('비밀번호 확인이 달라요.');return}
+    try{await AUTH.createUserWithEmailAndPassword($('suEmail').value.trim(),$('suPw').value)}catch(err){authMsg(authErr(err))}};
+  const google=async()=>{
+    const p=new firebase.auth.GoogleAuthProvider();
+    try{await AUTH.signInWithPopup(p)}catch(err){
+      if(err&&(err.code==='auth/popup-blocked'||err.code==='auth/operation-not-supported-in-this-environment')){try{await AUTH.signInWithRedirect(p)}catch(e2){authMsg(authErr(e2))}}
+      else authMsg(authErr(err));
+    }};
+  $('googleBtn').onclick=google;$('googleBtn2').onclick=google;
+  $('resetBtn').onclick=async()=>{
+    const em=$('liEmail').value.trim();if(!em){authMsg('비밀번호를 찾을 이메일을 먼저 적어주세요.');return}
+    try{await AUTH.sendPasswordResetEmail(em);authMsg('비밀번호 재설정 메일을 보냈어요. 메일함을 확인하세요.',true)}catch(err){authMsg(authErr(err))}};
+  $('nickForm').onsubmit=async e=>{e.preventDefault();
+    const r=await claimNick($('regNick').value.trim());
+    if(r!=='ok'){authMsg(r);return}
+    hideAuth();addLog(`주민 등록 완료! "${me.nick}"님, 보실이네에 오신 걸 환영해요`);$('nickIn').value=me.nick;renderAll();idleActions();};
+  $('logoutBtn').onclick=async()=>{try{await AUTH.signOut()}catch(e){}location.reload()};
+}
+let subscribed=false;
+async function startOnline(){
+  wireAuth();
+  const cfg=window.FIREBASE_CONFIG;
+  if(!window.firebase||!cfg||!cfg.apiKey||/여기/.test(cfg.apiKey)){
+    $('mode').textContent='혼자 하기 · 온라인 설정 전 (firebase-config.js)';return;
+  }
+  try{firebase.initializeApp(cfg);AUTH=firebase.auth();FS=firebase.firestore();AUTH.languageCode='ko'}catch(e){$('mode').textContent='Firebase 설정을 확인해 주세요';return}
+  $('mode').textContent='로그인 확인 중…';
+  AUTH.onAuthStateChanged(async u=>{
+    if(!u){db=null;myId=null;showAuth('login');$('mode').textContent='로그인이 필요해요';$('logoutBtn').hidden=true;return}
+    myId=u.uid;db=makeDb(FS);
+    $('who').textContent=u.email||'구글 계정';$('logoutBtn').hidden=false;$('loginBtn').hidden=true;
+    try{
+      const snap=await db.doc('players/'+myId).get();
+      me=snap.exists?normalize({...freshLife(),...clone(snap.data())}):freshLife();
+      if(!snap.exists){me.collected=0;logs=[];renderLog()}
+      reg={};
+    }catch(e){authMsg('저장소에 연결하지 못했어요. 보안 규칙 설정을 확인하세요.');db=null;return}
+    $('nickIn').value=me.nick||'';$('mode').textContent='온라인 · 이웃들과 땅·선거·경매·랭킹 공유';
+    if(!me.nick){showAuth('nick');$('regNick').value=''} else hideAuth();
+    if(!subscribed){
+      subscribed=true;
+      db.collection('players').onSnapshot(onPlayers,()=>{});
+      db.collection('lands').onSnapshot(onLands,()=>{});
+      db.collection('ledger').onSnapshot(onLedgers,()=>{});
+      db.collection('cand').onSnapshot(onCands,()=>{});
+      db.collection('vote').onSnapshot(onVotes,()=>{});
+      db.collection('market').onSnapshot(onMarket,()=>{});
+      db.collection('bids').onSnapshot(onBids,()=>{});
+    }
+    if(me.nick) save();
+    renderAll();idleActions();
+  });
+}
+
+boot();
+})();
+
+</script>
+</body>
+</html>
