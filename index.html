@@ -285,7 +285,7 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 .die.pips{display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:14%;gap:6%;place-items:center}
 .die.pips i{width:72%;aspect-ratio:1;border-radius:50%}
 .die.pips i.on{background:var(--ink)}
-.die.rolling{animation:dieRoll .42s linear infinite}
+.die.rolling{animation:dieRoll .5s cubic-bezier(.3,.6,.5,1) infinite}
 @keyframes dieRoll{0%{transform:rotate(0) translateY(0)}25%{transform:rotate(90deg) translateY(-6px)}50%{transform:rotate(180deg) translateY(0)}75%{transform:rotate(270deg) translateY(-4px)}100%{transform:rotate(360deg)}}
 .die.dbl{border-color:var(--gold);box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 45%,transparent);animation:dblPop .5s ease}
 @keyframes dblPop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
@@ -321,7 +321,14 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 .sky span{position:absolute;opacity:.45;animation:skyFall 10s linear infinite}
 @keyframes skyFall{0%{transform:translateY(-20px) rotate(0)}100%{transform:translateY(60px) rotate(40deg)}}
 @media (prefers-reduced-motion: reduce){.sky span{animation:none}}
+.myshops{margin:.6em 0}.ms-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:.35em 0;border-bottom:1px solid var(--line,#ddd);font-size:.9em}.ms-row span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ms-row .mini{flex:none}
 </style>
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
 </head>
@@ -1489,7 +1496,7 @@ function noise(t0,d,v=.12,hp=1500){
 }
 const notes=(arr,step,o)=>arr.forEach((f,i)=>f&&tone(f,i*step,step*1.6,o));
 const SND={
-  roll(){for(let i=0;i<5;i++)noise(i*.06,.05,.18,900)},
+  roll(){let t=0;DICE_GAP.forEach(g=>{noise(t,.045,.16,900);t+=g/1000})},
   step(){tone(880,0,.05,{type:'triangle',v:.07})},
   coin(){tone(988,0,.08,{type:'square',v:.06});tone(1319,.07,.18,{type:'square',v:.06})},
   lose(){tone(440,0,.25,{type:'triangle',v:.12,to:220})},
@@ -1519,14 +1526,15 @@ function setDie(id,n){
   const d=$(id);d.innerHTML='';d.classList.add('pips');d.setAttribute('aria-label',`주사위 ${n}`);
   for(let i=0;i<9;i++){const s=el('i');if(PIPS[n].includes(i))s.className='on';d.append(s)}
 }
+const DICE_GAP=[50,55,60,65,70,75,80,90,100,110,120,135,150,170,195,225,260]; // 합 약 1.9초 (+화면 처리 ≈ 2초)
 async function animDice(a,b){
   sfx('roll');
   const d1=$('d1'),d2=$('d2');d1.classList.remove('dbl');d2.classList.remove('dbl');
   if(!FX_RM){d1.classList.add('rolling');d2.classList.add('rolling')}
   const wait=ms=>new Promise(r=>setTimeout(r,ms)); // 움직임 줄이기 설정이어도 굴림은 보이게
-  for(let k=0;k<8;k++){setDie('d1',1+Math.floor(Math.random()*6));setDie('d2',1+Math.floor(Math.random()*6));
+  for(let k=0;k<DICE_GAP.length;k++){setDie('d1',1+Math.floor(Math.random()*6));setDie('d2',1+Math.floor(Math.random()*6));
     if(FX_RM){const y=k%2?'0':'-4px';d1.style.transform=`translateY(${y})`;d2.style.transform=`translateY(${k%2?'-4px':'0'})`}
-    await wait(70)}
+    await wait(DICE_GAP[k])}
   d1.style.transform=d2.style.transform='';d1.classList.remove('rolling');d2.classList.remove('rolling');
   setDie('d1',a);setDie('d2',b);
   if(a===b){d1.classList.add('dbl');d2.classList.add('dbl');sfx('dbl');buzz(30)}
@@ -1821,11 +1829,14 @@ async function shopCell(id){
   }
   if(isMine(o)){
     const B=BIZ[o.biz];
-    if(o.l>=3){const g=Math.round(shopRevenue(id,o)*.3);gain(g,`${c.n} 빌딩 임대료`);setMsg(`내 빌딩이에요. 세입자들이 임대료를 냈어요 +${won(g)}`);return}
+    if(o.l>=3){const g=Math.round(shopRevenue(id,o)*.3);gain(g,`${c.n} 빌딩 임대료`);
+      const v=await choose(`내 빌딩이에요. 세입자들이 임대료를 냈어요 +${won(g)}`,[{label:'그대로 두기',v:0,primary:true},{label:`빌딩 팔기 (급매 ${won(sellPrice(id))})`,v:'sell'}]);
+      if(v==='sell') return sellShop(id,true);setMsg(`건물주의 여유. 임대료 +${won(g)}`);return}
     const cost=buildCost(id),rc=Math.round(landP(id)*.3);
     const v=await choose(`내 ${B.n}(${SHOP_L[o.l]}). 손님이 들르면 ${won(shopRevenue(id,o))}. 어떻게 할까요?`,[
       {label:`${SHOP_L[o.l+1]}로 키우기 ${won(cost)}`,v:'up',primary:true,disabled:me.cash<cost},
-      {label:`업종 바꾸기 ${won(rc)}`,v:'biz',disabled:me.cash<rc},{label:'그대로',v:0}]);
+      {label:`업종 바꾸기 ${won(rc)}`,v:'biz',disabled:me.cash<rc},{label:`가게 팔기 (급매 ${won(sellPrice(id))})`,v:'sell'},{label:'그대로',v:0}]);
+    if(v==='sell') return sellShop(id,true);
     if(v==='up'){const ok=await writeShop(id,ME(),{...shops[id],l:o.l+1});if(!ok){setMsg('계약이 꼬였어요. 다음에 다시 해 보세요.');return}
       spend(cost,`${c.n} ${SHOP_L[o.l+1]} 공사`);track('build');setMsg(`${SHOP_L[o.l+1]} 완공! 매출이 ${won(shopRevenue(id,{...o,l:o.l+1}))}로 올랐어요.`);
       if(o.l+1===3){story(`${c.n}에 빌딩을 세움`);postNews(`${dynName()}님이 ${c.n}에 빌딩을 올렸어요. 건물주 탄생!`)}return}
@@ -2230,7 +2241,17 @@ async function ensureCash(){
   if(me.cash<0&&me.home.type==='own'){const v=Math.round(housePrice(me.home.tier)*.9);me.cash+=v;addLog(`집을 급매로 팔았어요 +${won(v)}`);me.home={type:'rent',tier:'oneroom',mul:1}}
   return me.cash>=0;
 }
-async function auctionShop(id){const r=shops[id];await writeShop(id,ME(),{owner:null,l:0,biz:null,p:r.p||CELL[id].p,deals:r.deals||0,t:Date.now(),sale:{until:Date.now()+12*36e5,price:Math.round(shopValue(id)*.7)}})}
+async function auctionShop(id){const r=shops[id];return await writeShop(id,ME(),{owner:null,l:0,biz:null,p:r.p||CELL[id].p,deals:r.deals||0,t:Date.now(),sale:{until:Date.now()+12*36e5,price:Math.round(landP(id)*.7)}})}
+const sellPrice=id=>Math.round(shopValue(id)*.7);
+async function sellShop(id,fromCell){ // 내 가게 급매: 시세의 70%를 바로 받고, 가게는 12시간 경매 매물로
+  if(!fromCell&&busy) return;const o=ownerOf(id);if(!o||!isMine(o)) return;
+  const v=sellPrice(id),B=BIZ[o.biz];if(!fromCell)busy=true;
+  const ok=await auctionShop(id);
+  if(ok){gain(v,`${CELL[id].n} ${B.n} 급매`);story(`${CELL[id].n} ${B.n} 정리`);postNews(`${dynName()}님이 ${CELL[id].n} ${B.n}을(를) 급매로 내놨어요. 12시간 경매 중!`);
+    setMsg(`${CELL[id].n} ${B.n}을(를) 정리했어요 +${won(v)}. 가게는 12시간 동안 경매 매물로 나가요.`)}
+  else setMsg('계약이 꼬였어요. 잠시 후 다시 해 보세요.');
+  if(!fromCell){busy=false;save();renderAll();idleActions()}
+}
 async function releaseShop(id){const r=shops[id];await writeShop(id,ME(),{owner:null,l:0,biz:null,p:r.p||CELL[id].p,deals:r.deals||0,t:Date.now()})}
 
 /* ---------------- 턴 ---------------- */
@@ -2459,6 +2480,12 @@ function renderStats(){
     ['나이',`${me.age}세`],['직업',title()+(off?` · ${OFFICES[off].n}`:'')],['월급',lo===hi?won(lo):`${won(lo)}~${won(hi)}`],
     ['학력',EDU[me.edu]],['경험',me.exp+''],['집',`${HOME_TYPE[me.home.type]} ${HOUSE[me.home.tier].n}`],
     ['현금',won(me.cash)],['가게',`${myShops().length}/${shopCap()}곳`],['가문',`${me.gen}대`]]);
+  let ms=$('myShopList');if(!ms){ms=el('div','myshops');ms.id='myShopList';$('stats').after(ms)}
+  ms.innerHTML='';const mine=myShops();
+  if(mine.length){ms.append(el('div','fam-h','내 가게'));
+    for(const id of mine){const o=ownerOf(id);const row=el('div','ms-row');
+      row.append(el('span','',`${BIZ_EMO[o.biz]||'🏪'}${LV_EMO[o.l]||''} ${CELL[id].n} ${BIZ[o.biz].n} · ${SHOP_L[o.l]} · 가치 ${won(shopValue(id))}`));
+      const b=el('button','mini',`급매 ${won(sellPrice(id))}`);b.type='button';b.disabled=busy;twoStep(b,()=>sellShop(id),'한 번 더 누르면 판매');row.append(b);ms.append(row)}}
   const tr=$('trait');tr.innerHTML='';tr.append(el('b','',JOBS[me.job].n+' 특징'),' '+JOBS[me.job].trait);
   const info=promoInfo();
   if(info&&!info.top){const pr=el('div','promo');const val=info.kind==='tenure'?info.tenure:info.val,need=info.kind==='tenure'?info.min:info.need;
