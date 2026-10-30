@@ -344,6 +344,8 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 </head>
 <body>
 <header>
@@ -673,31 +675,31 @@ const JOBS={
   alba:{n:'알바생',titles:['알바생'],sal:[120],trait:'인턴십 칸에서 경험을 2씩 쌓아요. 승진은 없어요.'},
   office:{n:'회사원',titles:['사원','대리','과장','부장','임원'],sal:[230,320,420,550,800],req:{edu:2},pass:.6,fee:30,bank:'office',
     promo:{kind:'perf',need:[30,60,100,150],min:[6,9,12,15],test:['interview','interview','interview','interview'],seat:2},
-    trait:'월급날마다 평가 점수가 쌓이고, 야근·자기계발로 더 올라요. 점수가 차면 직장 칸에서 승진 면접을 봐요. 임원 자리는 동네에 2개.'},
+    trait:'👍 무난한 월급, 성과급(20%), 진입 쉬움. 👎 구조조정 위험(월급날 1%, 위로금 받고 퇴사). 승진: 평가 점수+면접, 보통 난이도. 임원 자리는 동네에 2개.'},
   civil:{n:'공무원',titles:['9급','7급','5급','국장'],sal:[200,280,380,520],req:{},pass:.22,fee:20,bank:'civil',
     promo:{kind:'tenure',need:[0,0,0],min:[12,18,24],test:[null,'civil','civil'],seat:1},
-    trait:'해고·강등이 없고 근속하면 호봉이 올라요(9급→7급 자동). 5급·국장은 승진시험. 50세 이후 은퇴하면 연금 1,500만. 붙기 어려워요(낙방할수록 +8%p).'},
-  doctor:{n:'의사',titles:['레지던트','전문의','과장','병원장'],sal:[350,650,850,1200],req:{edu:3,exp:2},pass:.4,fee:80,bank:'doctor',
-    promo:{kind:'rep',need:[0,30,70],min:[9,12,15],test:['doctor',null,null],seat:1},
-    trait:'다치는 사건의 병원비가 면제예요. 전문의는 시험, 과장·병원장은 평판(진료할수록 상승). 병원장은 동네에 1명.'},
+    trait:'👍 해고 없음, 9급→7급 자동, 50세 이후 은퇴 연금 1,500만, 대출 이자 0.5%p 할인. 👎 월급 낮음, 겸직 금지(가게 1곳까지), 붙기 어려움(낙방할수록 +8%p). 승진: 느리지만 확실(근속+시험).'},
+  doctor:{n:'의사',titles:['레지던트','전문의','과장','병원장'],sal:[250,650,850,1200],req:{edu:3,exp:2},pass:.4,fee:80,bank:'doctor',
+    promo:{kind:'rep',need:[0,40,90],min:[12,15,18],test:['doctor',null,null],seat:1},
+    trait:'👍 전문의부터 최고 월급, 다치는 사건 병원비 면제. 👎 레지던트 박봉·혹사, 바빠서 생활비 1.3배, 의료분쟁(월급날 4%, 월급 2배 배상), 동네에 의사가 많으면 월급↓. 승진: 가장 어렵고 오래 걸림. 병원장은 1명.'},
   lawyer:{n:'변호사',titles:['어쏘','파트너','대표변호사'],sal:[400,700,1000],req:{edu:3},pass:.35,fee:80,bank:'lawyer',
-    promo:{kind:'cases',need:[5,12],min:[6,12],test:[null,null],seat:1},
-    trait:'세금 절반, 이웃 가게 이용료 10% 할인. 직장 칸에서 재판을 맡아 승소를 쌓으면 승진. 대표변호사는 1명.'},
+    promo:{kind:'cases',need:[6,15],min:[9,15],test:[null,null],seat:1},
+    trait:'👍 높은 월급, 세금 절반, 가게 이용료 10% 할인. 👎 큰 사건 패소(월급날 6%, 승소 -1), 동네에 변호사가 많으면 월급↓. 승진: 재판 승소, 어려운 편. 대표변호사는 1명.'},
   dev:{n:'프로그래머',titles:['주니어','시니어','CTO'],sal:[280,480,750],req:{cert:'code',exp:1},pass:.55,fee:30,bank:'dev',
     promo:{kind:'proj',need:[3,8],min:[6,12],test:[null,null],seat:1},
-    trait:'월급날마다 마을전자 주식 1주(스톡옵션). 직장 칸 프로젝트(버그 찾기)를 성공시켜 승진. 실패하면 야근 지옥.'},
+    trait:'👍 월급날마다 마을전자 주식 1주(스톡옵션), 승진 빠름. 👎 야근 지옥(월급날 10%, 주사위 -2). 승진: 프로젝트(버그 찾기) 성공, 쉬운 편.'},
   chef:{n:'셰프',titles:['주방보조','요리사','오너셰프'],sal:[180,330,620],req:{cert:'cook',exp:2},pass:.6,fee:20,bank:'chef',
     promo:{kind:'stars',need:[1,2],min:[6,12],test:[null,null],own:[0,1]},
-    trait:'음식 가게 이용료 면제, 내 음식 가게 매출 1.5배. 직장 칸 요리 평가로 미슐랭 별을 모아요. 오너셰프는 음식 가게가 있어야 해요.'},
+    trait:'👍 음식 가게 이용료 면제, 내 음식 가게 매출 1.5배+별마다 20%, 음식 가게 개업 20% 할인. 👎 처음 월급 낮음. 승진: 미슐랭 별, 오너셰프는 음식 가게 필요.'},
   realtor:{n:'공인중개사',titles:['중개보조','중개사','대표'],sal:[220,350,550],req:{cert:'realty'},pass:.7,fee:30,bank:'realty',
     promo:{kind:'deals',need:[5,15],min:[6,12],test:[null,null]},
-    trait:'빈 땅 20%, 건설·권리금 10% 할인, 집 거래 수수료 면제. 가게를 1곳 더(4곳). 직장 칸에서 중개를 성사시켜 승진.'},
+    trait:'👍 빈 땅 20%·건설·권리금 10% 할인, 가게 4곳까지, 진입 쉬움. 👎 월급이 부동산 경기(집값 지수)를 따라 오르내림. 승진: 중개 성사, 쉬운 편.'},
   fund:{n:'펀드매니저',titles:['애널리스트','매니저','본부장'],sal:[300,500,750],req:{cert:'invest',edu:2},pass:.4,fee:50,bank:'fund',
     promo:{kind:'profit',need:[300,1500],min:[6,12],test:[null,null],seat:1},
-    trait:'주식을 5% 싸게 사고 5% 비싸게 팔아요. 대출 이자 1%p 할인. 주식으로 번 돈(실현 수익)이 쌓이면 승진. 본부장은 1명.'},
+    trait:'👍 주식 5% 싸게 사고 5% 비싸게 팔기, 대출 이자 1%p 할인. 👎 주가 폭락 이슈 날 월급 반토막, 운용 손실 책임(월급날 5%), 동네에 많으면 월급↓. 승진: 실현 수익. 본부장은 1명.'},
   tuber:{n:'유튜버',titles:['새싹','실버버튼','골드버튼'],sal:[[0,300],[100,800],[300,1800]],req:{cert:'sns',exp:2},pass:.3,fee:10,bank:'tuber',
     promo:{kind:'subs',need:[100000,1000000],min:[3,6],test:[null,null]},
-    trait:'수입이 매번 랜덤. 직장 칸에서 영상을 올려 구독자를 모아요(10만 실버, 100만 골드). 황금열쇠 좋은 일 2배.'},
+    trait:'👍 대박 나면 최고 수입, 황금열쇠 좋은 일 2배. 👎 수입이 매번 랜덤, 논란(월급날 4%, 구독자 -30%), 동네에 많으면 수입↓. 승진: 구독자(운).'},
 };
 const EXAM_JOBS=['office','civil','doctor','lawyer','dev','chef','realtor','fund','tuber'];
 const METRIC={perf:'평가 점수',tenure:'근속',rep:'평판',cases:'승소',proj:'프로젝트 성공',stars:'미슐랭 별',deals:'중개 성사',profit:'투자 수익(만)',subs:'구독자'};
@@ -1200,7 +1202,7 @@ const prevPrice=i=>{const h=walk.hist[i];return h.length>1?h[h.length-2]:price(i
 const landP=id=>(shops[id]&&shops[id].p)||CELL[id].p;
 const shopValue=id=>{const r=shops[id];const p=landP(id);return p+(r&&r.owner?r.l:0)*Math.round(p*BUILD_R)};
 const myShops=()=>ALL_SHOP.filter(id=>shops[id]&&shops[id].owner===ME());
-const shopCap=()=>MAX_SHOPS+(me.job==='realtor'?1:0);
+const shopCap=()=>me.job==='civil'?1:MAX_SHOPS+(me.job==='realtor'?1:0);
 function playerInfo(id){return id===ME()?me:(others[id]||{})}
 function ownerOf(id){const r=shops[id];if(!r||!r.owner)return null;const p=playerInfo(r.owner);return {id:r.owner,l:r.l||0,biz:BIZ[r.biz]?r.biz:'conv',nick:p.nick,job:p.job,stars:(p.jp&&p.jp.stars)||0}}
 const isMine=o=>o&&o.id===ME();
@@ -1256,7 +1258,7 @@ const eduCost=n=>Math.round(n*(P('edu_aid')?.7:1));
 const kidsMinor=()=>me.children.filter(c=>childAge(c)<ADULT).length;
 const taxRate=()=>(P('tax_cut')?.05:P('welfare')?.15:.1)*Math.max(.4,1-.2*me.children.length);
 const depRate=()=>P('rate_up')?.04:P('rate_down')?.01:.02;
-const loanRate=()=>Math.max(.01,(P('rate_up')?.06:P('rate_down')?.02:.04)+(issueOn('rate_shock')?.02:0)-(me.job==='fund'?.01:0));
+const loanRate=()=>Math.max(.01,(P('rate_up')?.06:P('rate_down')?.02:.04)+(issueOn('rate_shock')?.02:0)-(me.job==='fund'?.01:me.job==='civil'?.005:0));
 const avgSalary=()=>{const [lo,hi]=salRange(me.job,me.rank);return Math.round((lo+hi)/2)};
 function guaranteedForMe(){let s=0;for(const [gid,g] of Object.entries(guars)){if(gid!==ME()&&g&&g.acc&&g.acc[ME()])s+=Number(g.acc[ME()])||0}return s}
 function loanLimit(base=false){
@@ -1273,11 +1275,17 @@ function netWorth(){
   me.items.forEach(x=>n+=itemResale(x.k));
   return Math.round(n);
 }
+const CROWD_JOBS=['doctor','lawyer','fund','tuber'];
+function jobCrowd(j){return Object.values(others).filter(p=>p&&p.v===VER&&p.job===j&&Date.now()-(p.updated||0)<IDLE_DAYS*864e5).length}
+function jobCrowdMul(j){return CROWD_JOBS.includes(j)?Math.max(.6,1-.12*jobCrowd(j)):1}
 function payNow(){
   if(me.job==='none') return P('min_wage')?80:0;
   const [lo,hi]=salRange(me.job,me.rank);
   let p=lo===hi?lo:r10(lo+R()*(hi-lo));
   if(me.job==='tuber') p=r10(p*clamp(.6+(me.jp.subs||0)/200000,.6,2.5));
+  p*=jobCrowdMul(me.job);
+  if(me.job==='realtor') p*=clamp(hpi(),.6,1.6);
+  if(me.job==='fund'&&issueOn('stock_down')) p*=.5;
   if(me.job==='alba'&&P('min_wage')) p+=60;
   if(hasTime('payday25')) p*=1.2;
   return Math.round(p*PAY_MUL);
@@ -1858,7 +1866,8 @@ async function shopCell(id){
     const biz=await choose('어떤 가게를 열까요? 같은 업종이 많으면 손님을 나눠 가져요.',Object.entries(BIZ).map(([k,B])=>{const n=bizCount(k);return {label:`${B.n}${n?` (동네 ${n}곳)`:' (독점!)'}${BIZ_JOB[k]&&BIZ_JOB[k]===me.job?' ★직업보너스':''} — ${B.tip}`,v:k}}));
     const ok=await writeShop(id,null,{owner:ME(),l:0,biz,p:r&&r.p||c.p,deals:r&&r.deals||0,t:Date.now()});
     if(!ok){setMsg('한발 늦었어요. 다른 이웃이 먼저 계약했어요.');return}
-    spend(p,`${c.n} ${BIZ[biz].n} 개업`);track('build');
+    const pp=me.job==='chef'&&BIZ[biz].food?Math.round(p*.8):p;
+    spend(pp,`${c.n} ${BIZ[biz].n} 개업${pp<p?' (셰프 20% 할인)':''}`);track('build');
     if(!myShops().length||myShops().length===1) story(`${c.n}에 ${BIZ[biz].n} 개업`);
     setMsg(`${c.n}에 ${BIZ[biz].n} 오픈! 이웃이 들르면 매출이 들어오고, 월급날마다 기본 매출도 생겨요.`);
     postNews(`${dynName()}님이 ${c.n}에 ${BIZ[biz].n}을(를) 열었어요`);return;
@@ -2178,6 +2187,7 @@ function payday(){
   const joint=me.finance!=='split';
   const spInc=virt&&joint?spouseIncome():0;
   let living=40+(issueOn('cold')?20:0)+(me.preg?30:0);
+  if(me.job==='doctor') living*=1.3;
   if(me.spouse&&me.spouse.trait==='frugal') living*=.8;
   if(virt&&!joint) living=0;
   if(real) living*=.5;
@@ -2204,6 +2214,13 @@ function payday(){
   if(me.job==='doctor') me.jp.rep=(me.jp.rep||0)+1;
   if(me.job==='tuber'){me.jp.subs=Math.max(0,Math.round((me.jp.subs||0)*(.97+R()*.1)))}
   if(me.job==='civil'&&me.rank===0&&me.laps-(me.jp.since||0)>=JOBS.civil.promo.min[0]){promote()}
+  // 직업별 단점 이벤트
+  if(me.job==='doctor'&&R()<.04){const f=pay*2;me.cash-=f;extra.push(`의료분쟁 합의금 -${won(f)}`);story('의료분쟁 합의')}
+  if(me.job==='lawyer'&&R()<.06){me.jp.cases=Math.max(0,(me.jp.cases||0)-1);extra.push('큰 사건 패소… 승소 기록 -1')}
+  if(me.job==='dev'&&R()<.10){me.rolls=Math.max(0,me.rolls-2);extra.push('야근 지옥… 주사위 -2')}
+  if(me.job==='fund'&&R()<.05){me.cash-=pay;extra.push(`운용 손실 책임, 성과 환수 -${won(pay)}`)}
+  if(me.job==='tuber'&&R()<.04){me.jp.subs=Math.round((me.jp.subs||0)*.7);extra.push('논란 영상… 구독자 -30%');story('유튜브 논란')}
+  if(me.job==='office'&&me.rank<4&&R()<.01){const sev=pay*6;me.cash+=sev;extra.push(`구조조정… 위로금 +${won(sev)} 받고 퇴사`);story('회사 구조조정으로 퇴사');leaveJob()}
   if(has('yacht')){me.cash+=250;extra.push('요트 대여 +250만')}
   const mo=myOffice();if(mo){me.cash+=OFFICES[mo].pay;extra.push(`${OFFICES[mo].n} 수당 +${won(OFFICES[mo].pay)}`)}
   if(real&&joint&&pay>0){const s=Math.round(pay*.3);payLedger(me.spouseUid,s);me.cash-=s;extra.push(`공동 생활비로 배우자에게 ${won(s)}`)}
@@ -2675,7 +2692,7 @@ function listItem(x,start){
 function renderJobs(){
   const box=$('jobs');box.innerHTML='';
   ['alba',...EXAM_JOBS].forEach(jid=>{const j=JOBS[jid],d=el('div','job'+(me.job===jid?' cur':''));
-    d.append(el('div','jn',j.n+(me.job===jid?' (현재)':'')),el('div','js num',salText(jid)),el('div','jt',j.trait));
+    d.append(el('div','jn',j.n+(me.job===jid?' (현재)':'')),el('div','js num',salText(jid)),el('div','jt',j.trait+(CROWD_JOBS.includes(jid)&&jobCrowd(jid)?` 📉 지금 동네 ${j.n} ${jobCrowd(jid)}명 → 월급 ${Math.round(jobCrowdMul(jid)*100)}%`:'')));
     const jr=el('div','jr');
     if(jid==='alba') jr.append(el('span','note','직장 칸에서 바로 (백수일 때)'));
     else{reqList(jid).forEach(x=>jr.append(el('span','req '+(x.ok?'ok':'no'),x.t)));jr.append(el('span','note',`기본 합격률 ${pct(passRate(jid))} · 응시료 ${won(j.fee)}${me.fails[jid]?` · 낙방 ${me.fails[jid]}회`:''} · 직급 ${j.titles.join('→')}`))}
