@@ -1523,8 +1523,11 @@ async function animDice(a,b){
   sfx('roll');
   const d1=$('d1'),d2=$('d2');d1.classList.remove('dbl');d2.classList.remove('dbl');
   if(!FX_RM){d1.classList.add('rolling');d2.classList.add('rolling')}
-  for(let k=0;k<7;k++){setDie('d1',1+Math.floor(Math.random()*6));setDie('d2',1+Math.floor(Math.random()*6));await sleep(60)}
-  d1.classList.remove('rolling');d2.classList.remove('rolling');
+  const wait=ms=>new Promise(r=>setTimeout(r,ms)); // 움직임 줄이기 설정이어도 굴림은 보이게
+  for(let k=0;k<8;k++){setDie('d1',1+Math.floor(Math.random()*6));setDie('d2',1+Math.floor(Math.random()*6));
+    if(FX_RM){const y=k%2?'0':'-4px';d1.style.transform=`translateY(${y})`;d2.style.transform=`translateY(${k%2?'-4px':'0'})`}
+    await wait(70)}
+  d1.style.transform=d2.style.transform='';d1.classList.remove('rolling');d2.classList.remove('rolling');
   setDie('d1',a);setDie('d2',b);
   if(a===b){d1.classList.add('dbl');d2.classList.add('dbl');sfx('dbl');buzz(30)}
 }
