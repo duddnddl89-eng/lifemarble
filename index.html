@@ -336,6 +336,14 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 </head>
 <body>
 <header>
@@ -491,7 +499,7 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
       <tr><td>헬스장</td><td>0.9</td><td>새해 3배·미세먼지 이슈</td><td>평소 약함</td></tr>
       <tr><td>중개소</td><td>0.9</td><td>이사철 이슈 2배</td><td>평소 약함</td></tr></table>
       <p><b>직업 궁합</b>: 의사-병원, 셰프-레스토랑, 중개사-중개소는 1.5배. 셰프는 음식점(치킨·카페·레스토랑) 전부 1.5배 + 미슐랭 별마다 +20%.<br><b>자리</b>: 야외 칸은 주말·어린이날·할로윈↑ 폭염·미세먼지↓, 역·터미널 칸은 출근·명절↑. 같은 업종이 많으면 다 같이 손님이 줄어요.</p></section>
-    <section class="adm-sec"><h3>밸런스 장치</h3><ul>
+    <section class="adm-sec"><h3>밸런스 장치</h3><p>아래 숫자는 기본값이에요. 운영자가 조정할 수 있고, 지금 적용 중인 값은 판 위 🌱/💸 표시를 눌러 보면 나와요.</p><ul>
       <li><b>🌱 따라잡기 지원</b>: 주민이 4명 이상일 때 동네 순자산 하위 30%(또는 빚이 더 많은 사람)는 월급날마다 지원금(월급의 30%, 최소 100만)을 받고 황금열쇠 행운 금액이 1.3배가 돼요.</li>
       <li><b>💸 부자세(보유세)</b>: 순자산 3억 초과분은 월급날마다 0.3%, 10억 초과분은 0.6%. 가게를 3곳 가지면 가게 가치의 0.5%가 추가로 나가요.</li>
       <li><b>상속세 누진</b>: 대를 이을수록 세율이 올라가요. 1대→2대는 기본(10~40%), 2대→3대는 +10%p, 3대→4대는 +20%p (최대 60%).</li>
@@ -1336,24 +1344,27 @@ function stat(k,n=1){me.stats[k]=(me.stats[k]||0)+n}
 function story(t){me.story.push({a:me.age,t});if(me.story.length>40)me.story.shift()}
 function gain(n,why){me.cash+=n;if(why)addLog(`${why} +${won(n)}`)}
 function spend(n,why){me.cash-=n;if(why)addLog(`${why} -${won(n)}`)}
-/* ---- 밸런스: 따라잡기 · 부자세 ---- */
+/* ---- 밸런스: 따라잡기 · 부자세 (운영자 화면 config/tax 로 조정) ---- */
+const TAX_DEF={rich1:3,rate1:.3,rich2:10,rate2:.6,shopRate:.5,cuPct:30,cuMin:4,cuRatio:30,cuFloor:100,cuLuck:1.3,inhAdd:10,inhMax:60};
+let TAX={...TAX_DEF};
+function applyTax(t){const v={...TAX_DEF};for(const k of Object.keys(TAX_DEF)){const n=Number(t&&t[k]);if(t&&t[k]!==undefined&&t[k]!==''&&isFinite(n)&&n>=0)v[k]=n}TAX=v}
 function wealthRank(){ // 최근 7일 안에 접속한 주민 중 내 순자산 위치 (0=꼴찌, 1=1등)
   const mine=netWorth(),act=Object.values(others).filter(p=>p&&p.v===VER&&Date.now()-(p.updated||0)<IDLE_DAYS*864e5);
   const lower=act.filter(p=>(p.net||0)<mine).length;return {n:act.length+1,pct:act.length?lower/act.length:1};
 }
-function catchUp(){const r=wealthRank();return (r.n>=4&&r.pct<=.3)||netWorth()<0}
-const RICH1=30000,RICH2=100000; // 3억, 10억
+function catchUp(){if(!TAX.cuPct)return false;const r=wealthRank();return (r.n>=Math.max(2,TAX.cuMin)&&r.pct<=TAX.cuPct/100)||netWorth()<0}
 function wealthTax(){
   const n=netWorth();let t=0;
-  if(n>RICH1) t+=(Math.min(n,RICH2)-RICH1)*.003;
-  if(n>RICH2) t+=(n-RICH2)*.006;
-  if(myShops().length>=3) t+=myShops().reduce((s,id)=>s+shopValue(id),0)*.005;
+  const R1=TAX.rich1*10000,R2=Math.max(R1,TAX.rich2*10000);
+  if(n>R1) t+=(Math.min(n,R2)-R1)*TAX.rate1/100;
+  if(n>R2) t+=(n-R2)*TAX.rate2/100;
+  if(myShops().length>=3) t+=myShops().reduce((s,id)=>s+shopValue(id),0)*TAX.shopRate/100;
   return Math.round(t);
 }
-const supportAmt=()=>r10(Math.max(100,avgSalary()*.3));
+const supportAmt=()=>r10(Math.max(TAX.cuFloor,avgSalary()*TAX.cuRatio/100));
 function lucky(n,why){
   let m=(me.job==='tuber'?2:1)*(has('necklace')?1.3:1)*(me.spouse&&me.spouse.trait==='fun'?1.2:1)*(me.luck?1.5:1);
-  if(catchUp())m*=1.3;me.luck=0;const g=Math.round(n*m);gain(g,why+(g!==n?' (행운 보너스)':''));return g;
+  if(catchUp())m*=(TAX.cuLuck||1);me.luck=0;const g=Math.round(n*m);gain(g,why+(g!==n?' (행운 보너스)':''));return g;
 }
 
 /* =====================================================================
@@ -2340,7 +2351,7 @@ async function encounter(){
 }
 
 /* ---------------- 은퇴·파산·상속 ---------------- */
-function inheritTax(v,gen=1){const ex=5000,add=.1*Math.max(0,gen-1);let t=0,left=Math.max(0,v-ex);const br=[[10000,.1],[40000,.2],[50000,.3],[Infinity,.4]];for(const [w,r] of br){const x=Math.min(left,w);t+=x*Math.min(.6,r+add);left-=x;if(left<=0)break}return Math.round(t)}
+function inheritTax(v,gen=1){const ex=5000,add=TAX.inhAdd/100*Math.max(0,gen-1),mx=Math.max(.4,TAX.inhMax/100);let t=0,left=Math.max(0,v-ex);const br=[[10000,.1],[40000,.2],[50000,.3],[Infinity,.4]];for(const [w,r] of br){const x=Math.min(left,w);t+=x*Math.min(mx,r+add);left-=x;if(left<=0)break}return Math.round(t)}
 async function earlyRetire(){
   if(busy) return;busy=true;renderAll();
   const pen=me.job==='civil'&&me.age>=PENSION_AGE;
@@ -2488,8 +2499,8 @@ function renderLifeLine(){
   const iss=ISSUE[issueToday()];const ic=el('span','pol issue','오늘: '+iss.n);ic.title=iss.d;pl.append(ic);
   tev().forEach(x=>{const s=el('span','pol time',x.n);s.title=x.d;pl.append(s)});
   if(EVENT_NAME) pl.append(el('span','pol event',EVENT_NAME));
-  if(catchUp()){const s=el('span','pol cu','🌱 따라잡기 지원 중');s.title=`동네 순자산 하위 30%: 월급날 지원금 +${won(supportAmt())}, 황금열쇠 행운 1.3배`;pl.append(s)}
-  {const w=wealthTax();if(w){const s=el('span','pol rich','💸 부자세 대상');s.title=`순자산 3억 초과분 0.3%, 10억 초과분 0.6%, 가게 3곳이면 가게 가치 0.5%를 월급날마다 내요 (지금 -${won(w)})`;pl.append(s)}}
+  if(catchUp()){const s=el('span','pol cu','🌱 따라잡기 지원 중');s.title=`동네 순자산 하위 ${TAX.cuPct}%: 월급날 지원금 +${won(supportAmt())}, 행운 ${TAX.cuLuck}배`;pl.append(s)}
+  {const w=wealthTax();if(w){const s=el('span','pol rich','💸 부자세 대상');s.title=`순자산 ${TAX.rich1}억 초과분 ${TAX.rate1}%, ${TAX.rich2}억 초과분 ${TAX.rate2}%, 가게 3곳이면 가게 가치 ${TAX.shopRate}%를 월급날마다 내요 (지금 -${won(w)})`;pl.append(s)}}
   [...T.pol].forEach(id=>{const s=el('span','pol',ALL_POL[id].n);s.title=ALL_POL[id].d;pl.append(s)});
   refillRolls();
   const fullMs=me.rolls>=MAX_ROLLS?0:(MAX_ROLLS-me.rolls-1)*ROLL_MS+(ROLL_MS-(Date.now()-me.rollT));
@@ -3023,6 +3034,22 @@ function renderAdmin(){
   b3.onclick=async()=>{const v={rollSec:clamp(Math.round((Number($('set_rollSec').value)||360)/10)*10,10,7200),maxRolls:Number($('set_maxRolls').value),lpy:Number($('set_lpy').value),payMul:Number($('set_payMul').value),event:$('set_event').value.trim()};useCnt('w');await FS.doc('config/settings').set(v);admMsg('적용했어요')};
   b3d.onclick=async()=>{useCnt('w');await FS.doc('config/settings').set(DEF_SET);admMsg('기본값(6분·80개·3바퀴 1살·월급 1배)')};
   r3.append(b3,b3d);s3.append(grid,prev,r3);
+  // 세금·지원
+  const txSec=sec('세금·지원 (부자세 · 따라잡기 · 상속세)');
+  const tf=[['rich1','부자세 1구간 시작 (억)','0.5'],['rate1','1구간 세율 (% / 월급날)','0.05'],['rich2','부자세 2구간 시작 (억)','1'],['rate2','2구간 세율 (% / 월급날)','0.05'],
+    ['shopRate','가게 3곳 이상 추가세 (% / 월급날)','0.1'],['cuPct','지원 대상: 순자산 하위 (%)','5'],['cuMin','지원 시작 최소 주민 수','1'],['cuRatio','지원금 (월급의 %)','5'],
+    ['cuFloor','최소 지원금 (만원)','10'],['cuLuck','지원 대상 행운 배율','0.1'],['inhAdd','대 이을 때마다 상속세 가산 (%p)','5'],['inhMax','상속세 최고 세율 (%)','5']];
+  const txGrid=el('div','adm-grid');tf.forEach(([k,l,st])=>{const lab=el('label','',l),i=el('input');i.id='tax_'+k;i.type='number';i.step=st;i.min='0';i.value=TAX[k];lab.append(i);txGrid.append(lab)});
+  const txNote=el('div','note');
+  const updTax=()=>{const t={};tf.forEach(([k])=>t[k]=$('tax_'+k).value);const keep=TAX;applyTax(t);
+    const all=[{net:netWorth()},...Object.values(others).filter(p=>p&&p.v===VER&&Date.now()-(p.updated||0)<IDLE_DAYS*864e5)].map(p=>p.net||0).sort((a,b)=>a-b);
+    const rich=all.filter(n=>n>TAX.rich1*10000).length,cut=all.length>=Math.max(2,TAX.cuMin)?Math.max(1,Math.floor(all.length*TAX.cuPct/100)):0,neg=all.filter(n=>n<0).length;
+    txNote.textContent=`→ 지금 기준 활동 주민 ${all.length}명 중 부자세 대상 ${rich}명 · 지원 대상 약 ${Math.max(cut,neg)}명. 10억 가진 사람은 월급날마다 약 ${won(Math.round((Math.min(100000,TAX.rich2*10000)-TAX.rich1*10000>0?(Math.min(100000,TAX.rich2*10000)-TAX.rich1*10000)*TAX.rate1/100:0)+(100000>TAX.rich2*10000?(100000-TAX.rich2*10000)*TAX.rate2/100:0)))} 부자세. 0으로 두면 그 기능은 꺼져요.`;TAX=keep};
+  setTimeout(()=>{tf.forEach(([k])=>$('tax_'+k).addEventListener('input',updTax));updTax()},0);
+  const txRow=el('div','adm-row'),txOk=el('button','btn primary','적용'),txDef=el('button','btn','기본값으로');
+  txOk.onclick=async()=>{const t={};tf.forEach(([k])=>{const n=Number($('tax_'+k).value);t[k]=isFinite(n)&&n>=0?n:TAX_DEF[k]});useCnt('w');await FS.doc('config/tax').set(t);admMsg('세금·지원 값을 적용했어요 (다음 월급날부터)')};
+  txDef.onclick=async()=>{useCnt('w');await FS.doc('config/tax').set(TAX_DEF);tf.forEach(([k])=>$('tax_'+k).value=TAX_DEF[k]);updTax();admMsg('세금·지원 기본값으로 돌렸어요')};
+  txRow.append(txOk,txDef);txSec.append(txGrid,txNote,txRow);
   // 오늘의 이슈
   const s4=sec('오늘의 동네 이슈');const sel=el('select');sel.id='issueSel';const o0=el('option','','자동 (매일 0시 무작위)');o0.value='';sel.append(o0);
   ISSUES.forEach(x=>{const o=el('option','',`${x.n} — ${x.d}`);o.value=x.id;sel.append(o)});sel.value=CFG.issue&&CFG.issue.day===kstDay()?CFG.issue.id:'';
@@ -3134,7 +3161,7 @@ async function startOnline(){
       sub('guar',COL.guar,d=>{guars=d;handleDefaults();if(!busy)renderBank()});
       sub('seats',COL.seats,d=>{seats=d});
       FS.collection('config').onSnapshot(s=>{useCnt('r',Math.max(1,s.docChanges().length));const d={};s.docs.forEach(x=>{d[x.id]=x.data()});
-        CFG.notice=d.notice||null;CFG.bans=(d.bans&&d.bans.uids)||{};CFG.season=d.season||{n:0};CFG.settings=d.settings||{};CFG.issue=d.issue||null;
+        CFG.notice=d.notice||null;CFG.bans=(d.bans&&d.bans.uids)||{};CFG.season=d.season||{n:0};CFG.settings=d.settings||{};CFG.issue=d.issue||null;CFG.tax=d.tax||null;applyTax(CFG.tax);
         applySettings(CFG.settings);renderNotice();applyBan();applySeason();if(!busy){renderStats();renderTown()}if(isAdmin&&!$('admin').hidden)renderAdmin()},()=>{});
       FS.doc('gifts/'+myId).onSnapshot(s=>{useCnt('r');if(s.exists)onGifts(s.data())},()=>{});
     }
@@ -3145,8 +3172,17 @@ async function startOnline(){
 
 /* ---------------- 시작 ---------------- */
 let lastDay=kstDay(),lastWeek=weekId(),lastReclaim=0;
+let stuck=0;
+function unstick(){ // 안전장치: 버튼이 하나도 없이 멈춰 있으면 주사위 버튼을 되살림
+  const open=['mg','sum','auth','tour'].some(id=>$(id)&&!$(id).hidden&&getComputedStyle($(id)).display!=='none');
+  const hasBtn=!!$('actions').querySelector('button');
+  if(!busy){stuck=0;if(!hasBtn&&!open)idleActions();return false}
+  if(!hasBtn&&!open){if(++stuck>=2){stuck=0;busy=false;delete me.pend;setMsg('잠시 멈춰 있던 진행을 정리했어요. 다시 굴려 주세요.');save();renderAll();idleActions();return false}}else stuck=0;
+  return true;
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&me){unstick();if(!busy){renderLifeLine();const rb=$('rollBtn');if(rb)rb.disabled=me.rolls<1}}});
 function tick(){
-  if(busy) return;renderLifeLine();renderStocks();const rb=$('rollBtn');if(rb)rb.disabled=me.rolls<1;
+  if(unstick()) return;renderLifeLine();renderStocks();const rb=$('rollBtn');if(rb)rb.disabled=me.rolls<1;
   if(weekId()!==lastWeek){lastWeek=weekId();refreshTerm();settleElections();renderAll()}
   if(kstDay()!==lastDay){lastDay=kstDay();settleLotto();settleCheongyak();renderAll();toast('새로운 하루! 오늘의 이슈와 미션이 바뀌었어요')}
   settleMarket();
