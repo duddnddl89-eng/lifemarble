@@ -2241,6 +2241,14 @@ async function moveBy(n){
   let idx=Math.max(0,BOARD.indexOf(me.posId));
   for(let s=0;s<n;s++){idx=(idx+1)%BOARD.length;me.posId=BOARD[idx];sfx('step');if(idx===0){sfx('payday');payday()}renderBoard();renderLifeLine();await sleep(100)}
 }
+let resumed=false;
+async function resumePending(){ // 칸 처리 중 새로고침했으면 그 칸부터 이어서
+  if(busy||!me.pend||!CELL[me.pend]){delete me.pend;return}
+  busy=true;me.posId=me.pend;renderBoard();setMsg(`지난번에 멈춘 「${CELL[me.pend].n}」 칸에서 이어서 해요.`);await sleep(600);
+  await resolve(me.pend);delete me.pend;
+  if(!(await ensureCash())){busy=false;return endLife('파산')}
+  busy=false;checkTitles();save();renderAll();idleActions();
+}
 async function roll(){
   if(busy) return;refillRolls();
   if(me.rolls<1){setMsg(`주사위가 다 떨어졌어요. ${fmtSec(ROLL_MS/1000)}마다 1개씩 차요. 게임머니로 살 수도 있어요.`);return}
@@ -2250,7 +2258,8 @@ async function roll(){
     const [a,b]=await rollDice();track('roll');
     setMsg(`${a+b}칸 이동${a===b?' · 더블!':''}`);
     await moveBy(a+b);
-    await resolve(me.posId);
+    me.pend=me.posId;save(); // 도착 즉시 저장 (새로고침해도 위치·주사위 유지)
+    await resolve(me.posId);delete me.pend;
     if(!(await ensureCash())){busy=false;return endLife('파산')}
     await encounter();
     const st=await runStage();
@@ -2366,6 +2375,7 @@ function buyDice(){
   addLog(`편의점에서 에너지드링크 한 박스! 주사위 +${DICE_PACK} (-${won(pr)})`);setMsg(`주사위 ${DICE_PACK}개 충전! 오늘 ${diceLeft()}번 더 살 수 있어요.`);save();renderStats();idleActions();
 }
 function idleActions(){
+  if(me.pend&&!busy&&!resumed){resumed=true;setTimeout(resumePending,300)}
   const a=$('actions');a.innerHTML='';
   const b=el('button','btn primary','주사위 굴리기');b.id='rollBtn';b.disabled=busy||me.rolls<1;b.onclick=roll;a.append(b);
   if(me.rolls<MAX_ROLLS&&diceLeft()>0){const pr=dicePrice();const d=el('button','btn',`주사위 +${DICE_PACK} (${won(pr)})`);d.title=`게임머니로 주사위를 사요. 오늘 ${diceLeft()}번 남음`;d.disabled=busy||me.cash<pr;d.onclick=buyDice;a.append(d)}
