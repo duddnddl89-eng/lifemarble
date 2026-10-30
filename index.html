@@ -323,7 +323,23 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 @media (prefers-reduced-motion: reduce){.sky span{animation:none}}
 .myshops{margin:.6em 0}.ms-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:.35em 0;border-bottom:1px solid var(--line,#ddd);font-size:.9em}.ms-row span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ms-row .mini{flex:none}
 .pol.cu{background:color-mix(in srgb,#2f9e72 18%,var(--paper));color:#2f7d5c}.pol.rich{background:color-mix(in srgb,#c9971a 20%,var(--paper))}
+/* 선택지가 많으면 판 가운데에서 스크롤 */
+.center{justify-content:safe center}
+.center>*{flex-shrink:0}
+.center>.actions{flex:0 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:2px 4px;
+  mask-image:linear-gradient(180deg,transparent 0,#000 8px,#000 calc(100% - 14px),transparent);-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 8px,#000 calc(100% - 14px),transparent)}
+.center>.actions:not(.scrolls){mask-image:none;-webkit-mask-image:none}
+.scroll-hint{font-size:11px;color:var(--ink-2);flex-shrink:0}
+.center.choosing .dice,.center.choosing #rolls,.center.choosing #missionMini{display:none}
+.center>.actions .btn{white-space:normal;line-height:1.3;text-align:center}
+@media (max-width:600px){.center.choosing>.actions{flex-direction:column;flex-wrap:nowrap;align-items:stretch;justify-content:flex-start;width:100%}}
 </style>
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
@@ -2432,9 +2448,11 @@ function setMsg(t){$('msg').textContent=t}
 function choose(text,opts){
   setMsg(text);
   return new Promise(res=>{
-    const a=$('actions');a.innerHTML='';
-    opts.forEach(o=>{const b=el('button','btn'+(o.primary?' primary':''),o.label);b.disabled=!!o.disabled;b.onclick=()=>{a.innerHTML='';res(o.v)};a.append(b)});
+    const a=$('actions');a.innerHTML='';$('center').classList.toggle('choosing',opts.length>=4);
+    opts.forEach(o=>{const b=el('button','btn'+(o.primary?' primary':''),o.label);b.disabled=!!o.disabled;b.onclick=()=>{a.innerHTML='';a.classList.remove('scrolls');$('center').classList.remove('choosing');$('scrollHint')?.remove();res(o.v)};a.append(b)});
     a.querySelector('button:not(:disabled)')?.focus({preventScroll:true});
+    requestAnimationFrame(()=>{const sc=a.scrollHeight>a.clientHeight+4;a.classList.toggle('scrolls',sc);a.scrollTop=0;
+      let h=$('scrollHint');if(sc&&!h){h=el('div','scroll-hint','↕ 선택지를 위아래로 밀어서 더 보기');h.id='scrollHint';a.after(h)}else if(!sc&&h)h.remove()});
     if(innerWidth<940) $('board').scrollIntoView({block:'center',behavior:'smooth'});
   });
 }
@@ -2451,6 +2469,7 @@ function buyDice(){
   addLog(`편의점에서 에너지드링크 한 박스! 주사위 +${DICE_PACK} (-${won(pr)})`);setMsg(`주사위 ${DICE_PACK}개 충전! 오늘 ${diceLeft()}번 더 살 수 있어요.`);save();renderStats();idleActions();
 }
 function idleActions(){
+  $('scrollHint')?.remove();$('actions').classList.remove('scrolls');$('center').classList.remove('choosing');
   if(me.pend&&!busy&&!resumed){resumed=true;setTimeout(resumePending,300)}
   const a=$('actions');a.innerHTML='';
   const b=el('button','btn primary','주사위 굴리기');b.id='rollBtn';b.disabled=busy||me.rolls<1;b.onclick=roll;a.append(b);
