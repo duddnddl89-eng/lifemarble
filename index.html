@@ -362,6 +362,8 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 </head>
 <body>
 <header>
@@ -493,7 +495,7 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
     <div class="adm-head"><h2 id="helpTitle">게임 설명서</h2><span class="note"></span><button class="btn" id="helpTour" type="button">처음 안내 다시 보기</button><button class="btn primary" id="helpClose" type="button">닫기</button></div>
     <section class="adm-sec"><h3>한 줄 요약</h3><p>스무 살 고졸 백수, 원룸 월세에서 시작해 <b>직업을 따내고, 집을 마련하고, 가게를 열고, 가족을 꾸려</b> 은퇴할 때 순자산 1등을 노리는 인생 게임이에요. 은퇴하면 자녀가 가문을 이어 다음 세대로 플레이해요.</p></section>
     <section class="adm-sec"><h3>기본 흐름</h3><ol>
-      <li><b>주사위</b>: 판 가운데 버튼. 더블이면 공짜로 한 번 더(3번 연속이면 과로!). 주사위는 시간이 지나면 차고, 게임머니로 살 수도 있어요.</li>
+      <li><b>주사위</b>: 판 가운데 버튼. 더블이면 공짜로 한 번 더(3번 연속이면 과로!). 주사위는 시간이 지나면 차고(기본 1분에 1개, 최대 30개), 게임머니로 살 수도 있어요. 5개 묶음 가격은 내 순자산의 1%(최소 30만)라 부자일수록 비싸요. 하루 20번까지.</li>
       <li><b>월급날</b>: 출발 칸을 지날 때마다 월급이 들어오고 생활비·월세·양육비·이자가 정산돼요. 몇 바퀴마다 한 살(기본 3바퀴).</li>
       <li><b>인생 단계</b>: 25·30·35·40·45·50·55세 생일마다 인생의 선택이 찾아와요.</li>
       <li><b>은퇴</b>: 60세 정년, 원하면 언제든 조기 은퇴. 인생 요약 카드가 나오고 자녀가 가문을 이어요(상속세 있음).</li>
@@ -1118,7 +1120,7 @@ let shops={}, cands={}, votes={}, markets={}, bids={}, chats={}, lottos={}, appl
 const got={};
 let saving=Promise.resolve();
 const ME=()=>myId||'me';
-let MAX_ROLLS=80, ROLL_MS=360000, PAY_MUL=1, EVENT_NAME='', LPY=3;
+let MAX_ROLLS=30, ROLL_MS=60000, PAY_MUL=1, EVENT_NAME='', LPY=4;
 const RETIRE=60, PENSION_AGE=50;
 let CFG={notice:null,bans:{},season:{n:0},settings:{},issue:null};
 const COL={players:'players',shops:'shops',ledger:'ledger5',cand:'cand5',vote:'vote5',market:'market5',bids:'bids5',chat:'chat',lotto:'lotto',apply:'apply',marry:'marry',guar:'guar',seats:'seats'};
@@ -1409,13 +1411,25 @@ function useCnt(kind,n=1){if(!me)return;const d=ptDay();if(!me.usage||me.usage.d
 /* ---- 저장 ---- */
 function chain(fn){saving=saving.then(fn).catch(e=>{if(e&&e.code==='resource-exhausted')toast('오늘 무료 저장 한도를 넘었어요. 운영자에게 알려주세요.');});return saving}
 function dset(path,data,merge){useCnt('w');return chain(()=>FS.doc(path).set(data,merge?{merge:true}:undefined))}
-function save(){
+/* 저장: 내 기기(localStorage)에는 즉시, 서버에는 20초에 한 번 몰아서 (창을 닫거나 앱을 나갈 때는 즉시) */
+const SAVE_GAP=20000;let saveDirty=false,saveTimer=null,lastFlush=0;
+function save(force){
   me.net=netWorth();me.updated=Date.now();me.shopCount=myShops().length;me.baseLimit=loanLimit(true);
   if(!db) me.localShops={...shops};
   const snap=clone(me);delete snap._reset;if(db) delete snap.localShops;
-  try{localStorage.setItem('lifemarble5.me',JSON.stringify({...snap,localShops:db?{}:shops}));localStorage.setItem('lifemarble5.log',JSON.stringify(logs.slice(0,60)))}catch(e){}
-  if(db&&myId&&me.nick&&me.gender) dset(COL.players+'/'+myId,snap);
+  try{localStorage.setItem('lifemarble5.me',JSON.stringify({...snap,localShops:db?{}:shops}));localStorage.setItem('lifemarble5.log',JSON.stringify(logs.slice(0,60)));if(myId)localStorage.setItem('lifemarble5.uid',myId)}catch(e){}
+  if(!(db&&myId&&me.nick&&me.gender)) return;
+  saveDirty=true;
+  if(force||Date.now()-lastFlush>=SAVE_GAP) return flushSave();
+  if(!saveTimer) saveTimer=setTimeout(flushSave,SAVE_GAP-(Date.now()-lastFlush));
 }
+function flushSave(){
+  clearTimeout(saveTimer);saveTimer=null;if(!saveDirty||!db||!myId||!me||!me.nick) return;
+  saveDirty=false;lastFlush=Date.now();const snap=clone(me);delete snap._reset;delete snap.localShops;
+  return dset(COL.players+'/'+myId,snap);
+}
+addEventListener('pagehide',()=>flushSave());
+document.addEventListener('visibilitychange',()=>{if(document.hidden)flushSave()});
 function payLedger(to,amt){
   amt=Math.round(amt);if(!db||!myId||!to||to==='me'||to===myId||amt<=0) return;
   myPaid[to]=(myPaid[to]||0)+amt;dset(COL.ledger+'/'+myId,{paid:{...myPaid}});
@@ -2438,7 +2452,7 @@ async function endLife(why){
   }
   checkTitles();busy=false;
   setMsg(heir?`${me.gen}대 ${me.heirName}의 인생! 스무 살, 다시 시작해요.`:'새 인생이 시작됐어요. 이번엔 어떤 인생을 살까요?');
-  save();renderAll();idleActions();
+  save(true);renderAll();idleActions();
 }
 
 /* =====================================================================
@@ -2460,8 +2474,8 @@ function twoStep(btn,fn,label='한 번 더 누르면 실행'){
   btn.onclick=()=>{if(busy)return;if(btn.dataset.armed!=='1'){btn.dataset.armed='1';const t=btn.textContent;btn.textContent=label;btn.classList.add('danger');
     setTimeout(()=>{if(btn.isConnected){btn.dataset.armed='';btn.textContent=t;btn.classList.remove('danger')}},4000);return}fn()};
 }
-const DICE_PACK=5,DICE_DAILY=4;
-const dicePrice=()=>Math.max(40,r10(avgSalary()*.2));
+const DICE_PACK=5,DICE_DAILY=20;
+const dicePrice=()=>Math.max(30,r10(netWorth()*.01));
 function diceLeft(){const b=me.diceBuy||{};return b.d===kstDay()?DICE_DAILY-(b.n||0):DICE_DAILY}
 function buyDice(){
   const pr=dicePrice();if(busy||diceLeft()<=0||me.cash<pr) return;
@@ -3005,11 +3019,11 @@ function showSummary(life,wasBest){
 
 /* ---------------- 운영자 설정 ---------------- */
 const ADMIN_EMAIL='duddnddl89@gmail.com';
-const DEF_SET={rollSec:360,maxRolls:80,payMul:1,event:'',lpy:3};
+const DEF_SET={rollSec:60,maxRolls:30,payMul:1,event:'',lpy:4};
 function applySettings(s){
   const v={...DEF_SET,...(s||{})};let sec=Number(v.rollSec);if(!sec&&v.rollMin)sec=Number(v.rollMin)*60;
-  ROLL_MS=clamp(Math.round((sec||360)/10)*10,10,7200)*1000;MAX_ROLLS=clamp(Math.round(v.maxRolls)||80,5,500);
-  PAY_MUL=clamp(Number(v.payMul)||1,.1,10);EVENT_NAME=String(v.event||'').slice(0,30);LPY=clamp(Math.round(v.lpy)||3,1,10);
+  ROLL_MS=clamp(Math.round((sec||60)/10)*10,10,7200)*1000;MAX_ROLLS=clamp(Math.round(v.maxRolls)||30,5,500);
+  PAY_MUL=clamp(Number(v.payMul)||1,.1,10);EVENT_NAME=String(v.event||'').slice(0,30);LPY=clamp(Math.round(v.lpy)||4,1,10);
 }
 function renderNotice(){const n=CFG.notice,box=$('notice');if(n&&n.text){box.hidden=false;box.textContent='';box.append(el('b','','공지'),' '+n.text)}else box.hidden=true}
 function applyBan(){
@@ -3068,7 +3082,7 @@ function renderAdmin(){
   setTimeout(()=>{['set_rollSec','set_maxRolls','set_lpy'].forEach(id=>$(id).addEventListener('input',upd));upd()},0);
   const r3=el('div','adm-row'),b3=el('button','btn primary','적용'),b3d=el('button','btn','기본값으로');
   b3.onclick=async()=>{const v={rollSec:clamp(Math.round((Number($('set_rollSec').value)||360)/10)*10,10,7200),maxRolls:Number($('set_maxRolls').value),lpy:Number($('set_lpy').value),payMul:Number($('set_payMul').value),event:$('set_event').value.trim()};useCnt('w');await FS.doc('config/settings').set(v);admMsg('적용했어요')};
-  b3d.onclick=async()=>{useCnt('w');await FS.doc('config/settings').set(DEF_SET);admMsg('기본값(6분·80개·3바퀴 1살·월급 1배)')};
+  b3d.onclick=async()=>{useCnt('w');await FS.doc('config/settings').set(DEF_SET);admMsg('기본값(1분·30개·4바퀴 1살·월급 1배)')};
   r3.append(b3,b3d);s3.append(grid,prev,r3);
   // 세금·지원
   const txSec=sec('세금·지원 (부자세 · 따라잡기 · 상속세)');
@@ -3158,7 +3172,7 @@ function wireAuth(){
     if(db){const r=await claimNick($('regNick').value.trim());if(r!=='ok'){authMsg(r);return}}else me.nick=$('regNick').value.trim().slice(0,12)||'주민';
     me.gender=g.value;me.prefG=$('regPref').value==='same'?g.value:null;
     hideAuth();addLog(`주민 등록 완료! ${dynName()}님, 보실이네에 오신 걸 환영해요`);postNews(`새 주민 ${dynName()}님이 보실이네에 이사 왔어요! 환영해 주세요`);
-    save();renderAll();idleActions();if(!me.tutDone)showTour()};
+    save(true);renderAll();idleActions();if(!me.tutDone)showTour()};
   $('adminBtn').onclick=openAdmin;$('admClose').onclick=()=>{$('admin').hidden=true};
   $('logoutBtn').onclick=async()=>{try{await AUTH.signOut()}catch(e){}location.reload()};
 }
@@ -3175,7 +3189,10 @@ async function startOnline(){
     if(!u){db=null;myId=null;showAuth('login');$('mode').textContent='로그인이 필요해요';$('logoutBtn').hidden=true;return}
     myId=u.uid;db={};isAdmin=(u.email||'').toLowerCase()===ADMIN_EMAIL&&u.emailVerified!==false;$('adminBtn').hidden=!isAdmin;
     $('who').textContent=u.email||'구글 계정';$('logoutBtn').hidden=false;$('loginBtn').hidden=true;
-    try{useCnt('r');const snap=await FS.doc(COL.players+'/'+myId).get();me=normalize(snap.exists?clone(snap.data()):null);shops={};
+    try{useCnt('r');const snap=await FS.doc(COL.players+'/'+myId).get();let remote=snap.exists?clone(snap.data()):null;
+      try{const lu=localStorage.getItem('lifemarble5.uid'),lm=JSON.parse(localStorage.getItem('lifemarble5.me')||'null');
+        if(remote&&lu===myId&&lm&&lm.v===VER&&remote.v===VER&&(lm.updated||0)>(remote.updated||0)&&lm.nick===remote.nick){delete lm.localShops;remote=lm;setTimeout(()=>save(true),1500)}}catch(e){}
+      me=normalize(remote);shops={};
       if(me._reset&&snap.exists) toast('새 버전! 모든 주민이 새 인생을 시작해요');}
     catch(e){authMsg('저장소에 연결하지 못했어요. 보안 규칙을 확인하세요.');db=null;return}
     $('mode').textContent='온라인 · 보실이네 주민들과 함께';
