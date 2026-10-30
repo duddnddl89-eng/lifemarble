@@ -281,6 +281,7 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 #issueSel{font:inherit;padding:6px 9px;border:1px solid var(--road);border-radius:5px;background:var(--bg);color:var(--ink);max-width:100%}
 .tabs button{padding:5px 10px}
 </style>
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 </head>
 <body>
 <header>
@@ -424,7 +425,18 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
       <li><b>직장</b>: 직업마다 일이 달라요 — 회사원 평가 점수와 승진 면접, 공무원 호봉과 승진시험, 의사 전문의 시험과 평판, 변호사 재판, 개발자 프로젝트, 셰프 미슐랭 심사, 유튜버 영상 업로드, 중개사 협상, 펀드매니저 주식 수익. 최고 직급은 동네에 자리가 한정돼요.</li>
     </ul></section>
     <section class="adm-sec"><h3>집</h3><p><b>집</b> 탭에서 월세·전세·매매를 골라요. 전세는 보증금을 맡기고 월세가 없지만 전세사기에 주의(보증보험 추천). 매수는 대출을 끼고 할 수 있고 집값은 매일 오르내려요. 신축 아파트는 <b>부동산 칸</b>이나 집 탭에서 <b>청약</b>을 넣으면 다음 날 0시에 발표 — 무주택 기간·자녀·결혼이 가점이에요.</p></section>
-    <section class="adm-sec"><h3>가게</h3><p>상가 칸이 비어 있으면 사서 <b>업종</b>(치킨집·카페·편의점·학원·PC방·병원·레스토랑·헬스장·부동산 중개소)을 골라 가게를 열어요. 이웃이 들르면 손님으로 돈을 쓰고 그 돈이 내게 들어와요. 같은 업종이 많으면 손님을 나눠 가지고, 직업과 맞는 업종(의사-병원, 셰프-식당, 중개사-중개소)은 매출 1.5배. 남의 가게는 권리금을 주고 인수할 수 있어요. 한 사람 3곳까지.</p></section>
+    <section class="adm-sec"><h3>가게</h3><p>상가 칸이 비어 있으면 사서 <b>업종</b>(치킨집·카페·편의점·학원·PC방·병원·레스토랑·헬스장·부동산 중개소)을 골라 가게를 열어요. 이웃이 들르면 손님으로 돈을 쓰고 그 돈이 내게 들어와요. 같은 업종이 많으면 손님을 나눠 가지고, 직업과 맞는 업종(의사-병원, 셰프-식당, 중개사-중개소)은 매출 1.5배. 남의 가게는 권리금을 주고 인수할 수 있어요. 한 사람 3곳까지.</p>
+      <table class="biz-tbl"><tr><th>업종</th><th>기본</th><th>잘 될 때</th><th>약할 때</th></tr>
+      <tr><td>치킨집</td><td>1.0</td><td>점심 1.5배·불금 2배·일요일 밤·치킨값 인상 이슈 2배</td><td>무난</td></tr>
+      <tr><td>카페</td><td>0.9</td><td>오후 2배·크리스마스·발렌타인·폭염 2배</td><td>평소 약함</td></tr>
+      <tr><td>편의점</td><td>1.0</td><td>새벽·빼빼로데이 3배·폭염 2배·한파</td><td>점심·불금 보너스 없음</td></tr>
+      <tr><td>레스토랑</td><td>1.2</td><td>점심 1.5배·불금 2배·크리스마스 2배</td><td>-</td></tr>
+      <tr><td>학원</td><td>1.1</td><td>수능날 2배</td><td>주말 0.6배</td></tr>
+      <tr><td>PC방</td><td>1.0</td><td>새벽·한파</td><td>낮 보너스 없음</td></tr>
+      <tr><td>병원</td><td>1.3</td><td>독감 이슈 2배</td><td>시간대 보너스 없음</td></tr>
+      <tr><td>헬스장</td><td>0.9</td><td>새해 3배·미세먼지 이슈</td><td>평소 약함</td></tr>
+      <tr><td>중개소</td><td>0.9</td><td>이사철 이슈 2배</td><td>평소 약함</td></tr></table>
+      <p><b>직업 궁합</b>: 의사-병원, 셰프-레스토랑, 중개사-중개소는 1.5배. 셰프는 음식점(치킨·카페·레스토랑) 전부 1.5배 + 미슐랭 별마다 +20%.<br><b>자리</b>: 야외 칸은 주말·어린이날·할로윈↑ 폭염·미세먼지↓, 역·터미널 칸은 출근·명절↑. 같은 업종이 많으면 다 같이 손님이 줄어요.</p></section>
     <section class="adm-sec"><h3>가족</h3><p>정식 직업이 있으면 예식장에서 <b>소개팅</b>(배우자 직업·성격·모은 돈이 달라요)을 하거나 <b>이웃 주민에게 청혼</b>할 수 있어요. 공동 관리(배우자 수입이 들어옴) / 각자 관리(생활비는 배우자, 양육비 반반). 아이는 스무 살까지 양육비가 들지만 아동수당·세금 공제·청약 가점이 있고, 커서 용돈을 보내고, 가문을 이어요.</p></section>
     <section class="adm-sec"><h3>동네</h3><ul>
       <li><b>오늘의 이슈</b>: 매일 0시에 바뀌어요(부동산 폭등, 치킨값 인상, 태풍, 취업 박람회…).</li>
@@ -554,15 +566,15 @@ const levelFor=count=>Math.min(EXP.length,Math.floor(Math.max(0,count-1)/10));
 
 /* ---------------- 가게(업종) ---------------- */
 const BIZ={
- chicken:{n:'치킨집',m:1.0,food:1,menu:['치킨 한 마리에 맥주 두 잔을 시켰어요','반반 치킨에 치즈볼까지 추가했어요','"오늘은 치킨이다" 하고 문을 열었어요']},
- cafe:{n:'카페',m:.9,food:1,menu:['아이스 아메리카노와 케이크 한 조각','시그니처 라테 두 잔과 마카롱','노트북 들고 세 시간 버텼어요']},
- conv:{n:'편의점',m:1.0,menu:['삼각김밥과 바나나우유를 샀어요','1+1 과자를 잔뜩 집었어요','도시락에 컵라면까지 담았어요']},
- resto:{n:'레스토랑',m:1.2,food:1,menu:['코스 요리 풀세트를 먹었어요','파스타와 스테이크로 플렉스','기념일이라 와인까지 시켰어요']},
- academy:{n:'학원',m:1.1,menu:['수학 특강 한 달 치를 결제했어요','영어 회화 단과반 등록','"이번엔 진짜 공부한다" 종합반 등록']},
- pc:{n:'PC방',m:1.0,menu:['라면에 5시간 정액권','친구랑 밤샘 게임','"한 판만"이 열 판이 됐어요']},
- hospital:{n:'병원',m:1.3,menu:['감기 진료와 수액 한 대','건강검진 기본 패키지','허리가 아파 도수치료를 받았어요']},
- gym:{n:'헬스장',m:.9,menu:['PT 10회권을 끊었어요','3개월 회원권 (출석은 미지수)','인바디 재고 충격받았어요']},
- realty:{n:'부동산 중개소',m:.9,menu:['집 보러 다니며 중개수수료','월세 계약 대행료','"좋은 매물 있어요" 상담비']},
+ chicken:{n:'치킨집',m:1.0,tip:'무난 · 점심/불금/일요일밤↑',food:1,menu:['치킨 한 마리에 맥주 두 잔을 시켰어요','반반 치킨에 치즈볼까지 추가했어요','"오늘은 치킨이다" 하고 문을 열었어요']},
+ cafe:{n:'카페',m:.9,tip:'오후·크리스마스·발렌타인·폭염↑ · 평소 약함',food:1,menu:['아이스 아메리카노와 케이크 한 조각','시그니처 라테 두 잔과 마카롱','노트북 들고 세 시간 버텼어요']},
+ conv:{n:'편의점',m:1.0,tip:'새벽↑ · 빼빼로데이 3배',menu:['삼각김밥과 바나나우유를 샀어요','1+1 과자를 잔뜩 집었어요','도시락에 컵라면까지 담았어요']},
+ resto:{n:'레스토랑',m:1.2,tip:'매출 높음 · 점심/불금/크리스마스↑',food:1,menu:['코스 요리 풀세트를 먹었어요','파스타와 스테이크로 플렉스','기념일이라 와인까지 시켰어요']},
+ academy:{n:'학원',m:1.1,tip:'수능날 2배 · 주말↓',menu:['수학 특강 한 달 치를 결제했어요','영어 회화 단과반 등록','"이번엔 진짜 공부한다" 종합반 등록']},
+ pc:{n:'PC방',m:1.0,tip:'새벽·한파↑',menu:['라면에 5시간 정액권','친구랑 밤샘 게임','"한 판만"이 열 판이 됐어요']},
+ hospital:{n:'병원',m:1.3,tip:'매출 최고 · 독감 이슈↑',menu:['감기 진료와 수액 한 대','건강검진 기본 패키지','허리가 아파 도수치료를 받았어요']},
+ gym:{n:'헬스장',m:.9,tip:'새해 3배 · 평소 약함',menu:['PT 10회권을 끊었어요','3개월 회원권 (출석은 미지수)','인바디 재고 충격받았어요']},
+ realty:{n:'부동산 중개소',m:.9,tip:'이사철 이슈↑ · 평소 약함',menu:['집 보러 다니며 중개수수료','월세 계약 대행료','"좋은 매물 있어요" 상담비']},
 };
 const BIZ_JOB={hospital:'doctor',resto:'chef',realty:'realtor'};
 const SHOP_L=['작은 가게','2층 상가','상가 건물','빌딩'];
@@ -877,6 +889,7 @@ const TITLES={
  angel:{n:'동네 천사',d:'착한 선택을 5번 넘게 했어요'},
  gambler:{n:'승부사',d:'위험한 선택에서 3번 넘게 이겼어요'},
 };
+
 /* =====================================================================
    황금열쇠 — 선택형 사건. opts가 있으면 고르고, 없으면 바로 일어나요.
    c: 조건, w: 가중치(기본 1)
@@ -1010,6 +1023,7 @@ const KEYS=[
  {c:()=>hasTime('newyear'),w:4,f:()=>{me.buff=me.buff||{};me.buff.immune=1;return '새해 다짐: "올해는 진짜 운동한다!" 헬스장 등록. 다음 부상 면역'}},
  {c:()=>hasTime('childday')&&me.children.length>0,w:4,f:()=>{const f=me.children.length*50;spend(f,'황금열쇠: 어린이날 선물');return `어린이날! 장난감 가게에서 지갑이 털렸어요 -${won(f)}`}},
 ];
+
 /* =====================================================================
    상태 · 계산
    ===================================================================== */
@@ -1267,6 +1281,7 @@ function lucky(n,why){
   let m=(me.job==='tuber'?2:1)*(has('necklace')?1.3:1)*(me.spouse&&me.spouse.trait==='fun'?1.2:1)*(me.luck?1.5:1);
   me.luck=0;const g=Math.round(n*m);gain(g,why+(g!==n?' (행운 보너스)':''));return g;
 }
+
 /* =====================================================================
    판 구성 · 저장 · 장부 · 단톡방 · 미션 · 칭호 · 자리
    ===================================================================== */
@@ -1410,6 +1425,7 @@ function setJob(jid){
   if(me.job!=='none') leaveJob();
   me.job=jid;me.rank=0;me.jp={...freshLife().jp,since:me.laps,start:me.laps,subs:jid==='tuber'?1000:0};
 }
+
 /* =====================================================================
    미니게임 엔진 — 퀴즈 · 타이밍 · 숨은 글자 찾기 · 암기 · 순서 맞추기
    ===================================================================== */
@@ -1557,6 +1573,7 @@ async function runMG(kind,title){
   const pass=r>=need;if(pass) track('mg');
   return {r,max,need,pass};
 }
+
 /* =====================================================================
    칸별 일
    ===================================================================== */
@@ -1615,7 +1632,7 @@ async function shopCell(id){
     if(full){setMsg(`${c.n} 자리가 비어 있지만 이미 가게를 ${shopCap()}곳 하고 있어요.`);return}
     const v=await choose(`${c.n} 상가가 ${sale?'경매 매물로':'비어'} 있어요. ${won(p)}에 사서 가게를 열까요?${r&&r.deals?` (거래 ${r.deals}번으로 시세 상승)`:''}`,[{label:'가게 열기',v:1,primary:true,disabled:me.cash<p},{label:'지나가기',v:0}]);
     if(!v){setMsg('구경만 하고 지나갔어요.');return}
-    const biz=await choose('어떤 가게를 열까요? 같은 업종이 많으면 손님을 나눠 가져요.',Object.entries(BIZ).map(([k,B])=>{const n=bizCount(k);return {label:`${B.n}${n?` (동네에 ${n}곳)`:' (독점!)'}${BIZ_JOB[k]&&BIZ_JOB[k]===me.job?' ★':''}`,v:k}}));
+    const biz=await choose('어떤 가게를 열까요? 같은 업종이 많으면 손님을 나눠 가져요.',Object.entries(BIZ).map(([k,B])=>{const n=bizCount(k);return {label:`${B.n}${n?` (동네 ${n}곳)`:' (독점!)'}${BIZ_JOB[k]&&BIZ_JOB[k]===me.job?' ★직업보너스':''} — ${B.tip}`,v:k}}));
     const ok=await writeShop(id,null,{owner:ME(),l:0,biz,p:r&&r.p||c.p,deals:r&&r.deals||0,t:Date.now()});
     if(!ok){setMsg('한발 늦었어요. 다른 이웃이 먼저 계약했어요.');return}
     spend(p,`${c.n} ${BIZ[biz].n} 개업`);track('build');
@@ -1633,7 +1650,7 @@ async function shopCell(id){
     if(v==='up'){const ok=await writeShop(id,ME(),{...shops[id],l:o.l+1});if(!ok){setMsg('계약이 꼬였어요. 다음에 다시 해 보세요.');return}
       spend(cost,`${c.n} ${SHOP_L[o.l+1]} 공사`);track('build');setMsg(`${SHOP_L[o.l+1]} 완공! 매출이 ${won(shopRevenue(id,{...o,l:o.l+1}))}로 올랐어요.`);
       if(o.l+1===3){story(`${c.n}에 빌딩을 세움`);postNews(`${dynName()}님이 ${c.n}에 빌딩을 올렸어요. 건물주 탄생!`)}return}
-    if(v==='biz'){const nb=await choose('어떤 업종으로 바꿀까요?',Object.entries(BIZ).filter(([k])=>k!==o.biz).map(([k,B])=>({label:`${B.n} (동네 ${bizCount(k)}곳)`,v:k})));
+    if(v==='biz'){const nb=await choose('어떤 업종으로 바꿀까요?',Object.entries(BIZ).filter(([k])=>k!==o.biz).map(([k,B])=>({label:`${B.n} (동네 ${bizCount(k)}곳) — ${B.tip}`,v:k})));
       const ok=await writeShop(id,ME(),{...shops[id],biz:nb});if(ok){spend(rc,`${c.n} 리모델링`);setMsg(`${BIZ[nb].n}(으)로 새 단장했어요.`)}return}
     setMsg('오늘도 장사 잘되길!');return;
   }
@@ -1856,6 +1873,7 @@ async function realtyCell(){
   else if(v==='cy') applyCheongyak();
   else setMsg('구경만 하고 나왔어요.');
 }
+
 /* =====================================================================
    집 거래 · 청약 · 월급날 · 턴 · 마주침 · 은퇴 · 가문 상속
    ===================================================================== */
@@ -2143,6 +2161,7 @@ async function endLife(why){
   setMsg(heir?`${me.gen}대 ${me.heirName}의 인생! 스무 살, 다시 시작해요.`:'새 인생이 시작됐어요. 이번엔 어떤 인생을 살까요?');
   save();renderAll();idleActions();
 }
+
 /* =====================================================================
    화면
    ===================================================================== */
@@ -2466,6 +2485,7 @@ function renderRank(){
 }
 function renderLog(){const ul=$('log');ul.innerHTML='';for(const l of logs){const li=el('li');li.append(el('span','t',l.at),l.t);ul.append(li)}if(!logs.length)ul.append(el('li','note','아직 기록이 없어요.'))}
 function renderAll(){renderBoard();renderStats();renderHome();renderBank();renderItems();renderVote();renderJobs();renderStocks();renderTown();renderRank()}
+
 /* =====================================================================
    선거 · 경매 · 로또 · 결혼 · 보증 · 동기화
    ===================================================================== */
@@ -2617,6 +2637,7 @@ async function reclaimIdle(){
     const ok=await writeShop(id,r.owner,{owner:null,l:0,biz:null,p:r.p||CELL[id].p,deals:r.deals||0,t:Date.now(),sale:{until:Date.now()+12*36e5,price:Math.round(shopValue(id)*.7)}});
     if(ok)addLog(`${CELL[id].n}: 주인이 ${IDLE_DAYS}일 넘게 안 보여 경매로 나왔어요`)}
 }
+
 /* =====================================================================
    탭 · 안내 · 요약 카드 · 운영자 · 로그인 · 시작
    ===================================================================== */
