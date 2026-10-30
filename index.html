@@ -331,6 +331,8 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 </head>
 <body>
 <header>
@@ -2932,7 +2934,7 @@ const ADMIN_EMAIL='duddnddl89@gmail.com';
 const DEF_SET={rollSec:360,maxRolls:80,payMul:1,event:'',lpy:3};
 function applySettings(s){
   const v={...DEF_SET,...(s||{})};let sec=Number(v.rollSec);if(!sec&&v.rollMin)sec=Number(v.rollMin)*60;
-  ROLL_MS=clamp(Math.round((sec||360)/30)*30,30,7200)*1000;MAX_ROLLS=clamp(Math.round(v.maxRolls)||80,5,500);
+  ROLL_MS=clamp(Math.round((sec||360)/10)*10,10,7200)*1000;MAX_ROLLS=clamp(Math.round(v.maxRolls)||80,5,500);
   PAY_MUL=clamp(Number(v.payMul)||1,.1,10);EVENT_NAME=String(v.event||'').slice(0,30);LPY=clamp(Math.round(v.lpy)||3,1,10);
 }
 function renderNotice(){const n=CFG.notice,box=$('notice');if(n&&n.text){box.hidden=false;box.textContent='';box.append(el('b','','공지'),' '+n.text)}else box.hidden=true}
@@ -2985,13 +2987,13 @@ function renderAdmin(){
   r2.append(b2,b2c);s2.append(ta,r2);
   // 밸런스
   const s3=sec('이벤트·밸런스 (모든 주민에게 바로 적용)');const cur={...DEF_SET,...CFG.settings};
-  const fields=[['rollSec','주사위 충전 (초, 30초 단위)',Math.round(ROLL_MS/1000),'30'],['maxRolls','주사위 최대 개수',MAX_ROLLS,'1'],['lpy','몇 바퀴에 1살',LPY,'1'],['payMul','월급 배율',cur.payMul,'0.1'],['event','이벤트 이름',cur.event,'']];
+  const fields=[['rollSec','주사위 충전 (초, 10초 단위)',Math.round(ROLL_MS/1000),'10'],['maxRolls','주사위 최대 개수',MAX_ROLLS,'1'],['lpy','몇 바퀴에 1살',LPY,'1'],['payMul','월급 배율',cur.payMul,'0.1'],['event','이벤트 이름',cur.event,'']];
   const grid=el('div','adm-grid');fields.forEach(([k,l,v,st])=>{const lab=el('label','',l),i=el('input');i.id='set_'+k;i.value=v;if(st){i.type='number';i.step=st}lab.append(i);grid.append(lab)});
-  const prev=el('div','note');const upd=()=>{const sc=clamp(Math.round((Number($('set_rollSec').value)||0)/30)*30,30,7200),mx=clamp(Math.round(Number($('set_maxRolls').value)||0),5,500),lp=clamp(Math.round(Number($('set_lpy').value)||3),1,10);
+  const prev=el('div','note');const upd=()=>{const sc=clamp(Math.round((Number($('set_rollSec').value)||0)/10)*10,10,7200),mx=clamp(Math.round(Number($('set_maxRolls').value)||0),5,500),lp=clamp(Math.round(Number($('set_lpy').value)||3),1,10);
     prev.textContent=`→ ${fmtSec(sc)}마다 1개 · 가득 차기까지 ${fmtSec(sc*mx)} · 하루 최대 ${Math.floor(86400/sc)}개 · 한 인생(20→60세) 약 ${40*lp*4}번 굴리기`};
   setTimeout(()=>{['set_rollSec','set_maxRolls','set_lpy'].forEach(id=>$(id).addEventListener('input',upd));upd()},0);
   const r3=el('div','adm-row'),b3=el('button','btn primary','적용'),b3d=el('button','btn','기본값으로');
-  b3.onclick=async()=>{const v={rollSec:clamp(Math.round((Number($('set_rollSec').value)||360)/30)*30,30,7200),maxRolls:Number($('set_maxRolls').value),lpy:Number($('set_lpy').value),payMul:Number($('set_payMul').value),event:$('set_event').value.trim()};useCnt('w');await FS.doc('config/settings').set(v);admMsg('적용했어요')};
+  b3.onclick=async()=>{const v={rollSec:clamp(Math.round((Number($('set_rollSec').value)||360)/10)*10,10,7200),maxRolls:Number($('set_maxRolls').value),lpy:Number($('set_lpy').value),payMul:Number($('set_payMul').value),event:$('set_event').value.trim()};useCnt('w');await FS.doc('config/settings').set(v);admMsg('적용했어요')};
   b3d.onclick=async()=>{useCnt('w');await FS.doc('config/settings').set(DEF_SET);admMsg('기본값(6분·80개·3바퀴 1살·월급 1배)')};
   r3.append(b3,b3d);s3.append(grid,prev,r3);
   // 오늘의 이슈
