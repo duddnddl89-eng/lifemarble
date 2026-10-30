@@ -349,7 +349,10 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 /* 팝업은 내용이 길면 위부터 스크롤 */
 .auth,.mgwrap{place-items:safe center;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .admin{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.gift-pend{color:#b7791f;font-weight:600;font-size:12px}.gift-ok{color:var(--ink-2);font-size:12px}
 </style>
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
@@ -3067,10 +3070,10 @@ function onGifts(d){
     if(g.rolls){me.rolls=Math.max(0,me.rolls+g.rolls);addLog(`운영자 주사위 ${g.rolls>0?'+':''}${g.rolls}개${g.msg?' — '+g.msg:''}`)}
     me.giftT=Math.max(me.giftT||0,g.t);
   }
-  toast('운영자에게서 알림이 왔어요. 일지를 확인하세요');save();renderAll();
+  toast('운영자에게서 알림이 왔어요. 일지를 확인하세요');save(true);renderAll();
 }
 function admMsg(t){$('admMsg').textContent=t;clearTimeout(admMsg._t);admMsg._t=setTimeout(()=>{$('admMsg').textContent=''},5000)}
-async function gift(uid,obj,label){useCnt('w');await FS.doc('gifts/'+uid).set({items:firebase.firestore.FieldValue.arrayUnion({...obj,t:Date.now(),id:Math.random().toString(36).slice(2)})},{merge:true});admMsg(`${label} 완료`)}
+async function gift(uid,obj,label){useCnt('w');const it0={...obj,t:Date.now()};const g=admGifts[uid]=admGifts[uid]||{items:[]};g.items=[...(g.items||[]),it0];setTimeout(()=>{if(!$('admin').hidden)renderAdmin()},50);await FS.doc('gifts/'+uid).set({items:firebase.firestore.FieldValue.arrayUnion({...obj,t:Date.now(),id:Math.random().toString(36).slice(2)})},{merge:true});admMsg(`${label} 완료`)}
 function allPlayers(){const list=[{id:myId,...me,net:netWorth()}];for(const [id,p] of Object.entries(others))list.push({id,...p});return list.sort((a,b)=>(b.net||0)-(a.net||0))}
 const fmtAgo=t=>{if(!t)return '-';const m=Math.floor((Date.now()-t)/6e4);return m<1?'방금':m<60?`${m}분 전`:m<1440?`${Math.floor(m/60)}시간 전`:`${Math.floor(m/1440)}일 전`};
 function admTwo(btn,fn,label='한 번 더 누르면 실행'){btn.onclick=async()=>{if(btn.dataset.armed!=='1'){btn.dataset.armed='1';const t=btn.textContent;btn.textContent=label;btn.classList.add('danger');setTimeout(()=>{if(btn.isConnected){btn.dataset.armed='';btn.textContent=t;btn.classList.remove('danger')}},4000);return}btn.disabled=true;try{await fn()}catch(e){admMsg('실패: '+(e&&e.message||e))}btn.disabled=false}}
@@ -3127,13 +3130,14 @@ function renderAdmin(){
   const r4=el('div','adm-row');r4.append(sel,b4);s4.append(el('div','note',`지금: ${ISSUE[issueToday()].n}`),r4);
   // 주민
   const s5=sec('주민 관리');const ar=el('div','adm-row'),ai=el('input');ai.type='number';ai.id='admAmt';ai.value='500';ai.step='10';const mi=el('input');mi.id='admMemo';mi.placeholder='사유(주민 일지에 표시)';mi.maxLength=40;ar.append(el('span','note','금액(만)'),ai,mi);s5.append(ar);
-  const tw=el('div','adm-table'),tb=el('table');tb.innerHTML='<thead><tr><th>주민</th><th>나이·직업</th><th class="r">순자산</th><th>접속</th><th>관리</th></tr></thead>';const body=el('tbody');
+  const tw=el('div','adm-table'),tb=el('table');tb.innerHTML='<thead><tr><th>주민</th><th>나이·직업</th><th class="r">순자산</th><th>접속</th><th>운영자 조치</th><th>관리</th></tr></thead>';const body=el('tbody');
   players.forEach(p=>{const tr=el('tr'),banned=!!CFG.bans[p.id];tr.append(el('td','',(dynName(p)||'(미등록)')+(p.id===myId?' (나)':'')+(banned?' · 차단':'')),el('td','',`${p.age||20}세 ${title(p)}`),el('td','r num',won(p.net||0)),el('td','',fmtAgo(p.updated)));
+    {const gs=giftStatus(p);const td=el('td',gs.pend?'gift-pend':'gift-ok',gs.text);td.title=gs.pend?'이 주민이 다음에 접속하는 순간 적용돼요. 그 전까지 순자산·나이는 예전 값으로 보여요.':'보낸 조치가 모두 이 주민에게 반영됐어요.';tr.append(td)}
     const act=el('td','acts'),memo=()=>$('admMemo').value.trim(),A=()=>Math.round(Number($('admAmt').value)||0);
     const bg=el('button','mini','지급');bg.onclick=()=>{if(A()>0)gift(p.id,{cash:A(),msg:memo()},`${p.nick}에게 ${won(A())} 지급`)};
     const bt=el('button','mini','회수');bt.onclick=()=>{if(A()>0)gift(p.id,{cash:-A(),msg:memo()},`${p.nick}에게서 ${won(A())} 회수`)};
     const br=el('button','mini','주사위+20');br.onclick=()=>gift(p.id,{rolls:20,msg:memo()},`${p.nick}에게 주사위 20개`);
-    const bz=el('button','mini','인생 초기화');admTwo(bz,()=>gift(p.id,{reset:true},`${p.nick} 초기화`),'정말 초기화?');act.append(bg,bt,br,bz);
+    const bz=el('button','mini','인생 초기화');admTwo(bz,()=>gift(p.id,{reset:true},`${p.nick} 초기화 예약 — 이 주민이 다음에 접속할 때 적용돼요`),'정말 초기화?');act.append(bg,bt,br,bz);
     if(p.id!==myId){const bb=el('button','mini',banned?'차단 해제':'차단');
       if(banned) bb.onclick=async()=>{useCnt('w');await FS.doc('config/bans').update({['uids.'+p.id]:firebase.firestore.FieldValue.delete()});admMsg('차단 해제')};
       else admTwo(bb,async()=>{useCnt('w');await FS.doc('config/bans').set({uids:{[p.id]:{reason:memo(),t:Date.now()}}},{merge:true});for(const id of ALL_SHOP)if(shops[id]&&shops[id].owner===p.id){useCnt('w');await FS.doc(COL.shops+'/'+id).set({owner:null,l:0,biz:null,p:shops[id].p,deals:shops[id].deals||0,t:Date.now()})}admMsg('차단하고 가게를 환수했어요')},'정말 차단?');act.append(bb)}
@@ -3162,7 +3166,16 @@ function renderAdmin(){
     useCnt('w',ALL_SHOP.length+1);await batch.commit();ci.value='';b8.disabled=false;postNews('[운영자] 새 시즌이 시작됐어요! 모두 스무 살부터 다시 출발해요');admMsg('새 시즌 시작')};
   r8.append(ci,b8);s8.append(r8);
 }
-function openAdmin(){if(!isAdmin)return;$('admin').hidden=false;renderAdmin()}
+let admGifts={};
+async function loadGifts(){if(!db||!isAdmin)return;try{const s=await FS.collection('gifts').get();useCnt('r',Math.max(1,s.size));admGifts={};s.docs.forEach(d=>admGifts[d.id]=d.data())}catch(e){}}
+function giftStatus(p){
+  const items=((admGifts[p.id]||{}).items||[]).filter(x=>x&&x.t>(p.giftT||0)).sort((a,b)=>a.t-b.t);
+  if(!items.length) return {pend:false,text:'✅ 반영됨'};
+  const kinds=items.map(g=>g.reset?'초기화':g.cash?(g.cash>0?'지급 ':'회수 ')+won(Math.abs(g.cash)):g.rolls?'주사위 '+g.rolls:'알림');
+  const d=new Date(items[items.length-1].t);
+  return {pend:true,text:`⏳ 접속 대기: ${kinds.join(', ')} (${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')} 보냄)`};
+}
+async function openAdmin(){if(!isAdmin)return;$('admin').hidden=false;renderAdmin();await loadGifts();if(!$('admin').hidden)renderAdmin()}
 
 /* ---------------- 로그인 ---------------- */
 const NICK_RE=/^[가-힣A-Za-z0-9_]{2,12}$/;
