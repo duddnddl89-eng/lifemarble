@@ -281,6 +281,22 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 #issueSel{font:inherit;padding:6px 9px;border:1px solid var(--road);border-radius:5px;background:var(--bg);color:var(--ink);max-width:100%}
 .tabs button{padding:5px 10px}
 </style>
+<style>
+.die.pips{display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:14%;gap:6%;place-items:center}
+.die.pips i{width:72%;aspect-ratio:1;border-radius:50%}
+.die.pips i.on{background:var(--ink)}
+.die.rolling{animation:dieRoll .42s linear infinite}
+@keyframes dieRoll{0%{transform:rotate(0) translateY(0)}25%{transform:rotate(90deg) translateY(-6px)}50%{transform:rotate(180deg) translateY(0)}75%{transform:rotate(270deg) translateY(-4px)}100%{transform:rotate(360deg)}}
+.die.dbl{border-color:var(--gold);box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 45%,transparent);animation:dblPop .5s ease}
+@keyframes dblPop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+.fx-money{position:absolute;transform:translate(-50%,-100%);font-weight:800;font-size:15px;pointer-events:none;z-index:60;animation:fxUp 1.4s ease-out forwards;text-shadow:0 1px 0 var(--bg),0 0 6px var(--bg);white-space:nowrap}
+.fx-money.up{color:#2f9e72}.fx-money.down{color:#d6453a}
+@keyframes fxUp{0%{opacity:0;margin-top:6px}15%{opacity:1}100%{opacity:0;margin-top:-46px}}
+.fx-conf{position:fixed;inset:0;pointer-events:none;z-index:70}
+.msg.flip{animation:keyFlip .5s ease;background:color-mix(in srgb,var(--gold) 16%,transparent);border-radius:10px}
+@keyframes keyFlip{0%{transform:perspective(500px) rotateY(90deg);opacity:.2}100%{transform:perspective(500px) rotateY(0);opacity:1}}
+@media (prefers-reduced-motion: reduce){.die.rolling,.die.dbl,.msg.flip,.fx-money{animation:none}}
+</style>
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 </head>
 <body>
@@ -1339,7 +1355,7 @@ function pushChat(msg){
   if(db&&myId&&me.nick) dset(COL.chat+'/'+myId,{m});
   if(typeof renderTown==='function') renderTown();
 }
-function postNews(x){pushChat({k:'n',x:String(x).slice(0,120)})}
+function postNews(x){celebrate(x);pushChat({k:'n',x:String(x).slice(0,120)})}
 function postChat(x){
   x=String(x||'').trim().slice(0,80);if(!x) return false;
   if(Date.now()-lastChat<4000){toast('조금만 천천히 말해 주세요.');return false}
@@ -1427,6 +1443,105 @@ function setJob(jid){
 }
 
 /* =====================================================================
+   효과: 소리(Web Audio 합성, 파일 없음) · 돈 숫자 · 꽃가루 · 주사위 · 황금열쇠 카드
+   ===================================================================== */
+const FX_RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let sndOn=false;try{sndOn=localStorage.getItem('lm5.snd')==='1'}catch(e){}
+let AC=null;
+function ac(){if(!sndOn)return null;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){AC=null}return AC}
+function tone(f,t0,d,{type='sine',v=.18,to=null}={}){
+  const c=ac();if(!c)return;const o=c.createOscillator(),g=c.createGain(),s=c.currentTime+t0;
+  o.type=type;o.frequency.setValueAtTime(f,s);if(to)o.frequency.exponentialRampToValueAtTime(to,s+d);
+  g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(v,s+.01);g.gain.exponentialRampToValueAtTime(.001,s+d);
+  o.connect(g).connect(c.destination);o.start(s);o.stop(s+d+.05);
+}
+function noise(t0,d,v=.12,hp=1500){
+  const c=ac();if(!c)return;const n=Math.floor(c.sampleRate*d),b=c.createBuffer(1,n,c.sampleRate),x=b.getChannelData(0);
+  for(let i=0;i<n;i++)x[i]=(Math.random()*2-1)*(1-i/n);
+  const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();f.type='highpass';f.frequency.value=hp;g.gain.value=v;
+  s.buffer=b;s.connect(f).connect(g).connect(c.destination);s.start(c.currentTime+t0);
+}
+const notes=(arr,step,o)=>arr.forEach((f,i)=>f&&tone(f,i*step,step*1.6,o));
+const SND={
+  roll(){for(let i=0;i<5;i++)noise(i*.06,.05,.18,900)},
+  step(){tone(880,0,.05,{type:'triangle',v:.07})},
+  coin(){tone(988,0,.08,{type:'square',v:.06});tone(1319,.07,.18,{type:'square',v:.06})},
+  lose(){tone(440,0,.25,{type:'triangle',v:.12,to:220})},
+  payday(){notes([523,659,784,1047],.09,{type:'triangle',v:.12})},
+  drum(){for(let i=0;i<10;i++)noise(i*.045,.04,.12,400);tone(1047,.48,.35,{type:'triangle',v:.12})},
+  pass(){notes([523,659,784,0,784,1047],.1,{type:'square',v:.07})},
+  fail(){notes([392,370,349,330],.18,{type:'triangle',v:.12})},
+  wedding(){[1568,1319,1047].forEach((f,i)=>{tone(f,i*.25,1.2,{v:.1});tone(f*2,i*.25,.6,{v:.03})})},
+  baby(){notes([784,880,988,880,784,659],.14,{type:'sine',v:.12})},
+  dbl(){notes([1047,1319,1568],.06,{type:'square',v:.06})},
+};
+function sfx(k){try{if(sndOn&&SND[k])SND[k]()}catch(e){}}
+function buzz(p){try{if(!FX_RM&&navigator.vibrate)navigator.vibrate(p)}catch(e){}}
+
+/* 소리 버튼 (기본 꺼짐) */
+function initSound(){
+  const h=document.querySelector('.hdr-right');if(!h||$('sndBtn'))return;
+  const b=el('button','mini','');b.id='sndBtn';b.type='button';
+  const lab=()=>{b.textContent=sndOn?'🔊 소리':'🔇 소리';b.setAttribute('aria-pressed',sndOn?'true':'false')};lab();
+  b.onclick=()=>{sndOn=!sndOn;try{localStorage.setItem('lm5.snd',sndOn?'1':'0')}catch(e){}lab();if(sndOn)sfx('coin')};
+  h.prepend(b);
+}
+
+/* 주사위: 눈 모양 + 굴림 */
+const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+function setDie(id,n){
+  const d=$(id);d.innerHTML='';d.classList.add('pips');d.setAttribute('aria-label',`주사위 ${n}`);
+  for(let i=0;i<9;i++){const s=el('i');if(PIPS[n].includes(i))s.className='on';d.append(s)}
+}
+async function animDice(a,b){
+  sfx('roll');
+  const d1=$('d1'),d2=$('d2');d1.classList.remove('dbl');d2.classList.remove('dbl');
+  if(!FX_RM){d1.classList.add('rolling');d2.classList.add('rolling')}
+  for(let k=0;k<7;k++){setDie('d1',1+Math.floor(Math.random()*6));setDie('d2',1+Math.floor(Math.random()*6));await sleep(60)}
+  d1.classList.remove('rolling');d2.classList.remove('rolling');
+  setDie('d1',a);setDie('d2',b);
+  if(a===b){d1.classList.add('dbl');d2.classList.add('dbl');sfx('dbl');buzz(30)}
+}
+
+/* 돈 숫자 튀어오르기: 렌더 때 현금 변화를 감지 */
+let fxCash=null;
+function cashFx(){
+  if(!me)return;const c=Math.round(me.cash);
+  if(fxCash===null||!$('board')){fxCash=c;return}
+  const d=c-fxCash;fxCash=c;if(!d)return;
+  if(Math.abs(d)>=1){floatMoney(d);if(d>0)sfx('coin');else sfx('lose');if(d<0&&Math.abs(d)>=Math.max(500,me.cash*.3))buzz([60,40,60])}
+}
+function floatMoney(d){
+  const host=document.querySelector('#board .tok')||$('msg');if(!host)return;
+  const r=host.getBoundingClientRect(),f=el('div','fx-money '+(d>0?'up':'down'),(d>0?'+':'-')+won(Math.abs(d)));
+  f.style.left=(r.left+r.width/2)+'px';f.style.top=(r.top+scrollY)+'px';document.body.append(f);
+  setTimeout(()=>f.remove(),FX_RM?900:1400);
+}
+
+/* 꽃가루 */
+function confetti(n=90){
+  if(FX_RM)return;const cv=el('canvas','fx-conf');cv.width=innerWidth;cv.height=innerHeight;document.body.append(cv);
+  const x=cv.getContext('2d'),C=['#e8553e','#f2b632','#2f9e72','#3b6fd8','#c04fb0'],P=[];
+  for(let i=0;i<n;i++)P.push({x:innerWidth/2+(Math.random()-.5)*120,y:innerHeight*.35,vx:(Math.random()-.5)*12,vy:-Math.random()*12-4,r:Math.random()*6+4,c:C[i%5],a:Math.random()*6,s:(Math.random()-.5)*.3});
+  let t=0;(function fr(){x.clearRect(0,0,cv.width,cv.height);
+    for(const p of P){p.vy+=.35;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.a+=p.s;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);x.restore()}
+    if(++t<110)requestAnimationFrame(fr);else cv.remove()})();
+}
+/* 큰 소식(내 동네 소식)에 맞춰 축하 */
+function celebrate(text){
+  const t=String(text);
+  if(/결혼|웨딩/.test(t)){sfx('wedding');confetti(120)}
+  else if(/태어|출산|아기/.test(t)){sfx('baby');confetti(70)}
+  else if(/당첨|당선|승진|합격|칭호|은퇴|상속/.test(t)){sfx('pass');confetti()}
+}
+
+/* 황금열쇠 카드 뒤집기 */
+async function keyFlip(){
+  sfx('drum');const m=$('msg');if(FX_RM||!m)return;
+  m.classList.remove('flip');void m.offsetWidth;m.classList.add('flip');await sleep(450);
+}
+
+/* =====================================================================
    미니게임 엔진 — 퀴즈 · 타이밍 · 숨은 글자 찾기 · 암기 · 순서 맞추기
    ===================================================================== */
 let mgRaf=0,mgTimer=0;
@@ -1438,6 +1553,7 @@ function mgCount(sec,onEnd){
 }
 const qTime=()=>15+(hasTime('hangul')?5:0);
 async function mgResult(text,ok){
+  sfx(ok?'pass':'fail');if(ok)buzz(40);
   const a=$('mgArea');a.innerHTML='';a.append(el('div','mg-res '+(ok?'ok':'no'),text));
   $('mgBar').style.width='0%';
   await new Promise(r=>{const f=$('mgFoot');f.innerHTML='';const b=el('button','btn primary','확인');b.onclick=r;f.append(b);b.focus()});
@@ -1596,6 +1712,7 @@ async function resolve(id){
     case 'night': return nightCell();
     case 'tax':{
       const rate=taxRate()*(me.job==='lawyer'?.5:1),t=Math.max(0,Math.round(me.cash*rate));
+      if(t<1){setMsg('세무서에 갔는데 통장이 텅 비어서 직원이 그냥 사탕 하나 주고 보내줬어요. 세금 면제!');return}
       spend(t,`세무서 세금 ${pct(rate)}`);
       setMsg(`${pick(['세무서 직원이 너무 반갑게 맞아줘서 오히려 무서웠어요','인생에서 피할 수 없는 세 가지: 죽음, 세금, 월요일','세무서 앞 화분이 유난히 싱싱하네요. 내 세금으로 키웠나 봐요'])}. 세금 -${won(t)} (세율 ${pct(rate)}${me.children.length?', 자녀 공제 적용':''})`);return}
   }
@@ -1603,7 +1720,7 @@ async function resolve(id){
 
 /* ---------------- 황금열쇠 ---------------- */
 async function openKey(){
-  track('key');
+  track('key');await keyFlip();
   const list=KEYS.filter(k=>!k.c||k.c());
   const ws=list.map(k=>typeof k.w==='function'?k.w():(k.w||1));
   let r=R()*ws.reduce((a,b)=>a+b,0),k=list[0];
@@ -2056,12 +2173,11 @@ async function releaseShop(id){const r=shops[id];await writeShop(id,ME(),{owner:
 
 /* ---------------- 턴 ---------------- */
 async function rollDice(){
-  for(let k=0;k<6;k++){$('d1').textContent=1+Math.floor(R()*6);$('d2').textContent=1+Math.floor(R()*6);await sleep(55)}
-  const a=1+Math.floor(R()*6),b=1+Math.floor(R()*6);$('d1').textContent=a;$('d2').textContent=b;return [a,b];
+  const a=1+Math.floor(R()*6),b=1+Math.floor(R()*6);await animDice(a,b);return [a,b];
 }
 async function moveBy(n){
   let idx=Math.max(0,BOARD.indexOf(me.posId));
-  for(let s=0;s<n;s++){idx=(idx+1)%BOARD.length;me.posId=BOARD[idx];if(idx===0)payday();renderBoard();renderLifeLine();await sleep(100)}
+  for(let s=0;s<n;s++){idx=(idx+1)%BOARD.length;me.posId=BOARD[idx];sfx('step');if(idx===0){sfx('payday');payday()}renderBoard();renderLifeLine();await sleep(100)}
 }
 async function roll(){
   if(busy) return;refillRolls();
@@ -2261,6 +2377,7 @@ function renderLifeLine(){
 /* ---------------- 내 인생 ---------------- */
 function kv(box,pairs){box.innerHTML='';for(const [k,v] of pairs){const d=el('div','stat');d.append(el('div','k',k),el('div','v num',v));box.append(d)}}
 function renderStats(){
+  cashFx();
   renderLifeLine();
   const [lo,hi]=salRange(me.job,me.rank),off=myOffice();
   kv($('stats'),[
@@ -2905,6 +3022,7 @@ function tick(){
   if(Date.now()-lastReclaim>5*6e4){lastReclaim=Date.now();reclaimIdle()}
 }
 function boot(){
+  initSound();
   buildBoard(0);initTabs();applySettings({});
   let stored=null;try{const s=localStorage.getItem('lifemarble5.me');if(s)stored=JSON.parse(s);logs=JSON.parse(localStorage.getItem('lifemarble5.log')||'[]')}catch(e){}
   me=normalize(stored);shops=me.localShops||{};
