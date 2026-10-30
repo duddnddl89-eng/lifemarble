@@ -296,8 +296,34 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 .msg.flip{animation:keyFlip .5s ease;background:color-mix(in srgb,var(--gold) 16%,transparent);border-radius:10px}
 @keyframes keyFlip{0%{transform:perspective(500px) rotateY(90deg);opacity:.2}100%{transform:perspective(500px) rotateY(0);opacity:1}}
 @media (prefers-reduced-motion: reduce){.die.rolling,.die.dbl,.msg.flip,.fx-money{animation:none}}
+
+/* 9 · 10 판 */
+.tok,.otok{width:auto;height:auto;background:none;border:0;box-shadow:none;border-radius:0;line-height:1;opacity:1}
+.tok{font-size:clamp(15px,3.6vw,22px);filter:drop-shadow(0 0 0 var(--me)) drop-shadow(0 1px 1px rgba(0,0,0,.35));position:relative;z-index:2}
+.tok::after{content:'';position:absolute;left:10%;right:10%;bottom:-3px;height:3px;border-radius:2px;background:var(--me)}
+.otok{font-size:clamp(11px,2.5vw,15px);position:relative}
+.otok::after{content:'';position:absolute;left:15%;right:15%;bottom:-2px;height:2px;border-radius:2px;background:var(--own,var(--other))}
+@media (prefers-reduced-motion: no-preference){.cell.here .tok{animation:tokHop .9s ease-in-out infinite}}
+@keyframes tokHop{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.cell.owned-other{box-shadow:inset 0 -4px 0 var(--own,var(--other));background:color-mix(in srgb,var(--own,var(--other)) 9%,var(--paper))}
+.cell.owned-me{background:color-mix(in srgb,var(--me) 9%,var(--paper))}
+.cell.owned-other .bld{color:var(--own,var(--other))}
+.bld{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bld .bz{margin-right:2px;font-size:1.15em}
+/* 11 하늘 */
+.center{position:relative;overflow:hidden;transition:background .8s}
+.center>*:not(.sky){position:relative;z-index:1}
+.center[data-sky=morning]{background:linear-gradient(180deg,color-mix(in srgb,#ffd9a0 30%,var(--paper)),var(--paper) 70%)}
+.center[data-sky=day]{background:linear-gradient(180deg,color-mix(in srgb,#9fd3ff 28%,var(--paper)),var(--paper) 70%)}
+.center[data-sky=dusk]{background:linear-gradient(180deg,color-mix(in srgb,#ff9a7a 32%,var(--paper)),color-mix(in srgb,#b58cd8 12%,var(--paper)) 75%)}
+.center[data-sky=night]{background:linear-gradient(180deg,color-mix(in srgb,#2a3a6e 30%,var(--paper)),var(--paper) 80%)}
+.sky{position:absolute;inset:0;pointer-events:none;z-index:0}
+.sky span{position:absolute;opacity:.45;animation:skyFall 10s linear infinite}
+@keyframes skyFall{0%{transform:translateY(-20px) rotate(0)}100%{transform:translateY(60px) rotate(40deg)}}
+@media (prefers-reduced-motion: reduce){.sky span{animation:none}}
 </style>
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 </head>
 <body>
 <header>
@@ -1541,6 +1567,39 @@ async function keyFlip(){
   m.classList.remove('flip');void m.offsetWidth;m.classList.add('flip');await sleep(450);
 }
 
+/* ---- 9. 캐릭터 말: 나이·성별·직업 아바타 ---- */
+const AV_JOB={office:'💼',civil:'💼',doctor:'⚕️',lawyer:'💼',dev:'💻',chef:'🍳',realtor:'💼',fund:'💼',tuber:'🎤'};
+function avatar(p){
+  if(!p) return '🙂';const g=p.gender==='m'?'m':p.gender==='f'?'f':'x';
+  if((p.age||20)>=60) return g==='m'?'👴':g==='f'?'👵':'🧓';
+  const base={m:'👨',f:'👩',x:'🧑'}[g],j=AV_JOB[p.job];
+  return j?base+'‍'+j:base;
+}
+/* 주인마다 고정 색 */
+function ownerHue(uid){return hstr(String(uid||'x'))%360}
+const BIZ_EMO={chicken:'🍗',cafe:'☕',conv:'🏪',resto:'🍝',academy:'📚',pc:'🎮',hospital:'🏥',gym:'💪',realty:'🏠'};
+const LV_EMO=['','🏬','🏢','🏙️'];
+
+/* ---- 11. 실제 시간 배경 ---- */
+let skyKey='';
+function renderSky(){
+  const c=$('center');if(!c) return;const k=kst(),h=k.h;
+  const sky=h>=5&&h<10?'morning':h>=10&&h<17?'day':h>=17&&h<20?'dusk':'night';
+  let deco='',n=0;
+  if(hasTime('xmas')){deco='❄️';n=14}else if(hasTime('halloween')){deco='🎃';n=8}else if(hasTime('valentine')){deco='💗';n=10}
+  else if(hasTime('newyear')){deco='🎉';n=10}else if(hasTime('pepero')){deco='🍫';n=10}else if(hasTime('childday')){deco='🎈';n=10}
+  else if(hasTime('seollal')||hasTime('chuseok')){deco='🌕';n=1}
+  else if(k.mo===12||k.mo<=2){deco='❄️';n=8}else if(k.mo>=3&&k.mo<=4){deco='🌸';n=10}else if(k.mo>=9&&k.mo<=11){deco='🍂';n=8}
+  else if(sky==='night'){deco='✨';n=6}
+  const key=sky+deco;if(key===skyKey) return;skyKey=key;
+  c.dataset.sky=sky;c.querySelector('.sky')?.remove();if(!n) return;
+  const L=el('div','sky');L.setAttribute('aria-hidden','true');
+  for(let i=0;i<n;i++){const s=el('span','',deco);const r=hstr(key+i);s.style.left=(r%96)+'%';s.style.top=(hstr(i+key)%90)+'%';
+    s.style.animationDelay=-(r%12)+'s';s.style.animationDuration=(8+r%7)+'s';s.style.fontSize=(10+r%9)+'px';L.append(s)}
+  if(deco==='🌕'){L.firstChild.style.cssText='right:8%;top:6%;font-size:28px;animation:none;opacity:.55'}
+  c.prepend(L);
+}
+
 /* =====================================================================
    미니게임 엔진 — 퀴즈 · 타이밍 · 숨은 글자 찾기 · 암기 · 순서 맞추기
    ===================================================================== */
@@ -2335,7 +2394,7 @@ function cellInfo(id){
 }
 function renderBoard(){
   const board=$('board');board.querySelectorAll('.cell').forEach(c=>c.remove());
-  const at={};for(const p of Object.values(others)) if(p.v===VER){at[p.posId]=(at[p.posId]||0)+1}
+  const at={};for(const [uid,p] of Object.entries(others)) if(p.v===VER){(at[p.posId]=at[p.posId]||[]).push([uid,p])}
   const hot=issueOn('celeb')?celebShop():null;
   BOARD.forEach((id,i)=>{
     const c=CELL[id],[r,col]=pos(i);
@@ -2344,13 +2403,15 @@ function renderBoard(){
     e.append(el('div','nm',c.n));const sub=el('div','sub');
     if(c.k==='shop'){
       const o=ownerOf(id),rr=shops[id]||{};
-      if(o){e.classList.add(isMine(o)?'owned-me':'owned-other');e.append(el('div','bld',BIZ[o.biz].n+(o.l?' '+'▮'.repeat(o.l):'')));
+      if(o){e.classList.add(isMine(o)?'owned-me':'owned-other');if(!isMine(o))e.style.setProperty('--own',`hsl(${ownerHue(o.id)} 55% 50%)`);
+        const bd=el('div','bld');bd.append(el('span','bz',(BIZ_EMO[o.biz]||'🏪')+(LV_EMO[o.l]||'')),BIZ[o.biz].n);bd.title=SHOP_L[o.l]||'';e.append(bd);
         sub.textContent=(isMine(o)?'내 가게':nameOf(o.id))+' · '+won(isMine(o)?shopRevenue(id,o):payAt(id,o))}
       else if(rr.sale&&rr.sale.until>Date.now()){e.classList.add('sale');sub.textContent='경매 '+won(rr.sale.price)}
       else sub.textContent=won(buyPrice(id))+(rr.deals?` ↑${rr.deals}`:'');
     }else sub.textContent=c.s||'';
     e.append(sub);
-    const tk=el('div','tokens');for(let k=0;k<Math.min(3,at[id]||0);k++)tk.append(el('span','otok'));if(me.posId===id)tk.append(el('span','tok'));e.append(tk);
+    const tk=el('div','tokens');for(const [uid,p] of (at[id]||[]).slice(0,3)){const s=el('span','otok',avatar(p));s.title=dynName(p);s.style.setProperty('--own',`hsl(${ownerHue(uid)} 55% 50%)`);tk.append(s)}
+    if(me.posId===id){const s=el('span','tok',avatar(me));s.title='나';tk.append(s)}e.append(tk);
     e.tabIndex=0;e.setAttribute('role','button');e.setAttribute('aria-label',c.n);
     e.onclick=()=>{if(!busy)setMsg(cellInfo(id))};e.onkeydown=ev=>{if(ev.key==='Enter'&&!busy)setMsg(cellInfo(id))};
     board.append(e);
@@ -2359,6 +2420,7 @@ function renderBoard(){
   $('boardNote').textContent=`판 ${SIDE+1}×${SIDE+1} · 주민 ${cnt}명${LEVEL<EXP.length?` · ${(LEVEL+1)*10+1}명이 되면 확장`:''}`;
 }
 function renderLifeLine(){
+  renderSky();
   const ll=$('lifeline');ll.innerHTML='';
   ll.append(el('b','',`${me.age}세 ${title()}`),` · 현금 ${won(me.cash)} · 생일까지 ${LPY-me.laps%LPY}바퀴`);
   const pl=$('policyLine');pl.innerHTML='';
