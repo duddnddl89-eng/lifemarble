@@ -336,8 +336,6 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
-<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
-
 </head>
 <body>
 <header>
@@ -3147,17 +3145,8 @@ async function startOnline(){
 
 /* ---------------- 시작 ---------------- */
 let lastDay=kstDay(),lastWeek=weekId(),lastReclaim=0;
-let stuck=0;
-function unstick(){ // 안전장치: 버튼이 하나도 없이 멈춰 있으면 주사위 버튼을 되살림
-  const open=['mg','sum','auth','tour'].some(id=>$(id)&&!$(id).hidden&&getComputedStyle($(id)).display!=='none');
-  const hasBtn=!!$('actions').querySelector('button');
-  if(!busy){stuck=0;if(!hasBtn&&!open)idleActions();return false}
-  if(!hasBtn&&!open){if(++stuck>=2){stuck=0;busy=false;delete me.pend;setMsg('잠시 멈춰 있던 진행을 정리했어요. 다시 굴려 주세요.');save();renderAll();idleActions();return false}}else stuck=0;
-  return true;
-}
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&me){unstick();if(!busy){renderLifeLine();const rb=$('rollBtn');if(rb)rb.disabled=me.rolls<1}}});
 function tick(){
-  if(unstick()) return;renderLifeLine();renderStocks();const rb=$('rollBtn');if(rb)rb.disabled=me.rolls<1;
+  if(busy) return;renderLifeLine();renderStocks();const rb=$('rollBtn');if(rb)rb.disabled=me.rolls<1;
   if(weekId()!==lastWeek){lastWeek=weekId();refreshTerm();settleElections();renderAll()}
   if(kstDay()!==lastDay){lastDay=kstDay();settleLotto();settleCheongyak();renderAll();toast('새로운 하루! 오늘의 이슈와 미션이 바뀌었어요')}
   settleMarket();
