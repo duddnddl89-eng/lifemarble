@@ -415,6 +415,10 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 </head>
 <body>
 <header>
@@ -559,7 +563,7 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
     </ul></section>
     <section class="adm-sec"><h3>집</h3><p><b>집</b> 탭에서 월세·전세·매매를 골라요. 전세는 보증금을 맡기고 월세가 없지만 전세사기에 주의(보증보험 추천). 매수는 대출을 끼고 할 수 있고, 집값은 매일 출렁이면서 <b>내 나이가 들수록 연 4%씩 올라요</b>. 월세는 집값의 0.5%/바퀴, 전세는 집값의 62%. 예금 이자 0.5%, 대출 이자 0.7%/바퀴. 신축 아파트는 <b>부동산 칸</b>이나 집 탭에서 <b>청약</b>을 넣으면 다음 날 0시에 발표 — 무주택 기간·자녀·결혼이 가점이에요.</p></section>
     <section class="adm-sec"><h3>상가 건물</h3><p>상가 칸은 <b>3층 건물</b>(증축하면 최대 5층)이에요. 도착하면 <b>층을 뽑아요</b>.
-      <br>· <b>나라 소유 층</b>: 공영주차장·보건소·주민센터·도서관·어린이집. 공공요금(순자산 비례)을 국고에 내고 작은 혜택을 받아요. 그 층을 <b>분양</b>받을 수 있어요(부족하면 상가 담보대출).
+      <br>· <b>나라 소유 층</b>: 공영주차장·보건소·주민센터·도서관·어린이집. 공공요금(순자산 비례)을 국고에 내고 작은 혜택을 받아요. 그 층을 <b>분양</b>받거나(부족하면 상가 담보대출), 돈이 없으면 <b>나라에 세 들어</b> 장사할 수 있어요(월세는 국고로).
       <br>· <b>내 층</b>: 직접 장사, 비워 두고 세입자 받기, <b>리모델링</b>(매출·월세·시세↑, 3일마다 낡아요), <b>증축</b>(새 층 분양으로 개발 이익), <b>급매</b>(시세 70%).
       <br>· <b>남의 빈 층</b>: <b>월세</b>(보증금 10%, 월세 1%/바퀴)나 <b>반전세</b>(보증금 40%, 월세 0.5%)로 세 들어 장사해요. 보증금은 나갈 때 돌려받아요.
       <br>· <b>남의 가게</b>: 이용료를 내요. 세입자 가게는 <b>권리금</b>을 주고 넘겨받을 수 있어요.
@@ -1490,7 +1494,7 @@ function holdTax(){const fl=myFloors();if(!fl.length)return 0;return r10(fl.redu
 function vacTax(){return r10(myFloors().filter(k=>{const [id,f]=fsplit(k);const F=flOf(id,f);return !F.t&&!F.biz}).reduce((s,k)=>s+shopValue(k),0)*.005)}
 
 /* ---- 국고 적립 (각자 내 문서에 낸 세금을 기록 → 합계가 국고) ---- */
-const GOV_K={tax:'세무서 세금',wealth:'부자세',hold:'상가 보유세',vac:'공실세',pub:'공공요금',sale:'국유 층 분양',prop:'재산세',shop:'가게 관리비',inh:'상속세'};
+const GOV_K={rent:'나라 상가 월세',tax:'세무서 세금',wealth:'부자세',hold:'상가 보유세',vac:'공실세',pub:'공공요금',sale:'국유 층 분양',prop:'재산세',shop:'가게 관리비',inh:'상속세'};
 function govPay(kind,amt){amt=Math.round(amt);if(amt<=0)return;me.gov=me.gov||{};me.gov[kind]=(me.gov[kind]||0)+amt}
 function govGot(amt){amt=Math.round(amt);if(amt<=0)return;me.govGot=(me.govGot||0)+amt}
 const govSum=p=>Object.values((p&&p.gov)||{}).reduce((a,b)=>a+(Number(b)||0),0)-((p&&p.govGot)||0);
@@ -2052,14 +2056,14 @@ async function pickFloor(id){
   setMsg(`🏢 ${CELL[id].n} — ${f}층 도착!`);sfx('dbl');await sleep(300);return f;
 }
 function floorLabel(id,f){const F=flOf(id,f);const op=operatorOf(id,f);
+  if(op) return `${BIZ_EMO[F.biz]||'🏪'} ${nameOf(op)}네 ${BIZ[F.biz].n}${F.t&&!F.o?' (나라 건물 세입자)':F.t&&F.t!==F.o?' (세입자)':''}`;
   if(!F.o) return F.dev?`분양 중 ${won(F.sale)}`:`${pubOf(id,f).e} ${pubOf(id,f).n} (나라 소유)`;
-  if(op) return `${BIZ_EMO[F.biz]||'🏪'} ${nameOf(op)}네 ${BIZ[F.biz].n}${F.t&&F.t!==F.o?' (세입자)':''}`;
   return `빈 층 · 주인 ${nameOf(F.o)}`;}
 async function chooseBiz(text){return await choose(text,Object.entries(BIZ).map(([k,B])=>{const n=bizCount(k);return {label:`${B.n}${n?` (동네 ${n}곳)`:' (독점!)'}${BIZ_JOB[k]&&BIZ_JOB[k]===me.job?' ★직업보너스':''} — ${B.tip}`,v:k}}))}
 async function shopCell(id){
   const f=await pickFloor(id),F=flOf(id,f);
-  if(!F.o) return publicFloor(id,f);
-  if(F.o===ME()) return myFloorMenu(id,f);
+  if(!F.o&&!F.t) return publicFloor(id,f);
+  if(F.o&&F.o===ME()) return myFloorMenu(id,f);
   const op=operatorOf(id,f);
   if(op===ME()) return myLeaseMenu(id,f);
   if(op) return visitShop(id,f,op);
@@ -2080,9 +2084,21 @@ async function publicFloor(id,f){
     msg=`${P0.e} ${tag} ${P0.n}: 공공요금 -${won(fee)} → 국고. ${eff}`;
   }else msg=`🏗️ ${tag}: ${nameOf(F.dev)}님이 증축한 새 층 분양 중`;
   const price=buyFloorPrice(id,f),room=Math.max(0,loanLimit()+price*.6-me.loan),can=me.cash+room>=price;
-  const v=await choose(`${msg}. 이 층을 ${won(price)}에 살까요?${me.cash<price?` (모자란 돈은 상가 담보대출)`:''}`,[
-    {label:`${f}층 사기 ${won(price)}`,v:1,primary:can,disabled:!can},{label:'지나가기',v:0}]);
+  const opts=[{label:`${f}층 사기 ${won(price)}`,v:1,primary:can,disabled:!can}];
+  const govOk=!F.dev&&me.job!=='civil',dm=leaseDep(id,f,'m'),rm=leaseRent(id,f,'m'),dh=leaseDep(id,f,'h'),rh=leaseRent(id,f,'h');
+  if(govOk){opts.push({label:`나라에 월세로 세 들기 — 보증금 ${won(dm)} · 월세 ${won(rm)}/바퀴`,v:'gm',primary:!can&&me.cash>=dm,disabled:me.cash<dm},
+    {label:`나라에 반전세로 세 들기 — 보증금 ${won(dh)} · 월세 ${won(rh)}/바퀴`,v:'gh',disabled:me.cash<dh})}
+  opts.push({label:'지나가기',v:0});
+  const v=await choose(`${msg}. 이 층을 ${won(price)}에 사거나${govOk?', 나라에 세 들어 장사할 수 있어요':''}.${me.cash<price?` (사려면 모자란 돈은 상가 담보대출)`:''}`,opts);
   if(!v){setMsg(msg+'.');return}
+  if(v==='gm'||v==='gh'){
+    const lt=v==='gh'?'h':'m',dep=lt==='h'?dh:dm,rent=lt==='h'?rh:rm;
+    const biz=await chooseBiz('어떤 가게를 열까요? 같은 업종이 많으면 손님을 나눠 가져요.');
+    const ok=await writeBld(id,b=>{const x=(b.f||{})[f]||{};if(x.o||x.t||x.dev)throw new Error('taken');if(b.sale)delete b.sale[f];return setF(b,f,{t:ME(),biz,dep,rent,lt,gov:1,since:Date.now(),rt:Date.now()})});
+    if(!ok){setMsg('한발 늦었어요. 다른 주민이 먼저 계약했어요.');return}
+    spend(dep,`${c.n} ${f}층 보증금 (나라)`);me.leases=me.leases||{};me.leases[fkey(id,f)]={dep};track('build');
+    postNews(`${dynName()}님이 나라 건물 ${c.n} ${f}층에 ${BIZ[biz].n}을(를) 열었어요`);
+    setMsg(`${c.n} ${f}층에 ${BIZ[biz].n} 오픈! 월급날마다 월세 ${won(rent)}은 국고로, 손님 돈과 기본 매출은 내 거예요.`);return}
   const dev=F.dev;
   const ok=await writeBld(id,b=>{const x=(b.f||{})[f]||{};if(x.o)throw new Error('sold');if(!!x.dev!==!!dev)throw new Error('changed');
     b.deals=(b.deals||0)+1;b.m=Math.round((b.m||1)*1.02*1000)/1000;if(b.sale)delete b.sale[f];return setF(b,f,{o:ME(),since:Date.now(),rt:Date.now()})});
@@ -2131,10 +2147,10 @@ async function myLeaseMenu(id,f){
   const c=CELL[id],F=flOf(id,f),B=BIZ[F.biz],g=r10(floorToll(id,f)*.5);
   if(g)gain(g,`${c.n} ${f}층 ${B.n} 출근 매출`);
   const rc=r10(floorPrice(id,f)*.03);
-  const v=await choose(`내 ${B.n}(${c.n} ${f}층, ${nameOf(F.o)}님 건물). 출근 매출 +${won(g)}. 월세 ${won(F.rent)}/바퀴.`,[
+  const v=await choose(`내 ${B.n}(${c.n} ${f}층, ${F.o?nameOf(F.o)+'님':'나라'} 건물). 출근 매출 +${won(g)}. 월세 ${won(F.rent)}/바퀴.`,[
     {label:'그대로',v:0,primary:true},{label:`업종 바꾸기 ${won(rc)}`,v:'biz',disabled:me.cash<rc},{label:`가게 빼기 (보증금 ${won(F.dep)} 돌려받음)`,v:'out'}]);
   if(v==='biz'){const nb=await chooseBiz('어떤 업종으로 바꿀까요?');const ok=await writeBld(id,b=>{const x=b.f[f];if(!x||x.t!==ME())throw 0;x.biz=nb;return b});if(ok){spend(rc,`${c.n} ${f}층 리모델링`);setMsg(`${BIZ[nb].n}(으)로 새 단장했어요.`)}return}
-  if(v==='out'){const ok=await writeBld(id,b=>{const x=b.f[f];if(!x||x.t!==ME())throw 0;delete x.t;delete x.biz;delete x.dep;delete x.rent;delete x.lt;return b});if(ok){syncLeases();setMsg(`${c.n} ${f}층 가게를 정리했어요.`)}return}
+  if(v==='out'){const ok=await writeBld(id,b=>{const x=b.f[f];if(!x||x.t!==ME())throw 0;if(!x.o)return setF(b,f,null);delete x.t;delete x.biz;delete x.dep;delete x.rent;delete x.lt;return b});if(ok){syncLeases();setMsg(`${c.n} ${f}층 가게를 정리했어요.`)}return}
   setMsg(`오늘도 장사 잘되길! 출근 매출 +${won(g)}`);
 }
 /* 내 층 관리 */
@@ -2486,7 +2502,7 @@ function payday(){
   // 가게
   let rev=0,stax=0;
   for(const k of myOps()){const [id,f]=fsplit(k);rev+=floorBaseRev(id,f)}
-  for(const k of myTenancies()){const [id,f]=fsplit(k);const F=flOf(id,f);if(F.o&&F.o!==ME()&&F.rent){stax+=F.rent;payLedger(F.o,F.rent,`${dynName()}님의 ${CELL[id].n} ${f}층 월세`)}}
+  for(const k of myTenancies()){const [id,f]=fsplit(k);const F=flOf(id,f);if(F.o&&F.o!==ME()&&F.rent){stax+=F.rent;payLedger(F.o,F.rent,`${dynName()}님의 ${CELL[id].n} ${f}층 월세`)}else if(!F.o&&F.rent){stax+=F.rent;govPay('rent',F.rent)}}
   const htax=holdTax(),vtax=vacTax(),typ=issueOn('typhoon')?r10(myFloors().length*30):0;
   if(rev) extra.push(`가게 기본 매출 +${won(rev)}`);if(stax) extra.push(`상가 월세 -${won(stax)}`);
   if(htax) extra.push(`상가 보유세 -${won(htax)}`);if(vtax) extra.push(`공실세 -${won(vtax)}`);if(typ) extra.push(`태풍 피해 수리비 -${won(typ)}`);
@@ -2581,7 +2597,7 @@ async function ensureCash(){
   if(me.cash<0&&me.home.type==='own'){const v=Math.round(housePrice(me.home.tier)*.9);me.cash+=v;addLog(`집을 급매로 팔았어요 +${won(v)}`);me.home={type:'rent',tier:'oneroom',mul:1}}
   return me.cash>=0;
 }
-async function endLease(k){const [id,f]=fsplit(k);const ok=await writeBld(id,b=>{const x=(b.f||{})[f];if(!x||x.t!==ME())throw 0;delete x.t;delete x.biz;delete x.dep;delete x.rent;delete x.lt;return b});if(ok)syncLeases();return ok}
+async function endLease(k){const [id,f]=fsplit(k);const ok=await writeBld(id,b=>{const x=(b.f||{})[f];if(!x||x.t!==ME())throw 0;if(!x.o)return setF(b,f,null);delete x.t;delete x.biz;delete x.dep;delete x.rent;delete x.lt;return b});if(ok)syncLeases();return ok}
 async function sellFloor(k,fromCell,silent){ // 내 층 급매: 시세 70%를 나라가 사 줌, 12시간 동안 그 가격에 분양
   if(!fromCell&&busy) return;const [id,f]=fsplit(k);if(flOf(id,f).o!==ME()) return;
   const v=quickSale(k);if(!fromCell)busy=true;
@@ -2784,7 +2800,7 @@ function renderBoard(){
     if(c.k==='shop'){
       const n=nFloors(id),b=bld(id),strip=el('div','fls');let mineN=0,opN=0;
       for(let f=1;f<=n;f++){const F=flOf(id,f),op=operatorOf(id,f),sq=el('i','fl');
-        if(F.o===ME()||op===ME()){sq.classList.add('me');mineN++}else if(F.o){sq.style.background=`hsl(${ownerHue(F.o)} 55% 50%)`}else if(F.dev){sq.classList.add('dev')}
+        if(F.o===ME()||op===ME()){sq.classList.add('me');mineN++}else if(F.o||F.t){sq.style.background=`hsl(${ownerHue(F.o||F.t)} 55% 50%)`}else if(F.dev){sq.classList.add('dev')}
         if(op)opN++;sq.title=`${f}층 ${floorLabel(id,f)}`;strip.append(sq)}
       if(mineN)e.classList.add('owned-me');else if(Object.values(b.f||{}).some(F=>F&&F.o)){e.classList.add('owned-other');const w=wholeOwner(id);if(w)e.style.setProperty('--own',`hsl(${ownerHue(w)} 55% 50%)`)}
       if(b.name){const bd=el('div','bld','🏷️ '+b.name);e.append(bd)}
@@ -3214,7 +3230,9 @@ function onShops(docs){
 async function reclaimIdle(){ // 7일 넘게 안 들어온 주인의 층은 나라가 70%에 사들임 (주인은 돌아오면 대금 받음)
   if(!db||!got.players||!shopsInit||busy) return;const cut=Date.now()-IDLE_DAYS*864e5;
   for(const id of ALL_SHOP){const b=shops[id];if(!b||!b.f)continue;
-    for(const [f,F] of Object.entries(b.f)){if(!F||!F.o||F.o===myId)continue;const p=others[F.o];
+    for(const [f,F] of Object.entries(b.f)){
+      if(F&&!F.o&&F.t&&F.t!==myId){const q=others[F.t];if(!(q&&q.v===VER&&(q.updated||0)>=cut)&&(F.since||0)<cut){const old=F.t;await writeBld(id,c=>{const x=(c.f||{})[f];if(!x||x.o||x.t!==old)throw 0;return setF(c,f,null)})}continue}
+      if(!F||!F.o||F.o===myId)continue;const p=others[F.o];
       if(p&&p.v===VER&&(p.updated||0)>=cut)continue;if(!p&&(F.since||0)>=cut)continue;
       const v=r10(floorPrice(id,f)*.7),old=F.o;
       await writeBld(id,c=>{const x=(c.f||{})[f];if(!x||x.o!==old)throw 0;c.sale=c.sale||{};c.sale[f]={price:v,until:Date.now()+12*36e5};return setF(c,f,{h:{k:'idle',from:old,v,at:Date.now()}})});
