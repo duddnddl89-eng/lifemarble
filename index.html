@@ -398,6 +398,8 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 </head>
 <body>
 <header>
@@ -2749,8 +2751,8 @@ function renderItems(){
       const go=el('button','mini','24시간 경매 시작');go.onclick=()=>listItem(x,Math.max(10,r10(Number(inp.value))));f.append(el('span','note','시작가'),inp,el('span','note','만'),go);d.append(f)}
     inv.append(d)});
   const shop=$('shop');shop.innerHTML='';
-  Object.entries(ITEMS).forEach(([k,I])=>{const d=el('div','it'),pr=shopPrice(k);const b=el('button','mini',`사기 ${won(pr)}`);b.disabled=busy||me.cash<pr;
-    b.onclick=()=>{if(me.cash<pr)return;me.cash-=pr;me.items.push({k,id:Date.now().toString(36)+Math.floor(R()*1e4)});addLog(`${I.n} 구매 -${won(pr)}`);save();renderAll()};
+  Object.entries(ITEMS).forEach(([k,I])=>{const d=el('div','it'),pr=shopPrice(k);const own=has(k);const b=el('button','mini',own?'보유 중':`사기 ${won(pr)}`);b.disabled=busy||own||me.cash<pr;if(own)b.title='같은 물건은 하나만 가질 수 있어요 (효과가 겹치지 않아요)';
+    b.onclick=()=>{if(me.cash<pr||has(k))return;me.cash-=pr;me.items.push({k,id:Date.now().toString(36)+Math.floor(R()*1e4)});addLog(`${I.n} 구매 -${won(pr)}`);save();renderAll()};
     const nm=el('div','in',I.n);if(has(k))nm.append(el('span','tag','보유'));const ib=el('div','ib');ib.append(b);d.append(nm,ib,el('div','ie',`${I.e} · 되팔면 ${pct(I.r)}`));shop.append(d)});
   renderMarket();
 }
@@ -2765,7 +2767,7 @@ function renderMarket(){
     const d=el('div','it'),nm=el('div','in',I.n);nm.append(el('span','tag'+(L.ends-now<36e5&&!ended?' hot':''),ended?'마감':untilMs(L.ends-now)+' 남음'));
     const ib=el('div','ib'),minNext=tb?Math.ceil(tb.a*1.05/10)*10:L.start;
     if(!mine&&!ended){const f=el('div','form');f.style.gridColumn='auto';const inp=el('input');inp.type='number';inp.step='10';inp.value=minNext;inp.setAttribute('aria-label','입찰가(만)');
-      const bb=el('button','mini','입찰');bb.onclick=()=>{const a=r10(Number(inp.value));if(a<minNext){inp.value=minNext;return}if(me.cash+me.savings<a){toast('입찰할 돈이 모자라요');return}
+      const bb=el('button','mini','입찰');bb.onclick=()=>{if(has(L.item.k)){toast('이미 가진 물건이에요. 같은 물건은 하나만 가질 수 있어요');return}const a=r10(Number(inp.value));if(a<minNext){inp.value=minNext;return}if(me.cash+me.savings<a){toast('입찰할 돈이 모자라요');return}
         const b=clone(bids[ME()]||{b:{},won:{}});b.b=b.b||{};b.won=b.won||{};b.b[L.key]=a;bids[ME()]=b;dset(COL.bids+'/'+myId,b);addLog(`${nameOf(L.sid)}의 ${I.n}에 ${won(a)} 입찰`);renderItems()};f.append(inp,bb);ib.append(f)}
     d.append(nm,ib,el('div','ie',`판매자 ${nameOf(L.sid)}${mine?' (나)':''} · 시작가 ${won(L.start)} · ${tb?`최고 ${won(tb.a)} (${tb.id===ME()?'나':nameOf(tb.id)})`:'입찰 없음'} · ${I.e}`));box.append(d)});
 }
