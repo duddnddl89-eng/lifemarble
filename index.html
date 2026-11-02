@@ -350,7 +350,16 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 .auth,.mgwrap{place-items:safe center;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .admin{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .gift-pend{color:#b7791f;font-weight:600;font-size:12px}.gift-ok{color:var(--ink-2);font-size:12px}
+/* 폰 아래 고정 선택 바 */
+.actbar{position:fixed;left:0;right:0;bottom:0;z-index:35;background:var(--paper);box-shadow:0 -6px 20px rgba(0,0,0,.18);border-top:3px solid var(--me);
+  padding:10px 12px max(10px,env(safe-area-inset-bottom,0px));max-height:45vh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.actbar>.actions{display:flex;flex-direction:column;align-items:stretch;gap:8px;max-width:none;width:100%;overflow:visible;max-height:none;mask-image:none;-webkit-mask-image:none;padding:0}
+.actbar>.actions .btn{width:100%;min-height:44px;white-space:normal;font-size:15px}
 </style>
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
@@ -616,6 +625,7 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
     <div class="auth-msg" id="authMsg" role="status"></div>
   </div>
 </div>
+<div class="actbar" id="actbar" hidden></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -1366,7 +1376,7 @@ function promoInfo(){
   const pr=J.promo,need=pr.need[r]||0,min=pr.min[r]||0,kind=pr.kind;
   const tenure=me.laps-(me.jp.since||0);
   const val=kind==='tenure'?tenure:(me.jp[kind]||0);
-  return {kind,need,min,tenure,val,test:pr.test&&pr.test[r],okT:tenure>=min,okM:kind==='tenure'?true:val>=need,cool:Math.max(0,(me.jp.cool||0)-me.laps),own:pr.own&&pr.own[r],seat:r+1===top?pr.seat:0};
+  return {kind,need,min,tenure,val,test:pr.test&&pr.test[r],okT:tenure>=min,okM:kind==='tenure'?true:val>=need,cool:Math.max(0,(me.jp.cool||0)-me.laps),own:pr.own&&pr.own[r],seat:r+1===top&&pr.seat?seatCap(me.job):0};
 }
 function promoBonus(){return (has('watch')?.1:0)+(has('suit')?.05:0)-(hasTime('monday')?.1:0)-(hasTime('sundaynight')?.1:0)}
 function perfAdd(n){if(me.job==='office') me.jp.perf=Math.max(0,(me.jp.perf||0)+Math.round(n*(issueOn('bonus')&&n>0?2:1)))}
@@ -1549,13 +1559,16 @@ function checkTitles(){
 
 /* ---- 최고 직급 자리 ---- */
 const topIdx=j=>JOBS[j].titles.length-1;
+function activeCount(){return 1+Object.values(others).filter(p=>p&&p.v===VER&&Date.now()-(p.updated||0)<IDLE_DAYS*864e5).length}
+const SEAT_SCALE=false; // 화요일 업데이트에서 켬
+function seatCap(job){const b=JOBS[job]&&JOBS[job].promo&&JOBS[job].promo.seat;return b?b+(SEAT_SCALE?Math.floor((activeCount()-1)/10):0):0}
 function holderValid(uid,job){
   if(uid===ME()) return me.job===job&&me.rank===topIdx(job);
   const p=others[uid];return !!(p&&p.v===VER&&p.job===job&&p.rank===topIdx(job)&&Date.now()-(p.updated||0)<IDLE_DAYS*864e5);
 }
 function seatHolders(job){return ((seats[job]&&seats[job].h)||[]).filter(u=>u!==ME()&&holderValid(u,job))}
 async function claimSeat(job){
-  const n=JOBS[job].promo.seat;if(!n||!db) return true;
+  const n=seatCap(job);if(!n||!db) return true;
   const r=await txn(COL.seats+'/'+job,cur=>{const h=((cur&&cur.h)||[]).filter(u=>u===myId||holderValid(u,job));if(h.includes(myId))return {h};if(h.length>=n)throw new Error('full');return {h:[...h,myId]}});
   return r===true;
 }
@@ -1707,6 +1720,23 @@ function renderSky(){
   if(deco==='🌕'){L.firstChild.style.cssText='right:8%;top:6%;font-size:28px;animation:none;opacity:.55'}
   c.prepend(L);
 }
+
+/* ---- 폰: 선택 버튼을 판 밖, 화면 아래 고정 바로 ---- */
+const MOBILE_MQ=matchMedia('(max-width:700px)');
+function placeActions(){
+  const a=$('actions'),bar=$('actbar'),c=$('center');if(!a||!bar||!c) return;
+  if(MOBILE_MQ.matches){if(a.parentElement!==bar)bar.append(a)}
+  else if(a.parentElement!==c){c.insertBefore(a,$('rolls'))}
+  syncActbar();
+}
+function syncActbar(){
+  const a=$('actions'),bar=$('actbar');if(!a||!bar) return;
+  const on=MOBILE_MQ.matches&&!!a.querySelector('button');
+  bar.hidden=!on;document.body.style.paddingBottom=on?(bar.offsetHeight+12)+'px':'';
+  if(on){a.classList.remove('scrolls');$('scrollHint')?.remove();$('center').classList.remove('choosing')}
+}
+new MutationObserver(syncActbar).observe(document.documentElement,{childList:true,subtree:true,attributes:false});
+MOBILE_MQ.addEventListener?MOBILE_MQ.addEventListener('change',placeActions):MOBILE_MQ.addListener(placeActions);
 
 /* =====================================================================
    미니게임 엔진 — 퀴즈 · 타이밍 · 숨은 글자 찾기 · 암기 · 순서 맞추기
@@ -2022,7 +2052,7 @@ async function promote(){
   const J=JOBS[me.job],next=me.rank+1,top=next===topIdx(me.job);
   if(top&&J.promo.seat){
     const ok=await claimSeat(me.job);
-    if(!ok){const h=seatHolders(me.job).map(nameOf).join(', ');setMsg(`${J.titles[next]} 자리가 꽉 찼어요${h?` (현재 ${h})`:''}. 그분이 은퇴하거나 자리를 비우면 다시 도전하세요.`);me.jp.cool=me.laps+3;return}
+    if(!ok){const h=seatHolders(me.job).map(nameOf).join(', ');setMsg(`${J.titles[next]} 자리 ${seatCap(me.job)}개가 꽉 찼어요${h?` (현재 ${h})`:''}. 그분이 은퇴하거나 자리를 비우면 다시 도전하세요.`);me.jp.cool=me.laps+3;return}
   }
   me.rank=next;me.jp.since=me.laps;me.jp.pfail=0;if(me.job==='office')me.jp.perf=0;
   addLog(`${title()}(으)로 승진!`);story(`${title()} 승진`);
@@ -3275,7 +3305,7 @@ function tick(){
   if(Date.now()-lastReclaim>5*6e4){lastReclaim=Date.now();reclaimIdle()}
 }
 function boot(){
-  initSound();
+  initSound();placeActions();
   buildBoard(0);initTabs();applySettings({});
   let stored=null;try{const s=localStorage.getItem('lifemarble5.me');if(s)stored=JSON.parse(s);logs=JSON.parse(localStorage.getItem('lifemarble5.log')||'[]')}catch(e){}
   me=normalize(stored);shops=me.localShops||{};
