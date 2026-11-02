@@ -396,6 +396,8 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 </head>
 <body>
 <header>
@@ -1445,9 +1447,10 @@ function useCnt(kind,n=1){if(!me)return;const d=ptDay();if(!me.usage||me.usage.d
 function chain(fn){saving=saving.then(fn).catch(e=>{if(e&&e.code==='resource-exhausted')toast('오늘 무료 저장 한도를 넘었어요. 운영자에게 알려주세요.');});return saving}
 function dset(path,data,merge){useCnt('w');return chain(()=>FS.doc(path).set(data,merge?{merge:true}:undefined))}
 /* 저장: 내 기기(localStorage)에는 즉시, 서버에는 20초에 한 번 몰아서 (창을 닫거나 앱을 나갈 때는 즉시) */
+const SID=Math.random().toString(36).slice(2,10),startedAt=Date.now();
 const SAVE_GAP=20000;let saveDirty=false,saveTimer=null,lastFlush=0;
 function save(force){
-  me.net=netWorth();me.updated=Date.now();me.shopCount=myShops().length;me.baseLimit=loanLimit(true);
+  me.sid=SID;me.net=netWorth();me.updated=Date.now();me.shopCount=myShops().length;me.baseLimit=loanLimit(true);
   if(!db) me.localShops={...shops};
   const snap=clone(me);delete snap._reset;if(db) delete snap.localShops;
   try{localStorage.setItem('lifemarble5.me',JSON.stringify({...snap,localShops:db?{}:shops}));localStorage.setItem('lifemarble5.log',JSON.stringify(logs.slice(0,60)));if(myId)localStorage.setItem('lifemarble5.uid',myId)}catch(e){}
@@ -3250,6 +3253,7 @@ async function startOnline(){
   $('mode').textContent='로그인 확인 중…';
   AUTH.onAuthStateChanged(async u=>{
     if(!u){db=null;myId=null;showAuth('login');$('mode').textContent='로그인이 필요해요';$('logoutBtn').hidden=true;return}
+    if(myId===u.uid&&db&&me&&me.nick) return; // 이미 접속 중 — 재호출 무시
     myId=u.uid;db={};isAdmin=(u.email||'').toLowerCase()===ADMIN_EMAIL&&u.emailVerified!==false;$('adminBtn').hidden=!isAdmin;
     $('who').textContent=u.email||'구글 계정';$('logoutBtn').hidden=false;$('loginBtn').hidden=true;
     try{useCnt('r');const snap=await FS.doc(COL.players+'/'+myId).get();let remote=snap.exists?clone(snap.data()):null;
@@ -3261,7 +3265,7 @@ async function startOnline(){
     $('mode').textContent='온라인 · 보실이네 주민들과 함께';
     if(!me.nick||!me.gender){showAuth('nick');$('regNick').value=me.nick||''}else{hideAuth();if(!me.tutDone)showTour()}
     if(!subscribed){subscribed=true;
-      sub('players',COL.players,d=>{const o={};for(const [id,p] of Object.entries(d))if(id!==myId&&p.v===VER)o[id]=p;others=o;
+      sub('players',COL.players,d=>{const mine=d[myId];if(mine&&mine.sid&&mine.sid!==SID&&(mine.updated||0)>startedAt){otherDevice();return}const o={};for(const [id,p] of Object.entries(d))if(id!==myId&&p.v===VER)o[id]=p;others=o;
         const L=levelFor(1+Object.keys(o).length);if(L>LEVEL){const prev=LEVEL;buildBoard(L);addLog(`주민이 늘어 동네가 ${L}차 확장! 새 상가 ${EXP.slice(prev,L).flat().filter(c=>c.k==='shop').map(c=>c.n).join('·')}`)}
         reclaimIdle();if(!busy){renderBoard();renderRank();renderVote();renderMarket();renderBank()}});
       sub('shops',COL.shops,onShops);
@@ -3293,7 +3297,8 @@ function unstick(){ // 안전장치: 버튼이 하나도 없이 멈춰 있으면
   const open=['mg','sum','auth','tour'].some(id=>$(id)&&!$(id).hidden&&getComputedStyle($(id)).display!=='none');
   const hasBtn=!!$('actions').querySelector('button');
   if(!busy){stuck=0;if(!hasBtn&&!open)idleActions();return false}
-  if(!hasBtn&&!open){if(++stuck>=2){stuck=0;busy=false;delete me.pend;setMsg('잠시 멈춰 있던 진행을 정리했어요. 다시 굴려 주세요.');save();renderAll();idleActions();return false}}else stuck=0;
+  const orphan=!!$('rollBtn')&&!open;
+  if((!hasBtn||orphan)&&!open){if(++stuck>=2){stuck=0;busy=false;delete me.pend;setMsg('잠시 멈춰 있던 진행을 정리했어요. 다시 굴려 주세요.');save();renderAll();idleActions();return false}}else stuck=0;
   return true;
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&me){unstick();if(!busy){renderLifeLine();const rb=$('rollBtn');if(rb)rb.disabled=me.rolls<1}}});
@@ -3303,6 +3308,12 @@ function tick(){
   if(kstDay()!==lastDay){lastDay=kstDay();settleLotto();settleCheongyak();renderAll();toast('새로운 하루! 오늘의 이슈와 미션이 바뀌었어요')}
   settleMarket();
   if(Date.now()-lastReclaim>5*6e4){lastReclaim=Date.now();reclaimIdle()}
+}
+function otherDevice(){
+  if(window.__otherDev) return;window.__otherDev=true;busy=true;db=null; // 이 화면은 더 이상 저장하지 않음
+  const d=el('div','auth');d.style.zIndex='90';const c=el('div','auth-card');
+  c.append(el('h2','','다른 곳에서 접속했어요'),el('p','','같은 계정으로 다른 기기나 다른 창에서 게임을 시작해서, 이 화면은 멈췄어요. 기록이 섞이지 않도록 한 곳에서만 플레이해 주세요.'));
+  const b=el('button','btn primary','이 화면에서 다시 하기');b.onclick=()=>location.reload();c.append(b);d.append(c);document.body.append(d);
 }
 function boot(){
   initSound();placeActions();
