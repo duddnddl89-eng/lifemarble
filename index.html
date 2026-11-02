@@ -400,6 +400,10 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 </head>
 <body>
 <header>
@@ -2287,10 +2291,15 @@ function payday(){
   if(me.married&&!joint) care*=.5;
   care=Math.round(care);
   const allowK=minors().length*(P('birth')?40:20);
+  const extraPre=[];
   const card=hasTime('cardday')?Math.round(Math.max(0,me.cash)*.03):0;
   const it=Math.floor(me.savings*depRate());me.savings+=it;
-  const li=Math.round(me.loan*loanRate());me.loan+=li;
-  let extra=[];
+  // 대출: 이자는 현금으로 낸다(원금에 붙이지 않음). 한도를 넘은 빚은 매 바퀴 10%씩 상환 요구.
+  if(!me.debtFix){me.debtFix=1;const lim=loanLimit();if(me.loan>lim*1.2){const cut=me.loan-r10(lim);me.loan=r10(lim);addLog(`은행 채무조정: 불어난 이자 ${won(cut)}을 탕감하고 대출을 한도 ${won(me.loan)}로 맞췄어요`)}}
+  const li=Math.round(me.loan*loanRate());
+  const over=Math.max(0,me.loan-loanLimit()),rep=over>0?r10(Math.max(10,over*.1)):0;
+  if(rep){me.loan-=rep;extraPre.push(`대출 한도 초과분 상환 -${won(rep)}`)}
+  let extra=[...extraPre];
   // 가게
   let rev=0,stax=0;myShops().forEach(id=>{const o=ownerOf(id);rev+=Math.round(landP(id)*.04*(o.l+1)*shopMul(id,o.biz)*compFactor(o.biz));stax+=Math.round(shopValue(id)*SHOP_TAX);if(issueOn('typhoon'))stax+=Math.round(o.l*landP(id)*BUILD_R*.02)});
   if(rev) extra.push(`가게 기본 매출 +${won(rev)}`);if(stax) extra.push(`가게 세금·관리비 -${won(stax)}`);
@@ -2322,7 +2331,7 @@ function payday(){
   const wtax=wealthTax();if(wtax) extra.push(`부자세(보유세) -${won(wtax)}`);
   const sup=catchUp()?supportAmt():0;if(sup){extra.push(`따라잡기 지원금 +${won(sup)}`);stat('support')}
   if(me.home.type!=='own') me.noHome=(me.noHome||0)+1;
-  me.cash+=pay+spInc-living-rent-care+allowK-card+rev-stax-ptax+allow-wtax+sup;
+  me.cash+=pay+spInc-living-rent-care+allowK-card+rev-stax-ptax+allow-wtax+sup-li-rep;
   if(me.preg&&me.laps>=me.preg.due) giveBirth();
   addLog(`월급날 ${me.laps}바퀴째${bday} — 월급 ${won(pay)}${spInc?`, 배우자 ${won(spInc)}`:''}, 생활비 ${won(living)}${rent?`, 월세 ${won(rent)}`:''}${care?`, 양육비 ${won(care)}(아동수당 +${won(allowK)})`:''}${card?`, 카드값 ${won(card)}`:''}${it?`, 예금이자 +${won(it)}`:''}${li?`, 대출이자 ${won(li)}`:''}${extra.length?', '+extra.join(', '):''}`);
   track('payday');
