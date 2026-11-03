@@ -432,6 +432,10 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 </head>
 <body>
 <header>
@@ -1802,7 +1806,7 @@ const PUB=[{k:'park',n:'공영주차장',e:'🅿️',d:'다음 이동 때 1칸 �
 const pubOf=(id,f)=>PUB[hstr(id+'~'+f)%PUB.length];
 const bld=id=>shops[id]||{};
 const nFloors=id=>clamp(bld(id).n||3,3,7);
-const flOf=(id,f)=>(bld(id).f||{})[f]||{};
+const flOf=(id,f)=>{const F=(bld(id).f||{})[f]||{};if(!F.o&&!F.t&&!F.dev){const n=npcFloor(id,f);if(n)return {...F,...n}}return F};
 const fkey=(id,f)=>id+':'+f;
 const fsplit=k=>{const i=k.lastIndexOf(':');return [k.slice(0,i),Number(k.slice(i+1))]};
 const BIZ_EMO={chicken:'🍗',cafe:'☕',conv:'🏪',resto:'🍝',academy:'📚',pc:'🎮',hospital:'🏥',gym:'💪',realty:'🏠'};
@@ -1825,7 +1829,7 @@ const shopValue=k=>{const [id,f]=fsplit(k);return floorPrice(id,f)};
 const operatorOf=(id,f)=>{const F=flOf(id,f);if(F.t)return F.t;if(F.o&&F.biz)return F.o;return null};
 function myOps(){const out=[];for(const id of ALL_SHOP){const b=shops[id];if(!b||!b.f)continue;for(const f of Object.keys(b.f))if(operatorOf(id,f)===ME())out.push(fkey(id,f))}return out}
 const isMineOp=(id,f)=>operatorOf(id,f)===ME();
-function playerInfo(id){return id===ME()?me:(others[id]||{})}
+function playerInfo(id){return id===ME()?me:(others[id]||npcById(id)||{})}
 const bizCount=biz=>{let n=0;for(const id of BOARD){const b=shops[id];if(!b||!b.f)continue;for(const [f,F] of Object.entries(b.f))if(F&&F.biz&&operatorOf(id,f)&&F.biz===biz)n++}return n};
 const compFactor=biz=>{const n=Math.max(1,bizCount(biz));return 1/(1+.3*(n-1))};
 function opBonus(id,f){const F=flOf(id,f),op=operatorOf(id,f);if(!op)return 1;const p=playerInfo(op);let m=1;
@@ -1894,6 +1898,111 @@ function syncLeases(){
   }
   for(const k of mine) if(!me.owns[k]) me.owns[k]={t:Date.now()};
 }
+
+/* =====================================================================
+   이웃 주민 (가상 플레이어)
+   - 저장하지 않고, 모든 화면에서 같은 규칙(시즌 시작 시각 + 시드)으로 계산
+   - 랭킹·게임판·상가에는 보이지만 선거·명예의 전당·청혼·보증·중고거래·인원 계산에는 빠짐
+   - 랭킹 1등은 못 함 (진짜 1등 자산의 90% 아래)
+   - 진짜 인원이 늘면 하나씩 이사 감 (목표 인원 = 진짜 + 주민)
+   ===================================================================== */
+let NPC_TARGET=8;
+const NPC_POOL=[ // 성격·사연은 내부 설정 (화면에는 안 나옴)
+ {nick:'감자도리',g:'m',job:'office',biz:'chicken',base:1.05,act:1.0,h0:20,len:4,off:[0],fl:2},   // 퇴근 후 치킨집 투잡하는 8년차 회사원
+ {nick:'퇴근요정',g:'f',job:'civil',biz:null,base:.7,act:.8,h0:18,len:3,off:[6],fl:0},            // 칼퇴하는 7급 공무원, 예금만 믿음
+ {nick:'월급루팡',g:'m',job:'dev',biz:'pc',base:1.25,act:1.2,h0:13,len:5,off:[],fl:1},           // 회사에서 몰래 접속하는 개발자, 주식 공격형
+ {nick:'치킨은반반',g:'f',job:'chef',biz:'cafe',base:.9,act:.9,h0:10,len:3,off:[1],fl:2},          // 동네 카페 사장 겸 요리사
+ {nick:'코인탑승객',g:'m',job:'fund',biz:null,base:1.4,act:1.1,h0:22,len:4,off:[],fl:0,swing:.45},  // 롤러코스터 투자자, 자산 출렁임 큼
+ {nick:'국밥한그릇',g:'m',job:'office',biz:'resto',base:.85,act:.7,h0:12,len:2,off:[0,6],fl:1},     // 점심시간에만 하는 직장인
+ {nick:'새벽감성',g:'f',job:'tuber',biz:'conv',base:.95,act:1.0,h0:1,len:4,off:[3],fl:1},          // 새벽 방송하는 유튜버, 편의점 운영
+ {nick:'빵순이',g:'f',job:'doctor',biz:'hospital',base:1.3,act:.6,h0:21,len:2,off:[2,5],fl:1},     // 바쁜 의사, 가끔 접속
+ {nick:'주말농부',g:'m',job:'realtor',biz:'realty',base:1.1,act:.5,h0:9,len:6,off:[1,2,3,4],fl:2}, // 주말에만 하는 공인중개사
+ {nick:'야근장인',g:'m',job:'lawyer',biz:null,base:1.2,act:.8,h0:23,len:3,off:[5],fl:0},           // 밤에만 들어오는 변호사
+ {nick:'소확행러',g:'f',job:'alba',biz:'gym',base:.5,act:.9,h0:15,len:4,off:[0],fl:1},            // 알바하며 헬스장 운영하는 20대
+];
+const npcId=i=>'npc_'+i;
+const npcIdx=id=>typeof id==='string'&&id.startsWith('npc_')?Number(id.slice(4)):-1;
+const isNpc=id=>npcIdx(id)>=0;
+const npcSeasonT=()=>(CFG.season&&CFG.season.t)||TREND0;
+const kstH=t=>new Date(t+9*36e5).getUTCHours(),kstDow=t=>new Date(t+9*36e5).getUTCDay();
+function npcCount(){if(!db)return 0;const n=Math.min(NPC_POOL.length,NPC_TARGET-activeCount());return Math.max(0,n)}
+/* 접속 일정: 매일 정해진 시간대 + 쉬는 요일 + 30분 단위로 가끔 빠짐 */
+function npcOnlineAt(i,t){
+  const P=NPC_POOL[i],h=kstH(t),d=kstDow(t);if(P.off.includes(d))return false;
+  const inWin=((h-P.h0+24)%24)<P.len;if(!inWin)return false;
+  return hstr(P.nick+'~'+Math.floor(t/18e5))%10<7;
+}
+function npcLastSeen(i,now){
+  if(npcOnlineAt(i,now)) return now-(hstr(P0(i)+Math.floor(now/6e4))%240)*1e3;
+  for(let t=Math.floor(now/18e5)*18e5;t>now-7*864e5;t-=18e5) if(npcOnlineAt(i,t)) return t+(hstr(P0(i)+t)%1500)*1e3;
+  return now-7*864e5;
+}
+const P0=i=>NPC_POOL[i].nick;
+/* 이사 가는 주민: 이 화면에서 처음 본 시각부터 2일간 랭킹에만 남음 */
+function npcLeaving(n){
+  let st={};try{st=JSON.parse(localStorage.getItem('lifemarble5.npcL')||'{}')}catch(e){}
+  const out=[];let ch=false;const now=Date.now(),ready=Date.now()-startedAt>9e4; // 접속 직후(주민 목록 불러오는 중)에는 판단 보류
+  for(let i=0;i<NPC_POOL.length;i++){
+    if(i<n){if(ready&&st[i]!=='seen'){st[i]='seen';ch=true}continue}
+    if(st[i]==='seen'){if(!ready)continue;st[i]=now;ch=true}
+    if(typeof st[i]==='number'){if(now-st[i]<2*864e5)out.push({i,t:st[i]});else{delete st[i];ch=true}}
+  }
+  if(ch)try{localStorage.setItem('lifemarble5.npcL',JSON.stringify(st))}catch(e){}
+  return out;
+}
+/* 자산: 진짜 주민들의 중간값을 기준으로 성격대로 오르내림, 1등 상한 */
+function npcNet(i,now,real){
+  const P=NPC_POOL[i],days=(now-npcSeasonT())/864e5,sw=P.swing||.2,ph=hstr(P.nick)%628/100;
+  const sorted=real.slice().sort((a,b)=>a-b),med=sorted[Math.floor((sorted.length-1)/2)]||START_CASH,top=sorted[sorted.length-1]||START_CASH;
+  let m=P.base*(1+sw*Math.sin(days/(1.5+i*.37)+ph))*(1+.08*Math.sin(days*3.1+ph));
+  let v=Math.max(START_CASH*.4,med*m);const cap=top*(.9-.025*i);if(v>cap)v=cap*(.97+.03*Math.sin(days*5+ph));
+  return r10(Math.max(START_CASH*.3,v));
+}
+function npcHome(net){
+  const tiers=Object.keys(HOUSE);let tier='oneroom';for(const k of tiers)if(HOUSE[k].js<=net*.7)tier=k;
+  const H=HOUSE[tier];return {tier,type:net>H.p*1.1?'own':net>H.js?'jeonse':'rent'};
+}
+let _npcC={k:'',v:null};
+function npcAll(){ // {present:[{id,i,p}], leaving:[...]} — 1분 단위 캐시
+  const now=Date.now(),n=npcCount(),k=Math.floor(now/6e4)+'|'+n+'|'+(CFG.season&&CFG.season.n)+'|'+Object.keys(others).length+'|'+Math.round(netWorth()/100);
+  if(_npcC.k===k) return _npcC.v;
+  const real=[netWorth(),...Object.values(others).filter(p=>p&&p.v===VER&&Date.now()-(p.updated||0)<IDLE_DAYS*864e5).map(p=>p.net||0)];
+  const mk=(i,leaveT)=>{
+    const P=NPC_POOL[i],days=Math.max(0,(now-npcSeasonT())/864e5-i*.4),years=days*4*P.act,gen=1+Math.floor(years/40),age=20+Math.floor(years%40);
+    const J=JOBS[P.job]||JOBS.none,rank=Math.min(J.titles.length-1,Math.floor((age-20)/7));
+    const net=npcNet(i,leaveT||now,real),on=!leaveT&&npcOnlineAt(i,now),upd=leaveT||npcLastSeen(i,now);
+    const slot=Math.floor((on?now:upd)/12e4),posId=BOARD[hstr(P.nick+'@'+slot)%BOARD.length];
+    return {id:npcId(i),i,p:{v:VER,npc:1,nick:P.nick,gender:P.g,gen,age,job:P.job,rank,net,home:npcHome(net),posId,updated:upd,best:null}};
+  };
+  const v={present:[],leaving:[]};
+  for(let i=0;i<n;i++) v.present.push(mk(i));
+  for(const L of npcLeaving(n)) v.leaving.push(mk(L.i,L.t));
+  _npcC={k,v};return v;
+}
+function npcById(id){const i=npcIdx(id);if(i<0)return null;const a=npcAll();const x=a.present.find(o=>o.i===i)||a.leaving.find(o=>o.i===i);return x?x.p:{nick:NPC_POOL[i]?NPC_POOL[i].nick:'이웃',v:VER}}
+const npcOnline=()=>npcAll().present.filter(x=>Date.now()-x.p.updated<30*6e4);
+
+/* ---- 상가: 빈 나라 층에 주민 가게 (진짜 주민이 사거나 세 들면 바로 비켜줌) ---- */
+let _npcF={k:'',m:null};
+function npcFloorMap(){
+  const n=npcCount(),k=n+'|'+(CFG.season&&CFG.season.n)+'|'+SIDE;if(_npcF.k===k)return _npcF.m;
+  const seed=String((CFG.season&&CFG.season.n)||0);
+  const ids=BOARD.filter(id=>CELL[id]&&CELL[id].k==='shop').sort((a,b)=>hstr('npc#'+seed+'#'+a)-hstr('npc#'+seed+'#'+b));
+  const cand=[];for(let r=0;r<3;r++)for(const id of ids)cand.push([id,1+(hstr(seed+'/'+id+'/'+r)+r)%3]); // 건물마다 골고루 한 층씩
+  const m={};let c=0;
+  for(let i=0;i<n;i++){const P=NPC_POOL[i];for(let j=0;j<P.fl;j++){const x=cand[c++];if(!x)break;
+    const biz=j===0?P.biz:Object.keys(BIZ)[hstr(P.nick+j)%Object.keys(BIZ).length];m[x[0]+':'+x[1]]={t:npcId(i),biz,lt:'m',gov:1,npc:1,since:npcSeasonT(),rt:npcSeasonT()}}}
+  _npcF={k,m};return m;
+}
+function npcFloor(id,f){const raw=(bld(id).f||{})[f];if(raw&&(raw.o||raw.t||raw.dev))return null;return npcFloorMap()[id+':'+f]||null}
+/* 하루 한 번: 주민 가게 월세·세금 중 내 몫을 국고에 기록 (모두의 몫을 합치면 국고가 됨) */
+function npcDailyTax(){let s=0;for(const [k,F] of Object.entries(npcFloorMap())){const [id,f]=fsplit(k);if(npcFloor(id,f))s+=leaseRent(id,f,'m')}
+  for(const x of npcAll().present)s+=r10(x.p.net*.002);return r10(s)}
+function npcTaxShare(extra){
+  if(!db||me.npcDay===kstDay()||!npcCount())return;me.npcDay=kstDay();
+  const v=r10(npcDailyTax()/Math.max(1,activeCount()));if(v>0)govPay('rent',v);
+}
+const npcVisits=()=>Math.min(3,npcCount()*.35); // 주민 손님: 월급날 내 가게 매출에 더해짐
 
 /* =====================================================================
    판 구성 · 저장 · 장부 · 단톡방 · 미션 · 칭호 · 자리
@@ -1975,7 +2084,7 @@ function feed(n=60){
 }
 
 /* ---- 이름 ---- */
-function nameOf(id){if(id===ME()) return dynName(me)||'나';const p=others[id];return p?dynName(p):'이웃 주민'}
+function nameOf(id){if(id===ME()) return dynName(me)||'나';const p=others[id]||npcById(id);return p?dynName(p):'이웃 주민'}
 function titleTag(p){const t=p&&p.title&&TITLES[p.title];return t?`「${t.n}」`:''}
 
 /* ---- 오늘의 미션 ---- */
@@ -2432,10 +2541,11 @@ async function shopCell(id){
   return leaseOffer(id,f);
 }
 /* 나라 공공시설 / 분양 */
-async function publicFloor(id,f){
+async function publicFloor(id,f,pre){
   const c=CELL[id],F=flOf(id,f),tag=`${c.n} ${f}층`;
   let msg='';
-  if(!F.dev){
+  if(pre) msg=pre;
+  else if(!F.dev){
     const P0=pubOf(id,f),fee=pubFee();spend(fee,`${tag} ${P0.n} 공공요금`);govPay('pub',fee);
     me.buff=me.buff||{};let eff='';
     if(P0.k==='park'){me.buff.park=1;eff='다음 이동 +1칸'}
@@ -2473,6 +2583,14 @@ async function publicFloor(id,f){
 /* 남의 가게 이용 + 권리금 인수 */
 async function visitShop(id,f,op){
   const c=CELL[id],F=flOf(id,f),B=BIZ[F.biz],t=payAtFloor(id,f);
+  if(F.npc){ // 이웃 주민 가게: 이용료는 국고(나라 건물 월세)로, 원하면 주민이 가게를 내놓음
+    let m;if(t===0) m=`${nameOf(op)}네 ${B.n}(${c.n} ${f}층)에 들렀지만 셰프라서 맛만 평가하고 나왔어요`;
+    else{spend(t,`${nameOf(op)}네 ${B.n} 이용`);govPay('rent',t);track('shopuse');m=`${nameOf(op)}네 ${B.n}(${c.n} ${f}층): ${pf('menu_'+F.biz,B.menu)}. -${won(t)}`}
+    setMsg(m);await sleep(300);
+    const v=await choose(`${m}\n${nameOf(op)}님이 "좋은 자리 있으면 옮기려고요"라며 이 층을 내놓을 생각이 있대요.`,[{label:'이 층 계약 알아보기',v:1},{label:'그냥 가기',v:0,primary:true}]);
+    if(!v){setMsg(m);return}
+    return publicFloor(id,f,`${nameOf(op)}님이 ${B.n}을(를) 정리하고 자리를 비워주기로 했어요`);
+  }
   if(t===0) setMsg(`${nameOf(op)}네 ${B.n}(${c.n} ${f}층)에 들렀지만 셰프라서 맛만 평가하고 나왔어요 (음식 가게 면제)`);
   else{spend(t,`${nameOf(op)}네 ${B.n} 이용`);payLedger(op,t,`${dynName()}님이 ${c.n} ${f}층 ${B.n} 이용`);track('shopuse');setMsg(`${nameOf(op)}네 ${B.n}(${c.n} ${f}층): ${pf('menu_'+F.biz,B.menu)}. -${won(t)}`)}
   if(!F.t||me.job==='civil') return;
@@ -2869,7 +2987,8 @@ function payday(){
   let extra=[...extraPre];
   // 가게
   let rev=0,stax=0;
-  for(const k of myOps()){const [id,f]=fsplit(k);rev+=floorBaseRev(id,f)}
+  const nv=npcVisits();for(const k of myOps()){const [id,f]=fsplit(k);rev+=floorBaseRev(id,f)+(nv?r10(floorToll(id,f)*nv):0)}
+  npcTaxShare();
   for(const k of myTenancies()){const [id,f]=fsplit(k);const F=flOf(id,f);if(F.o&&F.o!==ME()&&F.rent){stax+=F.rent;payLedger(F.o,F.rent,`${dynName()}님의 ${CELL[id].n} ${f}층 월세`)}else if(!F.o&&F.rent){stax+=F.rent;govPay('rent',F.rent)}}
   const htax=holdTax(),vtax=vacTax(),typ=issueOn('typhoon')?r10(myFloors().length*30):0;
   if(rev) extra.push(`가게 기본 매출 +${won(rev)}`);if(stax) extra.push(`상가 월세 -${won(stax)}`);
@@ -3159,6 +3278,7 @@ function cellInfo(id){
 function renderBoard(){
   const board=$('board');board.querySelectorAll('.cell').forEach(c=>c.remove());
   const at={};for(const [uid,p] of Object.entries(others)) if(p.v===VER){(at[p.posId]=at[p.posId]||[]).push([uid,p])}
+  for(const x of npcOnline()) (at[x.p.posId]=at[x.p.posId]||[]).push([x.id,x.p]);
   const hot=issueOn('celeb')?celebShop():null;
   BOARD.forEach((id,i)=>{
     const c=CELL[id],[r,col]=pos(i);
@@ -3183,7 +3303,7 @@ function renderBoard(){
     e.onclick=()=>{if(!busy)setMsg(cellInfo(id))};e.onkeydown=ev=>{if(ev.key==='Enter'&&!busy)setMsg(cellInfo(id))};
     board.append(e);
   });
-  const cnt=1+Object.values(others).filter(p=>p.v===VER).length;
+  const cnt=1+Object.values(others).filter(p=>p.v===VER).length+npcAll().present.length;
   $('boardNote').textContent=`판 ${SIDE+1}×${SIDE+1} · 주민 ${cnt}명${LEVEL<2?` · ${LEVEL===0?13:25}명이 되면 확장`:` · 판은 최대 크기 (37명부터 건물 최대 7층)`}`;
   board.classList.toggle('compact',LEVEL>=1);if(typeof followTok==='function')followTok();
 }
@@ -3444,6 +3564,7 @@ function renderLotto(){
 function renderRank(){
   const list=[{id:ME(),p:me,net:netWorth()}];
   for(const [id,p] of Object.entries(others)) if(p.v===VER&&p.nick) list.push({id,p,net:p.net||0});
+  if(db){const a=npcAll();for(const x of [...a.present,...a.leaving]) list.push({id:x.id,p:x.p,net:x.p.net})}
   list.sort((a,b)=>b.net-a.net);
   const ol=$('rank');ol.innerHTML='';
   list.slice(0,15).forEach((x,i)=>{const mine=x.id===ME(),li=el('li',mine?'me':''),mid=el('div','');mid.style.minWidth='0';
@@ -3788,12 +3909,13 @@ function showSummary(life,wasBest){
 
 /* ---------------- 운영자 설정 ---------------- */
 const ADMIN_EMAIL='duddnddl89@gmail.com';
-const DEF_SET={rollSec:60,maxRolls:30,payMul:1,event:'',lpy:4,startCash:600,stamBase:300,stamGap:100,stamFirst:60,stamInc:30,stamMax:300};
+const DEF_SET={rollSec:60,maxRolls:30,payMul:1,event:'',lpy:4,startCash:600,stamBase:300,stamGap:100,stamFirst:60,stamInc:30,stamMax:300,npcTarget:8};
 function applySettings(s){
   const v={...DEF_SET,...(s||{})};let sec=Number(v.rollSec);if(!sec&&v.rollMin)sec=Number(v.rollMin)*60;
   ROLL_MS=clamp(Math.round((sec||60)/10)*10,10,7200)*1000;MAX_ROLLS=clamp(Math.round(v.maxRolls)||30,5,500);
   PAY_MUL=clamp(Number(v.payMul)||1,.1,10);EVENT_NAME=String(v.event||'').slice(0,30);LPY=clamp(Math.round(v.lpy)||4,1,10);START_CASH=clamp(Math.round(Number(v.startCash))||600,0,1000000);
   STAM={base:clamp(Math.round(Number(v.stamBase)),0,100000),gap:clamp(Math.round(Number(v.stamGap))||100,1,10000),first:clamp(Math.round(Number(v.stamFirst))||60,10,7200),inc:clamp(Math.round(Number(v.stamInc)),0,7200),max:clamp(Math.round(Number(v.stamMax))||300,10,7200)};if(!isFinite(STAM.base))STAM.base=300;if(!isFinite(STAM.inc))STAM.inc=30;
+  {const n=Math.round(Number(v.npcTarget));NPC_TARGET=isFinite(n)?clamp(n,0,12):8}
 }
 function renderNotice(){const n=CFG.notice,box=$('notice');if(n&&n.text){box.hidden=false;box.textContent='';box.append(el('b','','공지'),' '+n.text)}else box.hidden=true}
 function applyBan(){
@@ -3846,15 +3968,18 @@ function renderAdmin(){
   r2.append(b2,b2c);s2.append(ta,r2);
   // 밸런스
   const s3=sec('이벤트·밸런스 (모든 주민에게 바로 적용)');const cur={...DEF_SET,...CFG.settings};
-  const fields=[['rollSec','주사위 충전 (초, 10초 단위)',Math.round(ROLL_MS/1000),'10'],['maxRolls','주사위 최대 개수',MAX_ROLLS,'1'],['lpy','몇 바퀴에 1살',LPY,'1'],['payMul','월급 배율',cur.payMul,'0.1'],['startCash','초기 자본금 (만원, 새 인생부터)',START_CASH,'100'],['stamBase','체력 기준 횟수 (0이면 끔)',STAM.base,'10'],['stamGap','체력 단계 간격 (번)',STAM.gap,'10'],['stamFirst','첫 단계 충전 (초)',STAM.first,'10'],['stamInc','단계마다 늘어나는 충전 (초)',STAM.inc,'10'],['stamMax','최대 충전 (초)',STAM.max,'10'],['event','이벤트 이름',cur.event,'']];
+  const fields=[['rollSec','주사위 충전 (초, 10초 단위)',Math.round(ROLL_MS/1000),'10'],['maxRolls','주사위 최대 개수',MAX_ROLLS,'1'],['lpy','몇 바퀴에 1살',LPY,'1'],['payMul','월급 배율',cur.payMul,'0.1'],['startCash','초기 자본금 (만원, 새 인생부터)',START_CASH,'100'],['stamBase','체력 기준 횟수 (0이면 끔)',STAM.base,'10'],['stamGap','체력 단계 간격 (번)',STAM.gap,'10'],['stamFirst','첫 단계 충전 (초)',STAM.first,'10'],['stamInc','단계마다 늘어나는 충전 (초)',STAM.inc,'10'],['stamMax','최대 충전 (초)',STAM.max,'10'],['npcTarget','이웃 주민 포함 목표 인원 (0이면 끔)',NPC_TARGET,'1'],['event','이벤트 이름',cur.event,'']];
   const grid=el('div','adm-grid');fields.forEach(([k,l,v,st])=>{const lab=el('label','',l),i=el('input');i.id='set_'+k;i.value=v;if(st){i.type='number';i.step=st}lab.append(i);grid.append(lab)});
   const prev=el('div','note');const upd=()=>{const sc=clamp(Math.round((Number($('set_rollSec').value)||0)/10)*10,10,7200),mx=clamp(Math.round(Number($('set_maxRolls').value)||0),5,500),lp=clamp(Math.round(Number($('set_lpy').value)||3),1,10);
     prev.textContent=`→ ${fmtSec(sc)}마다 1개 · 가득 차기까지 ${fmtSec(sc*mx)} · 하루 최대 ${Math.floor(86400/sc)}개 · 한 인생(20→60세) 약 ${40*lp*4}번 굴리기`+(()=>{const b=Number($('set_stamBase')?.value)||0;if(!b)return ' · 오늘의 체력 꺼짐';const g=Number($('set_stamGap').value)||100,f=Number($('set_stamFirst').value)||60,c=Number($('set_stamInc').value)||0,m=Number($('set_stamMax').value)||300;return ` · 체력: 하루 ${b}번까지 기본 → ${b}~${b+g-1}번 ${fmtSec(f)}, ${b+g}~${b+2*g-1}번 ${fmtSec(Math.min(m,f+c))}, … 최대 ${fmtSec(m)}`})()};
   setTimeout(()=>{['set_rollSec','set_maxRolls','set_lpy','set_stamBase','set_stamGap','set_stamFirst','set_stamInc','set_stamMax'].forEach(id=>$(id)&&$(id).addEventListener('input',upd));upd()},0);
   const r3=el('div','adm-row'),b3=el('button','btn primary','적용'),b3d=el('button','btn','기본값으로');
-  b3.onclick=async()=>{const v={rollSec:clamp(Math.round((Number($('set_rollSec').value)||360)/10)*10,10,7200),maxRolls:Number($('set_maxRolls').value),lpy:Number($('set_lpy').value),payMul:Number($('set_payMul').value),startCash:Number($('set_startCash').value),stamBase:Number($('set_stamBase').value),stamGap:Number($('set_stamGap').value),stamFirst:Number($('set_stamFirst').value),stamInc:Number($('set_stamInc').value),stamMax:Number($('set_stamMax').value),event:$('set_event').value.trim()};useCnt('w');await FS.doc('config/settings').set(v);admMsg('적용했어요')};
+  b3.onclick=async()=>{const v={rollSec:clamp(Math.round((Number($('set_rollSec').value)||360)/10)*10,10,7200),maxRolls:Number($('set_maxRolls').value),lpy:Number($('set_lpy').value),payMul:Number($('set_payMul').value),startCash:Number($('set_startCash').value),stamBase:Number($('set_stamBase').value),stamGap:Number($('set_stamGap').value),stamFirst:Number($('set_stamFirst').value),stamInc:Number($('set_stamInc').value),stamMax:Number($('set_stamMax').value),npcTarget:Number($('set_npcTarget').value),event:$('set_event').value.trim()};useCnt('w');await FS.doc('config/settings').set(v);admMsg('적용했어요')};
   b3d.onclick=async()=>{useCnt('w');await FS.doc('config/settings').set(DEF_SET);admMsg('기본값(1분·30개·4바퀴 1살·월급 1배)')};
   r3.append(b3,b3d);s3.append(grid,prev,r3);
+  {const a=npcAll(),fm=npcFloorMap(),fl={};for(const [k,F] of Object.entries(fm)){const [id,f]=fsplit(k);if(npcFloor(id,f))(fl[F.t]=fl[F.t]||[]).push(`${CELL[id].n} ${f}층 ${BIZ[F.biz].n}`)}
+   const line=a.present.map(x=>`${x.p.nick}(${title(x.p)}, ${won(x.p.net)}${fl[x.id]?' · '+fl[x.id].join(', '):''})`).join(' / ');
+   s3.append(el('div','note',`이웃 주민 (운영자에게만 보여요): 진짜 주민 ${activeCount()}명 + 주민 ${a.present.length}명${a.leaving.length?` · 이사 중 ${a.leaving.map(x=>x.p.nick).join(', ')}`:''}${line?' — '+line:''}. 랭킹에는 나오지만 선거·명예의 전당·청혼·보증·중고거래에는 안 나와요. 1등은 못 해요.`))}
   // 세금·지원
   const txSec=sec('세금·지원 (부자세 · 따라잡기 · 상속세)');
   const tf=[['rich1','부자세 1구간 시작 (억)','0.5'],['rate1','1구간 세율 (% / 월급날)','0.05'],['rich2','부자세 2구간 시작 (억)','1'],['rate2','2구간 세율 (% / 월급날)','0.05'],
