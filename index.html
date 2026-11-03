@@ -436,6 +436,10 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 </head>
 <body>
 <header>
@@ -1958,21 +1962,27 @@ function npcNet(i,now,real){
   let v=Math.max(START_CASH*.4,med*m);const cap=top*(.9-.025*i);if(v>cap)v=cap*(.97+.03*Math.sin(days*5+ph));
   return r10(Math.max(START_CASH*.3,v));
 }
-function npcHome(net){
+/* 인생 단계: 시즌 시작부터 흐른 시간(나이)만으로 계산 → 모든 화면에서 같음
+   백수 → 알바 → 취업·승진 / 월세 → 전세 → 자가 / 가게: 월세 세입자 → 반전세 → 건물주(층 매입) */
+function npcYears(i,t){const P=NPC_POOL[i];return Math.max(0,(t-npcSeasonT())/864e5-i*.4)*4*P.act}
+function npcJob(i,y){const P=NPC_POOL[i];if(y<1)return ['none',0];if(y<3||P.job==='alba')return ['alba',0];const J=JOBS[P.job]||JOBS.none;return [P.job,Math.min(J.titles.length-1,Math.floor((y-3)/7))]}
+const NPC_SHOP=[[6,12,20],[14,24,99]]; // 층별: [월세 시작, 반전세 전환, 매입] (인생 햇수)
+function npcShopStage(i,j,y){const s=NPC_SHOP[j];if(!s||y<s[0])return null;return y>=s[2]?'own':y>=s[1]?'h':'m'}
+function npcHome(net,y){
   const tiers=Object.keys(HOUSE);let tier='oneroom';for(const k of tiers)if(HOUSE[k].js<=net*.7)tier=k;
-  const H=HOUSE[tier];return {tier,type:net>H.p*1.1?'own':net>H.js?'jeonse':'rent'};
+  if(y<3)tier='oneroom';const H=HOUSE[tier];return {tier,type:y>=8&&net>H.p*1.1?'own':y>=3&&net>H.js?'jeonse':'rent'};
 }
 let _npcC={k:'',v:null};
 function npcAll(){ // {present:[{id,i,p}], leaving:[...]} — 1분 단위 캐시
-  const now=Date.now(),n=npcCount(),k=Math.floor(now/6e4)+'|'+n+'|'+(CFG.season&&CFG.season.n)+'|'+Object.keys(others).length+'|'+Math.round(netWorth()/100);
+  const now=Date.now(),n=npcCount(),k=Math.floor(now/6e4)+'|'+n+'|'+npcSeasonT()+'|'+Object.keys(others).length+'|'+Math.round(netWorth()/100);
   if(_npcC.k===k) return _npcC.v;
   const real=[netWorth(),...Object.values(others).filter(p=>p&&p.v===VER&&Date.now()-(p.updated||0)<IDLE_DAYS*864e5).map(p=>p.net||0)];
   const mk=(i,leaveT)=>{
-    const P=NPC_POOL[i],days=Math.max(0,(now-npcSeasonT())/864e5-i*.4),years=days*4*P.act,gen=1+Math.floor(years/40),age=20+Math.floor(years%40);
-    const J=JOBS[P.job]||JOBS.none,rank=Math.min(J.titles.length-1,Math.floor((age-20)/7));
-    const net=npcNet(i,leaveT||now,real),on=!leaveT&&npcOnlineAt(i,now),upd=leaveT||npcLastSeen(i,now);
+    const P=NPC_POOL[i],years=npcYears(i,leaveT||now),gen=1+Math.floor(years/40),age=20+Math.floor(years%40);
+    const [job,rank]=npcJob(i,years);
+    const net=r10(npcNet(i,leaveT||now,real)*(.45+.55*Math.min(1,years/12))) /* 어릴수록 가난 */,on=!leaveT&&npcOnlineAt(i,now),upd=leaveT||npcLastSeen(i,now);
     const slot=Math.floor((on?now:upd)/12e4),posId=BOARD[hstr(P.nick+'@'+slot)%BOARD.length];
-    return {id:npcId(i),i,p:{v:VER,npc:1,nick:P.nick,gender:P.g,gen,age,job:P.job,rank,net,home:npcHome(net),posId,updated:upd,best:null}};
+    return {id:npcId(i),i,p:{v:VER,npc:1,nick:P.nick,gender:P.g,gen,age,job,rank,net,home:npcHome(net,years),posId,updated:upd,best:null}};
   };
   const v={present:[],leaving:[]};
   for(let i=0;i<n;i++) v.present.push(mk(i));
@@ -1985,18 +1995,20 @@ const npcOnline=()=>npcAll().present.filter(x=>Date.now()-x.p.updated<30*6e4);
 /* ---- 상가: 빈 나라 층에 주민 가게 (진짜 주민이 사거나 세 들면 바로 비켜줌) ---- */
 let _npcF={k:'',m:null};
 function npcFloorMap(){
-  const n=npcCount(),k=n+'|'+(CFG.season&&CFG.season.n)+'|'+SIDE;if(_npcF.k===k)return _npcF.m;
+  const now=Date.now(),n=npcCount(),k=n+'|'+npcSeasonT()+'|'+SIDE+'|'+Math.floor(now/6e5);if(_npcF.k===k)return _npcF.m;
   const seed=String((CFG.season&&CFG.season.n)||0);
   const ids=BOARD.filter(id=>CELL[id]&&CELL[id].k==='shop').sort((a,b)=>hstr('npc#'+seed+'#'+a)-hstr('npc#'+seed+'#'+b));
   const cand=[];for(let r=0;r<3;r++)for(const id of ids)cand.push([id,1+(hstr(seed+'/'+id+'/'+r)+r)%3]); // 건물마다 골고루 한 층씩
   const m={};let c=0;
-  for(let i=0;i<n;i++){const P=NPC_POOL[i];for(let j=0;j<P.fl;j++){const x=cand[c++];if(!x)break;
-    const biz=j===0?P.biz:Object.keys(BIZ)[hstr(P.nick+j)%Object.keys(BIZ).length];m[x[0]+':'+x[1]]={t:npcId(i),biz,lt:'m',gov:1,npc:1,since:npcSeasonT(),rt:npcSeasonT()}}}
+  for(let i=0;i<n;i++){const P=NPC_POOL[i],y=npcYears(i,now);for(let j=0;j<P.fl;j++){const x=cand[c++];if(!x)break;
+    const st=npcShopStage(i,j,y);if(!st)continue; // 아직 가게 열 나이가 아님 (자리는 미리 정해둠)
+    const biz=j===0?P.biz:Object.keys(BIZ)[hstr(P.nick+j)%Object.keys(BIZ).length],t0=now-Math.min(3,(y-NPC_SHOP[j][0]))*864e5/4;
+    m[x[0]+':'+x[1]]=st==='own'?{o:npcId(i),biz,npc:1,since:t0,rt:t0}:{t:npcId(i),biz,lt:st,gov:1,npc:1,since:t0,rt:t0}}}
   _npcF={k,m};return m;
 }
 function npcFloor(id,f){const raw=(bld(id).f||{})[f];if(raw&&(raw.o||raw.t||raw.dev))return null;return npcFloorMap()[id+':'+f]||null}
 /* 하루 한 번: 주민 가게 월세·세금 중 내 몫을 국고에 기록 (모두의 몫을 합치면 국고가 됨) */
-function npcDailyTax(){let s=0;for(const [k,F] of Object.entries(npcFloorMap())){const [id,f]=fsplit(k);if(npcFloor(id,f))s+=leaseRent(id,f,'m')}
+function npcDailyTax(){let s=0;for(const [k,F] of Object.entries(npcFloorMap())){const [id,f]=fsplit(k);const N=npcFloor(id,f);if(N)s+=N.o?r10(floorPrice(id,f)*.003):leaseRent(id,f,N.lt)}
   for(const x of npcAll().present)s+=r10(x.p.net*.002);return r10(s)}
 function npcTaxShare(extra){
   if(!db||me.npcDay===kstDay()||!npcCount())return;me.npcDay=kstDay();
