@@ -440,6 +440,8 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 </head>
 <body>
 <header>
@@ -1927,7 +1929,8 @@ const NPC_POOL=[ // 성격·사연은 내부 설정 (화면에는 안 나옴)
 const npcId=i=>'npc_'+i;
 const npcIdx=id=>typeof id==='string'&&id.startsWith('npc_')?Number(id.slice(4)):-1;
 const isNpc=id=>npcIdx(id)>=0;
-const npcSeasonT=()=>(CFG.season&&CFG.season.t)||TREND0;
+const NPC_LAUNCH=Date.UTC(2026,10,3,2,0); // 11/3 11:00 KST: 주민 첫 입주 (이후 시즌 리셋마다 다시 20세부터)
+const npcSeasonT=()=>Math.max(NPC_LAUNCH,(CFG.season&&CFG.season.t)||0);
 const kstH=t=>new Date(t+9*36e5).getUTCHours(),kstDow=t=>new Date(t+9*36e5).getUTCDay();
 function npcCount(){if(!db)return 0;const n=Math.min(NPC_POOL.length,NPC_TARGET-activeCount());return Math.max(0,n)}
 /* 접속 일정: 매일 정해진 시간대 + 쉬는 요일 + 30분 단위로 가끔 빠짐 */
