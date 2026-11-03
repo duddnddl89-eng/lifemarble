@@ -356,7 +356,20 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 .actbar>.actions{display:flex;flex-direction:column;align-items:stretch;gap:8px;max-width:none;width:100%;overflow:visible;max-height:none;mask-image:none;-webkit-mask-image:none;padding:0}
 .actbar>.actions .btn{width:100%;min-height:44px;white-space:normal;font-size:15px}
 .fls{display:flex;gap:2px;margin:2px 0 1px}.fls .fl{flex:1;height:5px;border-radius:2px;background:color-mix(in srgb,var(--ink-2) 25%,transparent)}.fls .fl.me{background:var(--me)}.fls .fl.dev{background:repeating-linear-gradient(45deg,var(--gold) 0 3px,transparent 3px 6px)}
+#zoomBtn{display:none}
+@media (max-width:700px){#zoomBtn{display:inline-block}
+ .board.zoom{min-width:720px}
+ .board.compact:not(.zoom) .cell .sub,.board.compact:not(.zoom) .cell .bld{display:none}
+ .board.compact:not(.zoom) .cell .nm{font-size:10px;line-height:1.15;word-break:keep-all}}
 </style>
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
@@ -452,7 +465,7 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
       <span><i style="background:var(--gold)"></i>돈·황금열쇠</span>
       <span><i style="background:var(--me)"></i>내 가게</span>
       <span><i style="background:var(--other)"></i>이웃 가게</span>
-      <span id="boardNote"></span>
+      <span id="boardNote"></span> <button class="mini" id="zoomBtn" type="button">🔍 판 크게 보기</button>
     </div>
   </div>
   <div class="side">
@@ -700,7 +713,7 @@ const BASE=[
  {k:'shop',n:'먹자골목',p:260,food:1},{k:'realty',n:'부동산',s:'집·청약'},{k:'shop',n:'영화관',p:290,fun:1},
  {k:'work',n:'직장',s:'일·승진'},{k:'baby',n:'산부인과',s:'임신·출산'},{k:'shop',n:'대학가',p:320},
  {k:'night',n:'야근',s:'수당, 주사위 -1'},
- {k:'shop',n:'호수공원',p:360,out:1},{k:'exam',n:'시험장',s:'직업 시험'},{k:'shop',n:'백화점',p:420,fun:1},
+ {k:'shop',n:'호수공원',p:360,out:1},{k:'work',n:'출장·외근',s:'일·승진'},{k:'shop',n:'백화점',p:420,fun:1},
  {k:'key',n:'황금열쇠',s:'무슨 일이?'},{k:'tax',n:'세무서',s:'현금 세금'},{k:'shop',n:'신도시',p:500}
 ].map((c,i)=>({...c,id:String(i)}));
 const EXP=[
@@ -711,7 +724,7 @@ const EXP=[
 ].map((d,L)=>d.map((c,s)=>({...c,id:`x${L+1}${s}`,district:L+1})));
 const CELL={};BASE.forEach(c=>CELL[c.id]=c);EXP.flat().forEach(c=>CELL[c.id]=c);
 const ALL_SHOP=Object.values(CELL).filter(c=>c.k==='shop').map(c=>c.id);
-const levelFor=count=>Math.min(EXP.length,Math.floor(Math.max(0,count-1)/10));
+const levelFor=count=>count<=12?0:count<=24?1:2; // 판은 10×10까지만 넓히고 그 이상은 건물을 위로
 
 /* ---------------- 가게(업종) ---------------- */
 const BIZ={
@@ -755,19 +768,19 @@ const JOBS={
   alba:{n:'알바생',titles:['알바생'],sal:[120],trait:'인턴십 칸에서 경험을 2씩 쌓아요. 승진은 없어요.'},
   office:{n:'회사원',titles:['사원','대리','과장','부장','임원'],sal:[230,320,420,550,800],req:{edu:2},pass:.6,fee:30,bank:'office',
     promo:{kind:'perf',need:[30,60,100,150],min:[6,9,12,15],test:['interview','interview','interview','interview'],seat:2},
-    trait:'👍 무난한 월급, 성과급(20%), 진입 쉬움. 👎 구조조정 위험(월급날 1%, 위로금 받고 퇴사). 승진: 평가 점수+면접, 보통 난이도. 임원 자리는 동네에 2개.'},
+    trait:'👍 무난한 월급, 성과급(20%), 진입 쉬움. 👎 구조조정 위험(월급날 1%, 위로금 받고 퇴사). 승진: 평가 점수+면접, 보통 난이도. 임원 자리는 기본 2개, 주민 10명마다 +1.'},
   civil:{n:'공무원',titles:['9급','7급','5급','국장'],sal:[200,280,380,520],req:{},pass:.22,fee:20,bank:'civil',
     promo:{kind:'tenure',need:[0,0,0],min:[12,18,24],test:[null,'civil','civil'],seat:1},
-    trait:'👍 해고 없음, 9급→7급 자동, 50세 이후 은퇴 연금 1,500만, 대출 이자 0.5%p 할인. 👎 월급 낮음, 겸직 금지(직접 장사·임차 불가, 상가를 사서 세놓기는 가능), 붙기 어려움(낙방할수록 +8%p). 승진: 느리지만 확실(근속+시험).'},
+    trait:'👍 해고 없음, 9급→7급 자동, 50세 이후 은퇴 연금 1,500만, 대출 이자 0.5%p 할인. 👎 월급 낮음, 겸직 금지(직접 장사·임차 불가, 상가를 사서 세놓기는 가능), 붙기 어려움(낙방할수록 +8%p). 승진: 느리지만 확실(근속+시험). 국장은 기본 1명, 주민 10명마다 +1.'},
   doctor:{n:'의사',titles:['레지던트','전문의','과장','병원장'],sal:[250,650,850,1200],req:{edu:3,exp:2},pass:.4,fee:80,bank:'doctor',
     promo:{kind:'rep',need:[0,40,90],min:[12,15,18],test:['doctor',null,null],seat:1},
-    trait:'👍 전문의부터 최고 월급, 다치는 사건 병원비 면제. 👎 레지던트 박봉·혹사, 바빠서 생활비 1.3배, 의료분쟁(월급날 4%, 월급 2배 배상), 동네에 의사가 많으면 월급↓. 승진: 가장 어렵고 오래 걸림. 병원장은 1명.'},
+    trait:'👍 전문의부터 최고 월급, 다치는 사건 병원비 면제. 👎 레지던트 박봉·혹사, 바빠서 생활비 1.3배, 의료분쟁(월급날 4%, 월급 2배 배상), 동네에 의사가 많으면 월급↓. 승진: 가장 어렵고 오래 걸림. 병원장은 기본 1명, 주민 10명마다 +1.'},
   lawyer:{n:'변호사',titles:['어쏘','파트너','대표변호사'],sal:[400,700,1000],req:{edu:3},pass:.35,fee:80,bank:'lawyer',
     promo:{kind:'cases',need:[6,15],min:[9,15],test:[null,null],seat:1},
-    trait:'👍 높은 월급, 세금 절반, 가게 이용료 10% 할인. 👎 큰 사건 패소(월급날 6%, 승소 -1), 동네에 변호사가 많으면 월급↓. 승진: 재판 승소, 어려운 편. 대표변호사는 1명.'},
+    trait:'👍 높은 월급, 세금 절반, 가게 이용료 10% 할인. 👎 큰 사건 패소(월급날 6%, 승소 -1), 동네에 변호사가 많으면 월급↓. 승진: 재판 승소, 어려운 편. 대표변호사는 기본 1명, 주민 10명마다 +1.'},
   dev:{n:'프로그래머',titles:['주니어','시니어','CTO'],sal:[280,480,750],req:{cert:'code',exp:1},pass:.55,fee:30,bank:'dev',
     promo:{kind:'proj',need:[3,8],min:[6,12],test:[null,null],seat:1},
-    trait:'👍 월급날마다 마을전자 주식 1주(스톡옵션), 승진 빠름. 👎 야근 지옥(월급날 10%, 주사위 -2). 승진: 프로젝트(버그 찾기) 성공, 쉬운 편.'},
+    trait:'👍 월급날마다 마을전자 주식 1주(스톡옵션), 승진 빠름. 👎 야근 지옥(월급날 10%, 주사위 -2). 승진: 프로젝트(버그 찾기) 성공, 쉬운 편. CTO는 기본 1명, 주민 10명마다 +1.'},
   chef:{n:'셰프',titles:['주방보조','요리사','오너셰프'],sal:[180,330,620],req:{cert:'cook',exp:2},pass:.6,fee:20,bank:'chef',
     promo:{kind:'stars',need:[1,2],min:[6,12],test:[null,null],own:[0,1]},
     trait:'👍 음식 가게 이용료 면제, 내 음식 가게 매출 1.5배+별마다 20%, 음식 가게 개업 20% 할인. 👎 처음 월급 낮음. 승진: 미슐랭 별, 오너셰프는 음식 가게 필요.'},
@@ -776,7 +789,7 @@ const JOBS={
     trait:'👍 상가 층 매입 15% 할인, 임차 보증금 절반, 진입 쉬움. 👎 월급이 부동산 경기(집값 지수)를 따라 오르내림. 승진: 중개 성사, 쉬운 편.'},
   fund:{n:'펀드매니저',titles:['애널리스트','매니저','본부장'],sal:[300,500,750],req:{cert:'invest',edu:2},pass:.4,fee:50,bank:'fund',
     promo:{kind:'profit',need:[300,1500],min:[6,12],test:[null,null],seat:1},
-    trait:'👍 주식 5% 싸게 사고 5% 비싸게 팔기, 대출 이자 1%p 할인. 👎 주가 폭락 이슈 날 월급 반토막, 운용 손실 책임(월급날 5%), 동네에 많으면 월급↓. 승진: 실현 수익. 본부장은 1명.'},
+    trait:'👍 주식 5% 싸게 사고 5% 비싸게 팔기, 대출 이자 1%p 할인. 👎 주가 폭락 이슈 날 월급 반토막, 운용 손실 책임(월급날 5%), 동네에 많으면 월급↓. 승진: 실현 수익. 본부장은 기본 1명, 주민 10명마다 +1.'},
   tuber:{n:'유튜버',titles:['새싹','실버버튼','골드버튼'],sal:[[0,300],[100,800],[300,1800]],req:{cert:'sns',exp:2},pass:.3,fee:10,bank:'tuber',
     promo:{kind:'subs',need:[100000,1000000],min:[3,6],test:[null,null]},
     trait:'👍 대박 나면 최고 수입, 황금열쇠 좋은 일 2배. 👎 수입이 매번 랜덤, 논란(월급날 4%, 구독자 -30%), 동네에 많으면 수입↓. 승진: 구독자(운).'},
@@ -1010,7 +1023,12 @@ const Q={
   ['우리나라에서 가장 높은 산은?',['한라산','설악산','지리산','북한산']],
  ],
 };
-const qPick=(bank,n)=>shuffle(Q[bank]).slice(0,n).map(([q,o])=>({q,o,a:o[0]}));
+const QRECENT={};
+const qPick=(bank,n)=>{ // 최근에 나온 문제는 당분간 다시 안 나오게
+  const all=Q[bank]||[],rec=QRECENT[bank]||[];let pool=all.filter(x=>!rec.includes(x[0]));if(pool.length<n)pool=all;
+  const sel=shuffle(pool).slice(0,n);QRECENT[bank]=[...rec,...sel.map(x=>x[0])].slice(-Math.max(1,Math.floor(all.length*.6)));
+  return sel.map(([q,o])=>({q,o,a:o[0]}));
+};
 
 /* ---------------- 칭호 ---------------- */
 const TITLES={
@@ -1175,6 +1193,334 @@ const KEYS=[
 ];
 
 /* =====================================================================
+   콘텐츠 보강: 문제은행 · 황금열쇠 · 칸 멘트 · 가게 메뉴
+   (문제는 첫 번째 보기가 정답, 화면에서 섞여 나와요)
+   ===================================================================== */
+const QX={
+ civil:[
+  ['공무원 9급 바로 위 직급은?',['8급','7급','6급','5급']],
+  ['주민등록증을 새로 발급받는 곳은?',['주민센터(행정복지센터)','세무서','경찰서','우체국']],
+  ['국민신문고로 할 수 있는 것은?',['민원·제안 신청','세금 납부','주식 거래','여권 발급']],
+  ['우리나라 국회의원 임기는?',['4년','5년','6년','3년']],
+  ['우리나라 대통령 임기는?',['5년 단임','4년 중임','6년 단임','5년 중임']],
+  ['지방자치단체장 선거는 몇 년마다?',['4년','5년','3년','6년']],
+  ['정보공개청구를 할 수 있는 대상은?',['공공기관이 가진 정보','개인의 일기','기업 영업비밀','친구 카톡']],
+  ['공무원이 지켜야 할 "청렴의무"와 가장 관련 있는 법은?',['청탁금지법(김영란법)','도로교통법','저작권법','식품위생법']],
+  ['민원 처리 기한이 7일인 민원을 3일 만에 끝냈다. 남은 기한은?',['4일','3일','7일','10일']],
+  ['행정구역 중 가장 작은 단위는?',['리·통(반)','시·군','도','구']],
+  ['우리나라 수도는?',['서울','세종','부산','인천']],
+  ['정부세종청사가 있는 도시는?',['세종특별자치시','대전광역시','청주시','공주시']],
+  ['국경일이 아닌 날은?',['어린이날','광복절','개천절','한글날']],
+  ['예산 1,000만 원 중 35%를 썼다. 남은 예산은?',['650만 원','350만 원','700만 원','600만 원']],
+  ['공문서에서 날짜를 쓰는 바른 형식은?',['2026. 11. 3.','2026-11-03일','26년11월3일','11/3/2026']],
+  ['선거권은 만 몇 세부터?',['만 18세','만 19세','만 20세','만 17세']],
+  ['주민등록번호 뒷자리 첫 숫자가 나타내는 것은?',['성별(출생 시기 포함)','태어난 달','혈액형','출생 지역 번호만']],
+  ['공무원 시험 과목에 흔히 들어가는 것은?',['국어·영어·한국사','미술·음악','체육·가정','코딩·디자인']],
+ ],
+ office:[
+  ['연봉 3,600만 원의 세전 월급은?',['300만 원','360만 원','250만 원','400만 원']],
+  ['엑셀에서 합계를 구하는 함수는?',['SUM','COUNT','AVG','TOTAL']],
+  ['엑셀에서 조건에 맞는 개수를 세는 함수는?',['COUNTIF','SUMIF','VLOOKUP','IFERROR']],
+  ['"ASAP"의 뜻은?',['가능한 한 빨리','회의 끝나고','내일까지','천천히']],
+  ['"FYI"의 뜻은?',['참고로 알려드려요','즉시 처리','확인 부탁','회신 필요 없음 금지']],
+  ['메일에서 "CC"는?',['참조','숨은 참조','회신','전달']],
+  ['주 40시간, 하루 8시간 근무면 1주 근무일은?',['5일','4일','6일','7일']],
+  ['법정 주휴수당을 받으려면 1주 몇 시간 이상 일해야 할까?',['15시간','10시간','20시간','40시간']],
+  ['우리나라 법정 최대 근로시간(연장 포함)은 주 몇 시간?',['52시간','40시간','60시간','68시간']],
+  ['매출 2억, 비용 1억 5천이면 영업이익은?',['5천만 원','1억 5천만 원','3억 5천만 원','2억 원']],
+  ['보고서는 보통 어떤 순서가 좋을까?',['결론 → 근거 → 세부','세부 → 근거 → 결론','잡담 → 결론','근거만 길게']],
+  ['"KPI"는?',['핵심 성과 지표','회사 주소','휴가 일정','사내 동호회']],
+  ['연차휴가는 1년 80% 이상 출근 시 기본 며칠?',['15일','10일','20일','5일']],
+  ['원가 8,000원, 판매가 10,000원이면 마진율은?',['20%','25%','80%','10%']],
+  ['4대 보험이 아닌 것은?',['자동차보험','국민연금','건강보험','고용보험']],
+  ['명함을 받을 때 예절로 알맞은 것은?',['두 손으로 받고 이름을 확인한다','바로 지갑에 넣는다','한 손으로 받는다','받고 낙서한다']],
+  ['회의록에 꼭 들어가야 할 것은?',['결정 사항과 담당자·기한','회의실 온도','간식 메뉴','참석자 옷차림']],
+  ['퇴직금은 보통 1년 근무 시 평균임금 며칠분?',['30일분','7일분','60일분','90일분']],
+ ],
+ doctor:[
+  ['정상 체온에 가장 가까운 것은?',['36.5℃','34℃','38.5℃','40℃']],
+  ['혈압 "120/80"에서 120은?',['수축기 혈압','이완기 혈압','맥박','혈당']],
+  ['성인 정상 안정 시 맥박 범위로 가장 알맞은 것은?',['분당 60~100회','분당 20~40회','분당 120~160회','분당 200회 이상']],
+  ['심폐소생술(CPR) 가슴 압박 속도는?',['분당 100~120회','분당 30회','분당 200회','분당 10회']],
+  ['독감(인플루엔자)의 원인은?',['바이러스','세균','곰팡이','기생충']],
+  ['항생제가 주로 듣는 것은?',['세균 감염','바이러스 감기','알레르기','근육통만']],
+  ['당뇨병과 가장 관련 깊은 호르몬은?',['인슐린','멜라토닌','아드레날린','성장호르몬']],
+  ['혈액을 온몸으로 내보내는 장기는?',['심장','간','폐','신장']],
+  ['몸에서 가장 큰 장기(내부)는?',['간','심장','위','콩팥']],
+  ['응급 상황 신고 번호는?',['119','112','114','120']],
+  ['키 170cm, 몸무게 72kg의 BMI에 가장 가까운 것은?',['약 24.9','약 18.5','약 30','약 42']],
+  ['피를 엉기게 해서 지혈을 돕는 혈액 성분은?',['혈소판','적혈구','백혈구','혈장 단백질만']],
+  ['적혈구가 주로 운반하는 것은?',['산소','지방','소화효소','호르몬만']],
+  ['MRI 검사에 쓰는 것은?',['강한 자기장','X선','초음파만','방사성 동위원소만']],
+  ['하루 권장 수분 섭취(성인)로 흔히 말하는 양은?',['약 1.5~2리터','약 100ml','약 10리터','물은 안 마셔도 된다']],
+  ['"공복"은 보통 몇 시간 이상 굶은 상태를 말할까? (검사 기준)',['8시간 이상','30분','1시간','24시간']],
+  ['뼈와 뼈를 이어주는 조직은?',['인대','힘줄','연골만','근육']],
+ ],
+ lawyer:[
+  ['계약서에 꼭 들어가야 할 것은?',['당사자·내용·기간·서명','상대방 취미','날씨','작성자 혈액형']],
+  ['임대차 계약에서 세입자가 대항력을 갖추려면?',['전입신고 + 입주','계약서만 작성','집주인에게 문자','관리비 납부']],
+  ['보증금 보호를 위해 전입신고와 함께 받으면 좋은 것은?',['확정일자','인감증명','가족관계증명','통장 사본']],
+  ['돈을 빌려준 사람을 법률 용어로?',['채권자','채무자','보증인','수익자']],
+  ['형사재판에서 판결에 불복해 2심을 청구하는 것은?',['항소','상고','항고','재심']],
+  ['2심 판결에 불복해 대법원에 다투는 것은?',['상고','항소','소원','이의']],
+  ['근로계약서에 반드시 적어야 하는 것은?',['임금·근로시간·휴일','회사 로고','상사 이름','점심 메뉴']],
+  ['미성년자가 부모 동의 없이 한 계약은 원칙적으로?',['취소할 수 있다','무조건 유효','범죄다','무효로 처벌']],
+  ['저작권이 보호하는 것은?',['창작물(글·음악·그림 등)','아이디어 자체','사실 정보','법률 조문']],
+  ['명예훼손죄에서 "사실 적시"도 처벌될 수 있을까?',['있다(우리나라 법)','절대 없다','판사 마음','외국만 처벌']],
+  ['소액사건(3천만 원 이하) 소송의 특징은?',['간이한 절차로 빨리 진행','반드시 변호사 선임','대법원에서 시작','형사재판이다']],
+  ['내용증명은 무엇을 증명할까?',['어떤 내용을 언제 보냈는지','상대가 동의했는지','돈을 받았는지','범죄 여부']],
+  ['국선변호인은 언제 선정될까?',['형사 피고인이 변호인을 못 구할 때 등','민사 원고가 원할 때 항상','회사 소송에서만','판사가 지루할 때']],
+  ['유언장의 효력을 갖추려면?',['법이 정한 방식(자필 서명·날인 등)','친구에게 말로만','카톡 이모티콘','녹음 없이 생각만']],
+  ['교통사고 합의서에 서명하기 전 확인할 것은?',['합의 금액과 추가 청구 포기 조항','상대 차 색깔','날씨','보험사 로고']],
+  ['배심원이 참여하는 우리나라 재판 제도는?',['국민참여재판','시민법정','공개토론재판','인민재판']],
+ ],
+ dev:[
+  ['HTML이 하는 일은?',['웹페이지 구조','서버 전원','데이터베이스 백업','네트워크 케이블']],
+  ['CSS가 하는 일은?',['화면 꾸미기(스타일)','데이터 저장','암호화','로그인 처리']],
+  ['자바스크립트에서 배열 길이를 구하는 것은?',['arr.length','arr.size()','len(arr)','arr.count']],
+  ['파이썬에서 리스트 길이를 구하는 것은?',['len(lst)','lst.length','lst.size','count(lst)']],
+  ['버전 관리 도구로 가장 많이 쓰는 것은?',['Git','Excel','Paint','Zoom']],
+  ['HTTP 상태코드 404의 뜻은?',['찾을 수 없음','성공','서버 오류','권한 없음 아님']],
+  ['HTTP 상태코드 500의 뜻은?',['서버 내부 오류','성공','리다이렉트','찾을 수 없음']],
+  ['1바이트는 몇 비트?',['8비트','4비트','16비트','10비트']],
+  ['2진수 1010을 10진수로?',['10','8','12','1010']],
+  ['SQL에서 데이터를 조회하는 명령은?',['SELECT','DELETE','DROP','PRINT']],
+  ['"버그"의 뜻은?',['프로그램 오류','새 기능','디자인','서버실 벌레만']],
+  ['for(i=0;i<5;i++) 반복은 몇 번?',['5번','4번','6번','무한']],
+  ['API를 가장 잘 설명한 것은?',['프로그램끼리 소통하는 약속','컴퓨터 부품','바이러스','디자인 툴']],
+  ['비밀번호를 서버에 저장할 때 올바른 방법은?',['해시(+솔트)로 저장','그대로 저장','엑셀에 적기','메일로 보관']],
+  ['"리팩터링"이란?',['동작은 그대로, 코드 구조 개선','기능 삭제','서버 교체','디자인 변경']],
+  ['1KB는 대략 몇 바이트?',['1,024바이트','100바이트','1,000,000바이트','8바이트']],
+  ['다음 중 프로그래밍 언어가 아닌 것은?',['포토샵','파이썬','자바','C']],
+ ],
+ chef:[
+  ['물이 끓는 온도(1기압)는?',['100℃','80℃','120℃','60℃']],
+  ['칼질 기본 중 채소를 가늘고 길게 써는 것은?',['채썰기','깍둑썰기','어슷썰기','반달썰기']],
+  ['김치의 주재료로 가장 대표적인 것은?',['배추','양배추','상추','시금치']],
+  ['밥을 지을 때 쌀과 물 비율로 흔히 쓰는 것은?',['1 : 1.1~1.2','1 : 5','1 : 0.3','1 : 3']],
+  ['식중독 예방 3원칙에 들어가지 않는 것은?',['맛있게','청결','가열','냉각(신속 보관)']],
+  ['고기를 재우는 "마리네이드"의 목적은?',['맛과 연함을 더하기','색을 빼기','무게 늘리기','유통기한 줄이기']],
+  ['파스타를 "알 덴테"로 삶는다는 뜻은?',['심이 살짝 씹히게','푹 퍼지게','바삭하게','날것으로']],
+  ['재료비 3,000원, 판매가 10,000원이면 원가율은?',['30%','70%','3%','13%']],
+  ['한식 장 3가지가 아닌 것은?',['케첩','간장','된장','고추장']],
+  ['튀김옷을 바삭하게 하려면?',['차가운 물로 반죽, 너무 많이 섞지 않기','뜨거운 물로 오래 섞기','반죽을 하루 숙성','설탕을 잔뜩']],
+  ['냉장고 적정 온도로 알맞은 것은?',['0~5℃','10~15℃','-18℃','20℃']],
+  ['냉동실 적정 온도로 알맞은 것은?',['-18℃ 이하','0℃','5℃','-2℃']],
+  ['"블랜칭"이란?',['끓는 물에 살짝 데쳐 찬물에 식히기','기름에 튀기기','오븐에 굽기','소금에 절이기']],
+  ['계량에서 1큰술(T)은 약 몇 ml?',['15ml','5ml','30ml','100ml']],
+  ['1작은술(t)은 약 몇 ml?',['5ml','15ml','1ml','20ml']],
+  ['손님 알레르기 유발 식품 표시가 필요한 이유는?',['건강 사고 예방','가격 올리기','메뉴판 꾸미기','법과 무관']],
+ ],
+ realty:[
+  ['전용면적 84㎡는 대략 몇 평?',['약 25평','약 84평','약 40평','약 15평']],
+  ['1평은 약 몇 ㎡?',['3.3㎡','1㎡','10㎡','33㎡']],
+  ['등기부등본 "갑구"에 나오는 것은?',['소유권 관련 사항','근저당 등 소유권 외 권리','건물 구조','관리비']],
+  ['등기부등본 "을구"에 나오는 것은?',['근저당·전세권 등 소유권 외 권리','소유자 이름만','건물 사진','주변 학군']],
+  ['전세 계약 전 꼭 확인할 것은?',['등기부등본의 근저당·소유자','집주인 취미','현관 색','층간 소음만']],
+  ['LTV 60%, 집값 5억이면 최대 대출은?',['3억','2억','5억','6억']],
+  ['DSR이 보는 것은?',['소득 대비 모든 대출 원리금 상환액','집값 대비 대출','신용카드 개수','통장 잔고']],
+  ['매매가 4억, 전세가 3억 2천이면 전세가율은?',['80%','32%','125%','60%']],
+  ['중개수수료(중개보수)는 누가 낼까?',['매도·매수(또는 임대·임차) 양쪽 각각','집주인만','세입자만','은행']],
+  ['청약 가점에 들어가는 항목은?',['무주택 기간·부양가족 수·청약통장 가입기간','키와 몸무게','연봉만','차종']],
+  ['주택 취득 시 내는 세금은?',['취득세','양도세','종부세만','부가세']],
+  ['집을 팔아 이익이 났을 때 내는 세금은?',['양도소득세','취득세','인지세','주민세']],
+  ['월세 보증금 1,000만, 월 50만에서 "보증금"의 역할은?',['밀린 월세·원상복구 등 담보','관리비','중개수수료','이사비']],
+  ['"역세권"의 뜻은?',['지하철역 가까운 지역','산 근처','바닷가','공장 지대']],
+  ['재건축과 재개발 중 노후 아파트 단지를 다시 짓는 것은?',['재건축','재개발','리모델링','도시재생만']],
+  ['매수가 3억에 산 집을 3억 6천에 팔면 시세차익률은?',['20%','6%','36%','12%']],
+ ],
+ fund:[
+  ['원금 1,000만 원, 연 5% 단리 2년이면 이자는?',['100만 원','50만 원','102.5만 원','200만 원']],
+  ['원금 100만 원, 연 10% 복리 2년 후 금액은?',['121만 원','120만 원','110만 원','200만 원']],
+  ['"72의 법칙": 연 6% 복리면 원금이 2배 되는 데 약 몇 년?',['12년','6년','24년','72년']],
+  ['PER이 낮다는 것은 보통?',['이익 대비 주가가 싸다','회사가 크다','배당이 없다','빚이 많다']],
+  ['배당금이 연 2,000원, 주가 50,000원이면 배당수익률은?',['4%','2%','25%','0.4%']],
+  ['분산투자의 목적은?',['위험을 줄이기','수익을 무조건 높이기','세금 피하기','거래 줄이기']],
+  ['ETF를 가장 잘 설명한 것은?',['지수 등을 따라가는, 주식처럼 거래되는 펀드','은행 예금','개별 회사 주식 1개','부동산 등기']],
+  ['채권 금리가 오르면 기존 채권 가격은 보통?',['내려간다','올라간다','변함없다','0이 된다']],
+  ['"예금자보호" 한도(1인·1금융사 기준, 2025년 이후)는?',['1억 원','5천만 원','3억 원','무제한']],
+  ['주가가 20% 떨어진 뒤 다시 20% 오르면 처음 대비?',['4% 손실','원금 회복','4% 이익','20% 이익']],
+  ['물가가 오르면 같은 돈으로 살 수 있는 양은?',['줄어든다','늘어난다','같다','두 배가 된다']],
+  ['기준금리를 정하는 곳(우리나라)은?',['한국은행','기획재정부','금융감독원','국세청']],
+  ['"공매도"란?',['주식을 빌려 먼저 팔고 나중에 사서 갚기','공짜로 주식 받기','상장 첫날 매수','배당 받기']],
+  ['연 4% 예금에 1억을 1년 넣으면 세전 이자는?',['400만 원','40만 원','4,000만 원','4만 원']],
+  ['포트폴리오 주식 60% · 채권 40%, 주식 +10% · 채권 0%면 전체 수익률은?',['6%','10%','4%','16%']],
+  ['코스피(KOSPI)는?',['우리나라 유가증권시장 대표 지수','미국 기술주 지수','환율','금 가격']],
+ ],
+ tuber:[
+  ['유튜브 영상 클릭을 부르는 가장 중요한 요소 둘은?',['썸네일과 제목','영상 길이와 해상도만','배경음악 음량','업로드 요일만']],
+  ['"CTR"이 뜻하는 것은?',['노출 대비 클릭률','구독자 수','영상 길이','댓글 수']],
+  ['구독자 10만 명이면 받는 버튼은?',['실버 버튼','골드 버튼','다이아 버튼','브론즈 버튼']],
+  ['구독자 100만 명이면?',['골드 버튼','실버 버튼','루비 버튼','플래티넘 버튼']],
+  ['다른 사람 노래를 허락 없이 배경음악으로 쓰면?',['저작권 문제(수익 제한·삭제)','조회수 2배','자동 허락','아무 문제 없음']],
+  ['광고·협찬을 받은 영상에서 해야 할 것은?',['유료 광고 포함 표시','숨기기','댓글 막기','영상 삭제']],
+  ['영상 초반 몇 초가 중요하다고 흔히 말할까?',['처음 5~15초','마지막 1분','중간 10분','엔딩 크레딧']],
+  ['"쇼츠"의 특징은?',['짧은 세로 영상','2시간 라이브','팟캐스트','블로그 글']],
+  ['조회수 1만, 좋아요 500이면 좋아요 비율은?',['5%','0.5%','50%','20%']],
+  ['악플 대응으로 가장 바람직한 것은?',['선 넘는 건 신고·차단, 나머지는 무시','모두 맞대응','채널 삭제','댓글 작성자 신상 공개']],
+  ['꾸준한 성장에 가장 도움이 되는 것은?',['일정한 업로드 주기','한 번에 100개 올리고 쉬기','제목 없이 올리기','썸네일 생략']],
+  ['영상 편집에서 "컷 편집"이란?',['필요 없는 부분 잘라내기','자막 넣기','색 보정','음악 넣기']],
+  ['라이브 방송 후원 기능으로 받은 돈은?',['수익(세금 신고 대상)','세금 없는 선물','불법','은행 대출']],
+  ['"알고리즘 추천"에 영향 주는 지표로 거리가 먼 것은?',['채널 주인 키','시청 지속 시간','클릭률','시청자 반응']],
+  ['구독자 5만인 채널이 하루 500명씩 늘면 10만까지 며칠?',['100일','50일','500일','10일']],
+ ],
+ interview:[
+  ['면접관: "우리 회사에 지원한 이유는?"',['회사의 방향과 내 경험이 맞닿는 점을 구체적으로','"집이 가까워서요"','"그냥요"','"다른 데 다 떨어져서요"']],
+  ['면접관: "단점이 뭔가요?"',['실제 단점과 고치는 노력을 함께','"단점이 없습니다"','"완벽주의요" (끝)','"게을러요" (끝)']],
+  ['면접관: "마지막으로 할 말 있나요?"',['짧은 감사 + 입사 후 포부','"없습니다"','"연봉 얼마예요?"','"빨리 끝내주세요"']],
+  ['동료가 내 실수를 대신 덮어줬다',['고맙다고 하고 직접 바로잡는다','모른 척한다','동료 탓으로 돌린다','더 큰 실수로 덮는다']],
+  ['팀장님이 퇴근 직전 급한 일을 맡겼다',['우선순위와 마감을 확인하고 처리 계획을 말한다','못 들은 척한다','무조건 내일 한다고 한다','다른 사람에게 떠넘긴다']],
+  ['고객이 화가 나서 전화했다',['먼저 공감하고 사실을 확인한다','같이 화낸다','끊는다','다른 부서로 무조건 돌린다']],
+  ['회의 중 의견이 엇갈린다',['근거를 들어 차분하게 의견을 낸다','목소리를 키운다','회의실을 나간다','투표 없이 내 맘대로 정한다']],
+  ['새 업무 방식이 낯설다',['배우고 질문하며 적응한다','예전 방식만 고집한다','불평만 한다','업무를 안 한다']],
+  ['면접관: "야근 가능하세요?"',['필요할 땐 하되, 효율적으로 일하겠다고 답한다','"절대 안 해요"','"매일 밤샘 가능합니다"','대답을 피한다']],
+  ['면접관: "연봉 희망은?"',['시장 수준과 경력을 근거로 범위를 말한다','"아무거나요"','"사장님만큼"','"0원도 괜찮아요"']],
+  ['후배가 같은 질문을 세 번째 한다',['정리 문서를 만들어 함께 본다','한숨 쉰다','무시한다','틀린 답을 알려준다']],
+  ['상사가 틀린 숫자로 보고하려 한다',['조용히 근거와 함께 알려드린다','그냥 둔다','회의에서 망신 준다','단톡방에 올린다']],
+  ['면접 복장으로 가장 무난한 것은?',['깔끔한 단정한 옷','잠옷','운동복','파티복']],
+ ],
+ street:[
+  ['대한민국 국기의 이름은?',['태극기','성조기','일장기','오성홍기']],
+  ['한글날은 몇 월 며칠?',['10월 9일','8월 15일','3월 1일','10월 3일']],
+  ['광복절은?',['8월 15일','3월 1일','6월 25일','10월 3일']],
+  ['서울을 가로지르는 강은?',['한강','낙동강','금강','영산강']],
+  ['우리나라에서 가장 큰 섬은?',['제주도','거제도','울릉도','강화도']],
+  ['1시간은 몇 초?',['3,600초','600초','6,000초','360초']],
+  ['커피 원두가 열리는 식물은?',['커피나무','콩나물','카카오나무','차나무']],
+  ['무지개 색은 보통 몇 가지?',['7가지','5가지','6가지','9가지']],
+  ['지구에서 가장 큰 바다는?',['태평양','대서양','인도양','북극해']],
+  ['물의 화학식은?',['H₂O','CO₂','O₂','NaCl']],
+  ['24 × 5는?',['120','100','124','150']],
+  ['우리나라 지하철 1호선이 처음 개통한 도시는?',['서울','부산','대구','광주']],
+  ['붕어빵에 붕어가 들어갈까?',['안 들어간다','들어간다','가끔 들어간다','민물고기만 들어간다']],
+  ['"수능"의 정식 명칭은?',['대학수학능력시험','국가고시','대학입학시험','전국모의고사']],
+  ['한 달에 1만 원씩 1년 모으면?',['12만 원','10만 원','120만 원','1만 2천 원']],
+  ['김밥 한 줄 4,000원, 3줄 사면?',['12,000원','10,000원','14,000원','7,000원']],
+  ['우리나라 전화 국가번호는?',['+82','+81','+86','+1']],
+  ['피자 한 판을 8조각으로 나눠 3조각 먹으면 남은 비율은?',['5/8','3/8','1/2','3/5']],
+ ],
+};
+for(const [k,arr] of Object.entries(QX)) if(Q[k]) Q[k].push(...arr);
+
+/* ---- 칸 멘트 ---- */
+const FLAV={
+ intern:['명함 1,000장을 접었어요','회의실 예약 담당이 됐어요','"인턴님, 이것 좀"이 하루 30번','점심에 팀장님 옆자리에 앉아버렸어요','엑셀 단축키 10개를 외웠어요','회식 장소 예약을 완벽하게 해냈어요','첫 출근에 엘리베이터에서 대표님을 만났어요','프린터 용지 걸림을 해결해 영웅이 됐어요','"이거 인턴이 했어?" 칭찬을 받았어요','택배 받으러 1층을 12번 왕복했어요'],
+ tax:['연말정산 결과가 "추가 납부"로 나왔어요','"세금은 죽음과 함께 피할 수 없다"는 말을 실감했어요','세무서 번호표가 147번이에요','홈택스 공인인증서 비밀번호를 세 번 틀렸어요','세금 고지서가 생일 축하 카드처럼 도착했어요','직원분이 "많이 버셨네요"라며 웃었어요','납부 기한 마지막 날 겨우 냈어요','세금이 학교 급식이 된다니 조금 뿌듯해요'],
+ work:['슬랙 알림 99+를 다 읽었어요','회의가 회의를 낳았어요','"이거 오늘까지 되죠?"에 "넵"이라고 했어요','엑셀 VLOOKUP이 한 번에 됐어요. 기분 좋은 날','점심시간에 은행 업무까지 끝냈어요','보고서 파일명이 "최종_진짜최종_수정3"이 됐어요','모니터 두 대로 일하니 프로 같아요','커피 세 잔째예요','재택근무하다 고양이가 화상회의에 출연했어요','퇴근 버스에서 내일 할 일을 정리했어요','"잠깐 통화 가능?"이 40분이 됐어요','거래처 전화를 친절하게 받아 칭찬받았어요'],
+ night:['사무실 형광등 소리가 이렇게 큰 줄 몰랐어요','야식으로 치킨을 시켰는데 팀장님이 다 드셨어요','"다들 먼저 가~" 하고 팀장님이 제일 늦게 가요','택시비 영수증이 쌓여 가요','밤 11시, 편의점 도시락이 꿀맛이에요','건물 경비 아저씨와 친해졌어요','PPT 슬라이드가 87장이 됐어요','회사 근처 24시 카페가 단골이 됐어요'],
+};
+function pf(key,base){ // 같은 멘트가 연달아 나오지 않게
+  const arr=[...base,...(FLAV[key]||[])];if(arr.length<2) return arr[0];
+  pf.last=pf.last||{};let x;do{x=arr[Math.floor(Math.random()*arr.length)]}while(x===pf.last[key]);pf.last[key]=x;return x;
+}
+/* ---- 가게 메뉴 ---- */
+const MENU_X={
+ chicken:['양념 반 후라이드 반, 국룰이죠','치킨무를 두 개 달라고 했어요','"맥주 한 잔만" 하다가 세 잔','닭다리를 누가 먹을지 가위바위보','배달비 아끼려고 직접 포장했어요'],
+ cafe:['아아 벤티 사이즈로 수혈했어요','디저트 사진만 20장 찍었어요','"카공족" 자리 경쟁에서 이겼어요','시즌 한정 음료를 마셨어요','쿠폰 도장 10개 채워서 공짜 음료!'],
+ conv:['편의점 신상 도시락을 털었어요','2+1 행사에 홀려 음료 6개','택배 맡기러 왔다가 과자까지','컵라면에 삼각김밥 조합은 진리','야간 알바생과 눈인사를 했어요'],
+ resto:['스테이크 굽기는 미디엄 레어','기념일 코스 요리에 감동했어요','와인 리스트 앞에서 아는 척을 했어요','셰프 추천 메뉴로 모험했어요','디저트 배는 따로 있더라고요'],
+ academy:['원어민 회화반에 등록했어요','자격증 단기 완성반을 끊었어요','"이번엔 진짜"라며 수강증을 받았어요','쉬는 시간에 매점에서 떡볶이','첫날 앞자리에 앉았어요'],
+ pc:['라면에 치즈 추가는 필수','"한 판만"이 다섯 시간','친구들이랑 랭크 게임 연승!','자리 옆 사람 키보드 소리가 엄청나요','야간 정액권을 끊었어요'],
+ hospital:['진료 대기 1시간, 진료 3분','비타민 수액을 맞았어요','건강검진 결과에 깜짝 놀랐어요','손목 터널 증후군 진단… 마우스 바꿔야겠어요','물리치료를 받고 개운해졌어요'],
+ gym:['PT 선생님이 "한 개만 더!"를 열 번','인바디 근육량이 늘었어요!','헬스장 거울 앞에서 셀카','런닝머신 30분 걷기 성공','회원권 연장 할인에 넘어갔어요'],
+ realty:['급매 물건 브리핑을 들었어요','"이 동네 앞으로 오릅니다"를 들었어요','전세 시세를 물어봤어요','등기부등본 보는 법을 배웠어요','집 보러 3곳을 돌았어요'],
+};
+for(const [k,arr] of Object.entries(MENU_X)) if(BIZ[k]) BIZ[k].menu.push(...arr);
+
+/* ---- 황금열쇠 추가 ---- */
+const kc=(p,a,b)=>winChance(p)?a():b(); // 확률 분기
+KEYS.push(
+ // 직장
+ {c:()=>me.job!=='none',t:'월요일 아침 9시 1분, 지하철이 멈췄어요.',opts:[
+   {l:'택시를 잡는다',f:()=>{spend(25,'황금열쇠: 출근 택시비');return '택시비 -25만이지만 지각은 면했어요. 팀장님이 "부지런하네" 하셨어요'}},
+   {l:'회사에 사진 찍어 보고하고 기다린다',f:()=>kc(.6,()=>'지연증명서 덕분에 지각 처리 안 됐어요. 현명했어요',()=>{perfAdd(-3);return '하필 오늘 아침 회의가 있었어요… 평가 -3'})},
+   {l:'뛰어서 한 정거장 간다',f:()=>{me.buff=me.buff||{};me.buff.immune=1;return '숨이 턱까지 찼지만 운동 효과! 다음 부상 면역'}}]},
+ {c:()=>me.job!=='none',t:'단톡방에 팀장님 험담을 쓰려다… 팀장님이 있는 방에 보냈어요!',opts:[
+   {l:'바로 삭제하고 모른 척',f:()=>kc(.5,()=>'다행히 아무도 못 본 것 같아요… 아마도',()=>{perfAdd(-8);return '"읽음 1"이 사라지는 걸 봤어요. 평가 -8'})},
+   {l:'"팀장님 생일 서프라이즈 준비 중이었어요" 수습',f:()=>{spend(30,'황금열쇠: 팀장님 케이크');perfAdd(3);return '케이크값 -30만, 팀장님이 감동했어요. 평가 +3'}},
+   {l:'솔직하게 사과한다',f:()=>{perfAdd(2);stat('angel');return '팀장님: "나도 그런 시절 있었지." 의외로 관계가 좋아졌어요. 평가 +2'}}]},
+ {c:()=>me.job!=='none',f:()=>{const g=lucky(r10(avgSalary()*.3),'황금열쇠: 회사 창립기념 상여');return `회사 창립기념일! 특별 상여금이 나왔어요 +${won(g)}`}},
+ {c:()=>me.job!=='none',f:()=>{perfAdd(5);return '엘리베이터에서 대표님과 단둘이… 준비한 엘리베이터 스피치 대성공! 평가 +5'}},
+ {c:()=>me.job==='office',t:'회사 체육대회 날이에요.',opts:[
+   {l:'계주 대표로 나간다',f:()=>kc(.5,()=>{perfAdd(5);return '1등! 부서 회식비 지원까지. 평가 +5'},()=>injury('바통을 놓치고 넘어졌어요',40,'체육대회 부상')())},
+   {l:'응원단장을 맡는다',f:()=>{perfAdd(3);return '목이 쉬었지만 사장님 눈도장 꾹. 평가 +3'}},
+   {l:'몰래 연차 쓴다',f:()=>'집에서 넷플릭스… 월요일에 단체사진 보고 살짝 후회했어요'}]},
+ {c:()=>me.job!=='none',f:()=>{spend(20,'황금열쇠: 동료 결혼 축의금');return '입사 동기가 결혼해요. 축의금 -20만, 밥은 맛있었어요'}},
+ {c:()=>me.job!=='none'&&me.job!=='civil',t:'헤드헌터에게서 연락이 왔어요. "연봉 20% 올려드릴게요."',opts:[
+   {l:'면접만 본다',f:()=>kc(.5,()=>{const g=r10(avgSalary()*.5);gain(g,'황금열쇠: 카운터오퍼 보너스');return `면접 본 걸 안 회사가 붙잡았어요. 잔류 보너스 +${won(g)}`},()=>'면접은 붙었지만 지금 회사가 낫다며 거절했어요')},
+   {l:'바로 거절한다',f:()=>'충성심 +100… 아무도 모르지만요'}]},
+ // 연애·결혼
+ {c:()=>!me.married,t:'소개팅 상대가 카페에서 메뉴판을 30분째 보고 있어요.',opts:[
+   {l:'"같이 골라 드릴까요?"',f:()=>{me.luck=1;return '분위기가 확 풀렸어요. 다음 행운이 커져요'}},
+   {l:'조용히 기다린다',f:()=>'결국 아메리카노를 시켰어요. 30분의 의미는…'},
+   {l:'먼저 내 것만 시킨다',f:()=>'상대 표정이 굳었어요. 연락은 오지 않았어요'}]},
+ {c:()=>!me.married,f:()=>{spend(15,'황금열쇠: 데이트 비용');return '썸 타는 사람과 영화를 봤어요. 팝콘은 내가 쐈어요 -15만'}},
+ {c:()=>me.married,t:'결혼기념일을 깜빡했어요! 배우자가 조용해요.',opts:[
+   {l:'꽃과 선물을 급히 산다',f:()=>{spend(50,'황금열쇠: 기념일 수습');return '꽃집 문 닫기 1분 전 성공. -50만, 위기 탈출'}},
+   {l:'"사실 서프라이즈 준비 중이야"',f:()=>kc(.4,()=>{spend(100,'황금열쇠: 서프라이즈 여행');return '진짜로 여행을 예약했어요 -100만. 감동 성공'},()=>'거짓말이 들통났어요… 일주일간 냉전')},
+   {l:'솔직하게 사과한다',f:()=>{spend(20,'황금열쇠: 사과의 저녁');return '저녁을 사며 사과했어요 -20만. 다음엔 알람 맞추기!'}}]},
+ {c:()=>me.married,f:()=>{const g=lucky(60,'황금열쇠: 배우자 깜짝 용돈');return `배우자가 "요즘 고생 많지" 하며 용돈을 줬어요 +${won(g)}`}},
+ // 자취·생활
+ {t:'자취방 보일러가 고장 났어요. 한겨울인데!',opts:[
+   {l:'집주인에게 연락한다',f:()=>me.home.type==='own'?(spend(60,'황금열쇠: 보일러 수리'),'아, 내 집이었지… 수리비 -60만'):'집주인이 바로 고쳐줬어요. 임대인 의무 만세'},
+   {l:'전기장판으로 버틴다',f:()=>injury('사흘 버티다 감기에 걸렸어요',30,'감기 진료')()}]},
+ {f:()=>{spend(12,'황금열쇠: 배달비');return '배달 앱 최소주문 맞추려다 2인분 시켰어요. 배달비까지 -12만'}},
+ {f:()=>{const g=lucky(30,'황금열쇠: 중고거래');return `안 쓰던 블루투스 스피커를 중고로 팔았어요 +${won(g)}. "네고 되나요?" 10번 받음`}},
+ {t:'중고거래 구매자가 약속 시간에 안 나와요.',opts:[
+   {l:'30분 더 기다린다',f:()=>kc(.5,()=>{gain(20,'황금열쇠: 중고거래 대금');return '미안하다며 웃돈까지 주고 갔어요 +20만'},()=>'잠수… 매너온도 신고 버튼을 눌렀어요')},
+   {l:'바로 다른 사람에게 판다',f:()=>{gain(15,'황금열쇠: 중고거래 대금');return '대기자에게 바로 팔았어요 +15만'}}]},
+ {f:()=>{spend(8,'황금열쇠: 구독료');return '안 보는 OTT 구독료가 3개월째 빠져나가고 있었어요 -8만'}},
+ {f:()=>{const g=lucky(40,'황금열쇠: 이벤트 당첨');return `편의점 앱 이벤트에 당첨됐어요! +${won(g)}`}},
+ {t:'택배가 다른 집으로 갔어요. 옆집 문 앞에 내 택배가!',opts:[
+   {l:'옆집에 쪽지를 남긴다',f:()=>{stat('angel');return '옆집이 귤 한 봉지와 함께 돌려줬어요. 이웃사촌 생겼어요'}},
+   {l:'몰래 가져온다',f:()=>'내 건데 왠지 죄짓는 기분이에요'}]},
+ {f:()=>injury('이불 정리하다 허리를 삐끗했어요',35,'허리 물리치료')()},
+ {f:()=>{me.exp=Math.min(10,me.exp+1);return '유튜브로 수전 교체를 배워서 직접 고쳤어요. 경험 +1'}},
+ // 재테크
+ {t:'"월 300 버는 부업 비법" 유료 강의 광고를 봤어요. 99만 원.',opts:[
+   {l:'결제한다',f:()=>{if(me.cash<99)return '결제하려 했는데 잔액 부족. 하늘이 도왔어요';spend(99,'황금열쇠: 부업 강의');return kc(.15,()=>{const g=lucky(300,'황금열쇠: 부업 수익');return `의외로 쓸만했어요! 부업 수익 +${won(g)}`},()=>'"블로그에 글 쓰세요"가 비법의 전부였어요 -99만')}},
+   {l:'무료 후기만 찾아본다',f:()=>'후기를 보니 다 비슷한 소리네요. 현명한 선택'}]},
+ {c:()=>me.savings>0,f:()=>{const g=r10(me.savings*.01);me.savings+=g;return `은행에서 특판 예금 우대 금리! 예금에 +${won(g)}`}},
+ {f:()=>{const g=lucky(r10(30+R()*120),'황금열쇠: 미수령 환급금');return `"미수령 환급금 조회"를 해봤더니 진짜 있었어요 +${won(g)}`}},
+ {c:()=>me.shares.some(x=>x>0),f:()=>{const i=me.shares.findIndex(x=>x>0);me.shares[i]++;return `증권사 이벤트로 ${STOCKS[i].n} 1주를 받았어요!`}},
+ {t:'친구가 돈을 빌려 달래요. "다음 달에 꼭 갚을게."',opts:[
+   {l:'100만 빌려준다',f:()=>{if(me.cash<100)return '빌려줄 돈이 없어요… 오히려 다행';spend(100,'황금열쇠: 친구에게 빌려줌');return kc(.6,()=>{gain(120,'황금열쇠: 친구가 갚음');return '친구가 이자까지 쳐서 갚았어요 +120만'},()=>'친구 프사가 해외여행 사진으로 바뀌었어요… -100만')}},
+   {l:'정중히 거절한다',f:()=>'"돈 거래는 안 해"라고 말했어요. 우정은 지켰어요'}]},
+ {f:()=>{spend(30,'황금열쇠: 자동차 범칙금');return '어린이보호구역 과속 카메라에 찍혔어요 -30만. 천천히 다니기!'}},
+ // 명절·계절
+ {c:()=>[1,2].includes(kst().mo)||hasTime('seollal'),w:2,f:()=>{const g=lucky(50,'황금열쇠: 연말정산 환급');return `연말정산 환급금이 들어왔어요 +${won(g)}`}},
+ {c:()=>[7,8].includes(kst().mo),w:2,t:'여름휴가 시즌! 어디로 갈까요?',opts:[
+   {l:'해외여행',f:()=>{spend(200,'황금열쇠: 해외여행');me.luck=1;return '사진 500장 건졌어요 -200만. 충전 완료, 다음 행운↑'}},
+   {l:'국내 바다',f:()=>{spend(60,'황금열쇠: 국내 여행');return '바다 보고 회 먹고 -60만. 최고의 가성비'}},
+   {l:'집에서 호캉스',f:()=>{spend(10,'황금열쇠: 배달 음식');return '에어컨 틀고 배달 음식. 이게 진정한 휴가 -10만'}}]},
+ {c:()=>[11,12].includes(kst().mo),w:2,f:()=>{spend(25,'황금열쇠: 김장');return '김장철! 부모님 댁에서 배추 100포기를 절였어요. 재료비 -25만, 김치는 1년 치'}},
+ {c:()=>me.age>=30,f:()=>injury('건강검진에서 "운동하세요" 소견을 받았어요',20,'추가 검사비')()},
+ // 육아
+ {c:()=>me.children.length>0,t:'아이가 "다른 친구는 다 있어"라며 최신 게임기를 사 달래요.',opts:[
+   {l:'사 준다',f:()=>{spend(60,'황금열쇠: 게임기');return '아이 얼굴이 환해졌어요 -60만. 대신 숙제는 확실히!'}},
+   {l:'성적 오르면 사 준다',f:()=>kc(.5,()=>{spend(60,'황금열쇠: 약속한 게임기');return '진짜로 성적이 올랐어요! 약속대로 사 줬어요 -60만'},()=>'아이가 삐졌지만 공부는 조금 했어요')},
+   {l:'안 된다고 한다',f:()=>'아이가 방문을 쾅 닫았어요. 사춘기 예행연습'}]},
+ {c:()=>me.children.length>0,f:()=>{const g=lucky(40,'황금열쇠: 아이 상장 장학금');return `아이가 교내 대회에서 상을 탔어요! 장학금 +${won(g)}`}},
+ {c:()=>me.children.length>0,f:()=>{spend(30,'황금열쇠: 학원 상담');return '학원 상담 갔다가 특강까지 등록했어요 -30만'}},
+ // 동네·기타
+ {f:()=>{const g=lucky(20,'황금열쇠: 동네 맛집 리뷰 이벤트');return `동네 맛집 리뷰 이벤트 당첨! 식사권 +${won(g)}`}},
+ {t:'길에서 지갑을 주웠어요. 현금이 두둑해요.',opts:[
+   {l:'경찰서에 맡긴다',f:()=>{stat('angel');return kc(.5,()=>{gain(30,'황금열쇠: 지갑 사례금');return '주인이 사례금을 줬어요 +30만. 착하게 살자'},()=>'주인에게 연락이 갔대요. 마음이 따뜻해요')}},
+   {l:'근처 가게에 맡긴다',f:()=>'가게 사장님이 주인을 찾아주겠대요. 서비스로 음료를 받았어요'}]},
+ {f:()=>{me.rolls+=3;return '오늘따라 컨디션 최고! 주사위 +3'}},
+ {f:()=>{const n=Math.min(me.rolls,2);me.rolls-=n;return `밤새 드라마 정주행하다 늦잠… 주사위 -${n}`}},
+ {t:'동네 주민 투표: 공원에 무엇을 지을까요?',opts:[
+   {l:'반려견 놀이터',f:()=>'강아지들이 신났어요. 산책길이 즐거워졌어요'},
+   {l:'풋살장',f:()=>{me.buff=me.buff||{};me.buff.immune=1;return '주말마다 풋살! 다음 부상 면역'}},
+   {l:'야외 도서관',f:()=>{me.exp=Math.min(10,me.exp+1);return '벤치에서 책 읽는 습관이 생겼어요. 경험 +1'}}]},
+ {quiz:'street',t:'방송국 카메라가 다가와요. "시민 퀴즈! 맞히면 상품!"'},
+ {quiz:'street',t:'동네 축제 무대에서 깜짝 퀴즈가 열렸어요.'},
+ {c:()=>me.job!=='none',quiz:'interview',t:'회사 리더십 교육 시간, 강사가 갑자기 지목했어요.'},
+ {f:()=>{const g=lucky(r10(10+R()*90),'황금열쇠: 바지 주머니');return `겨울 패딩 주머니에서 작년의 내가 넣어둔 현금 발견! +${won(g)}`}},
+ {f:()=>{spend(18,'황금열쇠: 휴대폰 액정');return '휴대폰을 떨어뜨려 액정이 깨졌어요 -18만. 케이스는 왜 안 씌웠을까'}},
+);
+
+/* =====================================================================
    상태 · 계산
    ===================================================================== */
 let db=null,FS=null,AUTH=null,user=null,myId=null,isAdmin=false;
@@ -1241,7 +1587,8 @@ function results(w){
     const byId=Object.fromEntries(list.map(x=>[x.id,x]));let total=0;
     for(const v of Object.values(votes)){const p=v.weeks&&v.weeks[w]&&v.weeks[w][off];if(p&&byId[p]){byId[p].v++;total++}}
     list.sort((a,b)=>b.v-a.v||a.t-b.t);
-    list.forEach((x,k)=>{x.share=total?x.v/total:0;x.won=k<OFFICES[off].seats&&x.v>0});
+    const seats=typeof seatsFor==='function'?seatsFor(w,off):OFFICES[off].seats;out[off+'Seats']=seats;
+    list.forEach((x,k)=>{x.share=total?x.v/total:0;x.won=k<seats&&x.v>0});
     out[off]=list;out[off+'Total']=total;
   }
   return out;
@@ -1250,9 +1597,10 @@ let T={w:-1,pres:[],mp:[],pol:new Set()};
 function refreshTerm(){
   const w=weekId()-1,res=results(w),pol=[];
   const pres=res.pres.filter(x=>x.won),mp=res.mp.filter(x=>x.won);
-  pres.forEach(x=>{const p=cands[x.id].weeks[w].policy;if(p&&PRES_POL[p])pol.push(p)});
-  mp.forEach(x=>{const p=cands[x.id].weeks[w].policy;if(p&&MP_LAW[p])pol.push(p)});
-  T={w,pres,mp,pol:new Set(pol)};
+  T={w,pres,mp,pol:new Set()};
+  if(!impeached()) pres.forEach(x=>{const p=cands[x.id].weeks[w].policy;if(p&&PRES_POL[p])pol.push(p)});
+  pol.push(...passedLaws());
+  T.pol=new Set(pol);
 }
 const P=id=>T.pol.has(id);
 const myOffice=()=>T.pres.some(x=>x.id===ME())?'pres':T.mp.some(x=>x.id===ME())?'mp':null;
@@ -1260,14 +1608,14 @@ const myOffice=()=>T.pres.some(x=>x.id===ME())?'pres':T.mp.some(x=>x.id===ME())?
 /* ---- 집값 ---- */
 let HPIc={d:-1,v:1};
 function hpiBase(){const D=dayNum();if(HPIc.d===D)return HPIc.v;let x=0;for(let d=dayNum(Date.UTC(2026,9,1));d<=D;d++){x=x*.97+(hrnd(d,901)+hrnd(d,902)-1)*.05+.003}HPIc={d:D,v:Math.exp(x)};return HPIc.v}
-function hpi(){let v=hpiBase();if(issueOn('realty_up'))v*=1.1;if(issueOn('realty_down'))v*=.9;if(P('realty_boom'))v*=1.05;if(P('realty_cool'))v*=.95;return v}
+function hpi(){let v=hpiBase();if(issueOn('realty_up'))v*=1.1;if(issueOn('realty_down'))v*=.9;v*=1+.05*PK('realty_boom')-.05*PK('realty_cool');return v}
 const ageGrowth=()=>Math.pow(1.04,Math.max(0,((me&&me.age)||20)-20)); // 집값은 내 나이(게임 속 시간)에 따라 연 4% 오름
 const housePrice=t=>r10(HOUSE[t].p*hpi()*ageGrowth());
 const jsPrice=t=>r10(housePrice(t)*.62*(issueOn('moving')?1.1:1));
 const rentOf=(t,mul=1)=>Math.max(10,r10(housePrice(t)*.005*mul*(issueOn('moving')?1.1:1)*(P('rent_cap')?.8:1)));
 const rentNow=()=>me.home.type==='rent'?rentOf(me.home.tier,me.home.mul||1):0;
 const homeAsset=()=>me.home.type==='own'?housePrice(me.home.tier):me.home.type==='jeonse'?(me.home.deposit||0):0;
-const LTV=()=>P('realty_cool')?.4:P('realty_boom')?.7:.6;
+const LTV=()=>clamp(.6-.2*PK('realty_cool')+.1*PK('realty_boom'),.3,.8);
 
 /* ---- 주식 ---- */
 let walk={t:0,x:STOCKS.map(()=>0),hist:STOCKS.map(()=>[])};
@@ -1314,12 +1662,12 @@ function shopMul(id,biz){
 /* ---- 은행·세금 ---- */
 const has=k=>me.items.some(x=>x.k===k);
 const itemResale=k=>Math.round(ITEMS[k].c*ITEMS[k].r);
-const shopPrice=k=>Math.round(ITEMS[k].c*(P('luxury_tax')?1.3:1)*(issueOn('blackfriday')?.7:1));
+const shopPrice=k=>Math.round(ITEMS[k].c*(1+.3*PK('luxury_tax'))*(issueOn('blackfriday')?.7:1));
 const eduCost=n=>Math.round(n*(P('edu_aid')?.7:1));
 const kidsMinor=()=>me.children.filter(c=>childAge(c)<ADULT).length;
-const taxRate=()=>(P('tax_cut')?.05:P('welfare')?.15:.1)*Math.max(.4,1-.2*me.children.length);
-const depRate=()=>P('rate_up')?.01:P('rate_down')?.0025:.005;
-const loanRate=()=>Math.max(.002,(P('rate_up')?.012:P('rate_down')?.004:.007)+(issueOn('rate_shock')?.003:0)-(me.job==='fund'?.0015:me.job==='civil'?.001:0));
+const taxRate=()=>(.1-.05*PK('tax_cut')+.05*PK('welfare'))*Math.max(.4,1-.2*me.children.length);
+const depRate=()=>.005+.005*PK('rate_up')-.0025*PK('rate_down');
+const loanRate=()=>Math.max(.002,(.007+.005*PK('rate_up')-.003*PK('rate_down'))+(issueOn('rate_shock')?.003:0)-(me.job==='fund'?.0015:me.job==='civil'?.001:0));
 const avgSalary=()=>{const [lo,hi]=salRange(me.job,me.rank);return Math.round((lo+hi)/2)};
 function guaranteedForMe(){let s=0;for(const [gid,g] of Object.entries(guars)){if(gid!==ME()&&g&&g.acc&&g.acc[ME()])s+=Number(g.acc[ME()])||0}return s}
 function loanLimit(base=false){
@@ -1341,14 +1689,14 @@ const CROWD_JOBS=['doctor','lawyer','fund','tuber'];
 function jobCrowd(j){return Object.values(others).filter(p=>p&&p.v===VER&&p.job===j&&Date.now()-(p.updated||0)<IDLE_DAYS*864e5).length}
 function jobCrowdMul(j){return CROWD_JOBS.includes(j)?Math.max(.6,1-.12*jobCrowd(j)):1}
 function payNow(){
-  if(me.job==='none') return P('min_wage')?80:0;
+  if(me.job==='none') return r10(80*PK('min_wage'));
   const [lo,hi]=salRange(me.job,me.rank);
   let p=lo===hi?lo:r10(lo+R()*(hi-lo));
   if(me.job==='tuber') p=r10(p*clamp(.6+(me.jp.subs||0)/200000,.6,2.5));
   p*=jobCrowdMul(me.job);
   if(me.job==='realtor') p*=clamp(hpi(),.6,1.6);
   if(me.job==='fund'&&issueOn('stock_down')) p*=.5;
-  if(me.job==='alba'&&P('min_wage')) p+=60;
+  if(me.job==='alba') p+=r10(60*PK('min_wage'));
   if(hasTime('payday25')) p*=1.2;
   return Math.round(p*PAY_MUL);
 }
@@ -1357,10 +1705,16 @@ function spouseIncome(){
   const b=J.rand?r10(J.rand[0]+R()*(J.rand[1]-J.rand[0])):Math.round((J.s[0]+J.s[1])/2);
   return Math.round(b*(s.mul||1));
 }
+/* 오늘의 체력: 하루 굴린 횟수가 기준을 넘으면 충전이 단계적으로 느려짐 */
+let STAM={base:300,gap:100,first:60,inc:30,max:300};
+const rollsToday=()=>me.rollDay&&me.rollDay.d===kstDay()?me.rollDay.n:0;
+function stamStep(){const n=rollsToday();if(!STAM.base||n<STAM.base)return -1;return Math.floor((n-STAM.base)/Math.max(1,STAM.gap))}
+function effRollMs(){const s=stamStep();if(s<0)return ROLL_MS;return Math.max(ROLL_MS,Math.min(STAM.max,STAM.first+s*STAM.inc)*1000)}
+function countRoll(){const d=kstDay();if(!me.rollDay||me.rollDay.d!==d)me.rollDay={d,n:0};me.rollDay.n++}
 function refillRolls(){
   if(me.rolls>=MAX_ROLLS){me.rollT=Date.now();return}
-  const add=Math.floor((Date.now()-me.rollT)/ROLL_MS);
-  if(add>0){me.rolls=Math.min(MAX_ROLLS,me.rolls+add);me.rollT+=add*ROLL_MS;if(me.rolls>=MAX_ROLLS)me.rollT=Date.now()}
+  const ms=effRollMs(),add=Math.floor((Date.now()-me.rollT)/ms);
+  if(add>0){me.rolls=Math.min(MAX_ROLLS,me.rolls+add);me.rollT+=add*ms;if(me.rolls>=MAX_ROLLS)me.rollT=Date.now()}
 }
 
 /* ---- 가족 ---- */
@@ -1415,7 +1769,7 @@ function story(t){me.story.push({a:me.age,t});if(me.story.length>40)me.story.shi
 function gain(n,why){me.cash+=n;if(why)addLog(`${why} +${won(n)}`)}
 function spend(n,why){me.cash-=n;if(why)addLog(`${why} -${won(n)}`)}
 /* ---- 밸런스: 따라잡기 · 부자세 (운영자 화면 config/tax 로 조정) ---- */
-const TAX_DEF={rich1:3,rate1:.3,rich2:10,rate2:.6,holdMul:1,cuPct:30,cuMin:4,cuRatio:30,cuFloor:100,cuLuck:1.3,inhAdd:10,inhMax:60};
+const TAX_DEF={rich1:3,rate1:.3,rich2:10,rate2:.6,holdMul:1,pay_pres:400,pay_pm:300,pay_mp:200,cuPct:30,cuMin:4,cuRatio:30,cuFloor:100,cuLuck:1.3,inhAdd:10,inhMax:60};
 let TAX={...TAX_DEF};
 function applyTax(t){const v={...TAX_DEF};for(const k of Object.keys(TAX_DEF)){const n=Number(t&&t[k]);if(t&&t[k]!==undefined&&t[k]!==''&&isFinite(n)&&n>=0)v[k]=n}TAX=v}
 function wealthRank(){ // 최근 7일 안에 접속한 주민 중 내 순자산 위치 (0=꼴찌, 1=1등)
@@ -1428,6 +1782,7 @@ function wealthTax(){
   const R1=TAX.rich1*10000,R2=Math.max(R1,TAX.rich2*10000);
   if(n>R1) t+=(Math.min(n,R2)-R1)*TAX.rate1/100;
   if(n>R2) t+=(n-R2)*TAX.rate2/100;
+  t*=taxMul();
   return Math.round(t);
 }
 const supportAmt=()=>r10(Math.max(TAX.cuFloor,avgSalary()*TAX.cuRatio/100));
@@ -1441,12 +1796,12 @@ function lucky(n,why){
    bld/{셀id} = {n:층수, m:거래 배율, deals, name, nameBy, claimT,
                  f:{ "1":{o:주인, t:세입자, biz, dep, rent, lt:'m'|'h', reno, rt:리모델링시각, dev:분양자, sale:분양가, h:{k,from,v,at}} } }
    ===================================================================== */
-const BLD_K=160, MAX_FL=5, FL_MUL=[0,1.2,1,.9,.85,.8,.75,.7];
+const BLD_K=160, maxFl=()=>activeCount()>36?7:5, FL_MUL=[0,1.2,1,.9,.85,.8,.75,.7];
 const PUB=[{k:'park',n:'공영주차장',e:'🅿️',d:'다음 이동 때 1칸 더 가거나 덜 갈 수 있어요'},{k:'health',n:'보건소',e:'🏥',d:'다음 한 번 다치는 사건 병원비 면제'},
   {k:'center',n:'주민센터',e:'🏛️',d:'따라잡기 지원 대상이면 지원금 일부를 바로 받아요'},{k:'lib',n:'공공도서관',e:'📚',d:'경험 +1 (하루 1번)'},{k:'kids',n:'국공립 어린이집',e:'👶',d:'자녀가 있으면 다음 양육비 30% 할인'}];
 const pubOf=(id,f)=>PUB[hstr(id+'~'+f)%PUB.length];
 const bld=id=>shops[id]||{};
-const nFloors=id=>clamp(bld(id).n||3,3,MAX_FL+2);
+const nFloors=id=>clamp(bld(id).n||3,3,7);
 const flOf=(id,f)=>(bld(id).f||{})[f]||{};
 const fkey=(id,f)=>id+':'+f;
 const fsplit=k=>{const i=k.lastIndexOf(':');return [k.slice(0,i),Number(k.slice(i+1))]};
@@ -1486,11 +1841,11 @@ const leaseRent=(id,f,lt)=>r10(floorPrice(id,f)*(lt==='h'?.005:.01));
 const leaseDep=(id,f,lt)=>r10(floorPrice(id,f)*(lt==='h'?.4:.1)*(me.job==='realtor'?.5:1));
 const buyFloorPrice=(id,f)=>{const F=flOf(id,f);if(F.dev&&F.sale)return F.sale;const s=bld(id).sale&&bld(id).sale[f];if(s&&s.until>Date.now())return s.price;return r10(floorPrice(id,f)*(me.job==='realtor'?.85:1))};
 const quickSale=k=>{const [id,f]=fsplit(k);return r10(floorPrice(id,f)*.7)};
-const renoCost=(id,f)=>r10(floorPrice(id,f)*.15*(wholeOwner(id)===ME()?.8:1)*(P('realty_boom')?.8:1));
-const extendCost=id=>r10(CELL[id].p*BLD_K*(FL_MUL[nFloors(id)+1]||.7)*shopIdx()*(bld(id).m||1)*.8*(wholeOwner(id)===ME()?.8:1)*(P('realty_boom')?.8:1));
+const renoCost=(id,f)=>r10(floorPrice(id,f)*.15*(wholeOwner(id)===ME()?.8:1)*(1-.2*PK('realty_boom')));
+const extendCost=id=>r10(CELL[id].p*BLD_K*(FL_MUL[nFloors(id)+1]||.7)*shopIdx()*(bld(id).m||1)*.8*(wholeOwner(id)===ME()?.8:1)*(1-.2*PK('realty_boom')));
 const pubFee=()=>r10(clamp(netWorth()*.002,10,300));
 function holdRate(n){return n>=7?.03:n>=5?.015:n>=3?.008:.003}
-function holdTax(){const fl=myFloors();if(!fl.length)return 0;return r10(fl.reduce((s,k)=>s+shopValue(k),0)*holdRate(fl.length)*(TAX.holdMul??1))}
+function holdTax(){const fl=myFloors();if(!fl.length)return 0;return r10(fl.reduce((s,k)=>s+shopValue(k),0)*holdRate(fl.length)*(TAX.holdMul??1)*taxMul())}
 function vacTax(){return r10(myFloors().filter(k=>{const [id,f]=fsplit(k);const F=flOf(id,f);return !F.t&&!F.biz}).reduce((s,k)=>s+shopValue(k),0)*.005)}
 
 /* ---- 국고 적립 (각자 내 문서에 낸 세금을 기록 → 합계가 국고) ---- */
@@ -1672,7 +2027,7 @@ function checkTitles(){
 /* ---- 최고 직급 자리 ---- */
 const topIdx=j=>JOBS[j].titles.length-1;
 function activeCount(){return 1+Object.values(others).filter(p=>p&&p.v===VER&&Date.now()-(p.updated||0)<IDLE_DAYS*864e5).length}
-const SEAT_SCALE=false; // 화요일 업데이트에서 켬
+const SEAT_SCALE=true;
 function seatCap(job){const b=JOBS[job]&&JOBS[job].promo&&JOBS[job].promo.seat;return b?b+(SEAT_SCALE?Math.floor((activeCount()-1)/10):0):0}
 function holderValid(uid,job){
   if(uid===ME()) return me.job===job&&me.rank===topIdx(job);
@@ -1849,6 +2204,12 @@ function syncActbar(){
 new MutationObserver(syncActbar).observe(document.documentElement,{childList:true,subtree:true,attributes:false});
 MOBILE_MQ.addEventListener?MOBILE_MQ.addEventListener('change',placeActions):MOBILE_MQ.addListener(placeActions);
 
+/* ---- 판 확대 (폰) ---- */
+let zoomOn=false;try{zoomOn=localStorage.getItem('lm5.zoom')==='1'}catch(e){}
+function initZoom(){const b=$('zoomBtn');if(!b)return;const lab=()=>{b.textContent=zoomOn?'🔍 판 원래대로':'🔍 판 크게 보기';$('board').classList.toggle('zoom',zoomOn)};lab();
+  b.onclick=()=>{zoomOn=!zoomOn;try{localStorage.setItem('lm5.zoom',zoomOn?'1':'0')}catch(e){}lab();followTok()}}
+function followTok(){if(!zoomOn)return;const t=document.querySelector('#board .tok');if(t)t.scrollIntoView({block:'nearest',inline:'center',behavior:FX_RM?'auto':'smooth'})}
+
 /* =====================================================================
    미니게임 엔진 — 퀴즈 · 타이밍 · 숨은 글자 찾기 · 암기 · 순서 맞추기
    ===================================================================== */
@@ -2012,7 +2373,7 @@ async function resolve(id){
     case 'school': return schoolCell();
     case 'exam': return examCell();
     case 'intern':{const g=me.job==='alba'?2:1,p=has('bike')?60:30;me.exp=Math.min(10,me.exp+g);gain(p,`인턴십 활동비 (경험 +${g})`);
-      setMsg(pick(['복사기와 친해졌어요','커피 심부름 마스터가 됐어요','첫 PPT를 만들었어요. 폰트가 7개예요'])+`. 경험 +${g} (지금 ${me.exp}), 활동비 +${won(p)}`);return}
+      setMsg(pf('intern',['복사기와 친해졌어요','커피 심부름 마스터가 됐어요','첫 PPT를 만들었어요. 폰트가 7개예요'])+`. 경험 +${g} (지금 ${me.exp}), 활동비 +${won(p)}`);return}
     case 'bank': return bankCell();
     case 'wed': return wedCell();
     case 'baby': return babyCell();
@@ -2022,7 +2383,7 @@ async function resolve(id){
       const rate=taxRate()*(me.job==='lawyer'?.5:1),t=Math.max(0,Math.round(me.cash*rate));
       if(t<1){setMsg('세무서에 갔는데 통장이 텅 비어서 직원이 그냥 사탕 하나 주고 보내줬어요. 세금 면제!');return}
       spend(t,`세무서 세금 ${pct(rate)}`);govPay('tax',t);
-      setMsg(`${pick(['세무서 직원이 너무 반갑게 맞아줘서 오히려 무서웠어요','인생에서 피할 수 없는 세 가지: 죽음, 세금, 월요일','세무서 앞 화분이 유난히 싱싱하네요. 내 세금으로 키웠나 봐요'])}. 세금 -${won(t)} (세율 ${pct(rate)}${me.children.length?', 자녀 공제 적용':''})`);return}
+      setMsg(`${pf('tax',['세무서 직원이 너무 반갑게 맞아줘서 오히려 무서웠어요','인생에서 피할 수 없는 세 가지: 죽음, 세금, 월요일','세무서 앞 화분이 유난히 싱싱하네요. 내 세금으로 키웠나 봐요'])}. 세금 -${won(t)} (세율 ${pct(rate)}${me.children.length?', 자녀 공제 적용':''})`);return}
   }
 }
 
@@ -2030,13 +2391,14 @@ async function resolve(id){
 async function openKey(){
   track('key');await keyFlip();
   const list=KEYS.filter(k=>!k.c||k.c());
-  const ws=list.map(k=>typeof k.w==='function'?k.w():(k.w||1));
+  const rk=me.rk||[];const ws=list.map(k=>(typeof k.w==='function'?k.w():(k.w||1))*(rk.includes(KEYS.indexOf(k))?.08:1)); // 최근에 나온 황금열쇠는 잘 안 나오게
   let r=R()*ws.reduce((a,b)=>a+b,0),k=list[0];
   for(let i=0;i<list.length;i++){r-=ws[i];if(r<=0){k=list[i];break}}
+  me.rk=[...rk,KEYS.indexOf(k)].slice(-25);
   const text=typeof k.t==='function'?k.t():k.t;
   if(k.quiz){
     setMsg('황금열쇠 — '+text);
-    const qs=qPick(k.quiz,1),c=await mgQuiz('길거리 퀴즈',qs,'맞히면 상품권!');
+    const qs=qPick(k.quiz,1),c=await mgQuiz(k.quiz==='interview'?'리더십 교육':'길거리 퀴즈',qs,'맞히면 상품권!');
     if(c){const g=lucky(50,'황금열쇠: 길거리 퀴즈 상품권');await mgResult(`정답! 상품권 +${won(g)}`,true);setMsg(`길거리 퀴즈 정답! 상품권 +${won(g)}`)}
     else{await mgResult('아쉽게 틀렸어요. 참가상으로 물티슈를 받았어요',false);setMsg('길거리 퀴즈 오답… 참가상 물티슈를 받았어요')}
     return;
@@ -2112,7 +2474,7 @@ async function publicFloor(id,f){
 async function visitShop(id,f,op){
   const c=CELL[id],F=flOf(id,f),B=BIZ[F.biz],t=payAtFloor(id,f);
   if(t===0) setMsg(`${nameOf(op)}네 ${B.n}(${c.n} ${f}층)에 들렀지만 셰프라서 맛만 평가하고 나왔어요 (음식 가게 면제)`);
-  else{spend(t,`${nameOf(op)}네 ${B.n} 이용`);payLedger(op,t,`${dynName()}님이 ${c.n} ${f}층 ${B.n} 이용`);track('shopuse');setMsg(`${nameOf(op)}네 ${B.n}(${c.n} ${f}층): ${pick(B.menu)}. -${won(t)}`)}
+  else{spend(t,`${nameOf(op)}네 ${B.n} 이용`);payLedger(op,t,`${dynName()}님이 ${c.n} ${f}층 ${B.n} 이용`);track('shopuse');setMsg(`${nameOf(op)}네 ${B.n}(${c.n} ${f}층): ${pf('menu_'+F.biz,B.menu)}. -${won(t)}`)}
   if(!F.t||me.job==='civil') return;
   const key=r10(floorToll(id,f)*8+floorPrice(id,f)*.02),dep=leaseDep(id,f,F.lt||'m');
   if(me.cash<key+dep) return;await sleep(300);
@@ -2163,7 +2525,7 @@ async function myFloorMenu(id,f,fresh){
   const mine=[];for(let k=1;k<=n;k++)if(flOf(id,k).o===ME())mine.push(k);
   const others=[];for(let k=1;k<=n;k++){const o=flOf(id,k).o;if(o&&o!==ME())others.push(k)}
   const maj=mine.length>=Math.floor(n/2)+1,claimCost=others.reduce((s,k)=>s+r10(floorPrice(id,k)*1.3),0),cool=(bld(id).claimT||0)>Date.now()-864e5;
-  const maxF=MAX_FL,rc=renoCost(id,f),ec=extendCost(id),whole=wholeOwner(id)===ME();
+  const maxF=maxFl(),rc=renoCost(id,f),ec=extendCost(id),whole=wholeOwner(id)===ME();
   const opts=[{label:'그대로',v:0,primary:true}];
   if(!F.t&&!F.biz&&me.job!=='civil') opts.push({label:'직접 장사 시작',v:'open'});
   if(!F.t&&F.biz) opts.push({label:'장사 접고 세입자 받기',v:'close'});
@@ -2215,7 +2577,7 @@ async function workCell(){
     {label:'그냥 일한다',v:'idle'}]);
   if(v==='act') return act.f();
   if(v==='promo') return promoteAttempt();
-  perfAdd(2);setMsg(pick(['오늘도 무사히 퇴근','메일 37통을 처리했어요','점심 메뉴 고르는 게 제일 어려웠어요'])+(me.job==='office'?' (평가 +2)':''));
+  perfAdd(2);setMsg(pf('work',['오늘도 무사히 퇴근','메일 37통을 처리했어요','점심 메뉴 고르는 게 제일 어려웠어요'])+(me.job==='office'?' (평가 +2)':''));
 }
 const ownFood=()=>myOps().some(k=>{const [id,f]=fsplit(k);const B=BIZ[flOf(id,f).biz];return B&&B.food});
 const JOB_ACT={
@@ -2257,7 +2619,7 @@ async function promote(){
   const J=JOBS[me.job],next=me.rank+1,top=next===topIdx(me.job);
   if(top&&J.promo.seat){
     const ok=await claimSeat(me.job);
-    if(!ok){const h=seatHolders(me.job).map(nameOf).join(', ');setMsg(`${J.titles[next]} 자리 ${seatCap(me.job)}개가 꽉 찼어요${h?` (현재 ${h})`:''}. 그분이 은퇴하거나 자리를 비우면 다시 도전하세요.`);me.jp.cool=me.laps+3;return}
+    if(!ok){const h=seatHolders(me.job).map(nameOf).join(', ');setMsg(`${J.titles[next]} 자리 ${seatCap(me.job)}개가 꽉 찼어요${h?` (현재 ${h})`:''}. 동네 주민이 10명 늘 때마다 자리가 1개씩 늘어요. 그분이 은퇴하거나 자리를 비우면 다시 도전하세요.`);me.jp.cool=me.laps+3;return}
   }
   me.rank=next;me.jp.since=me.laps;me.jp.pfail=0;if(me.job==='office')me.jp.perf=0;
   addLog(`${title()}(으)로 승진!`);story(`${title()} 승진`);
@@ -2334,8 +2696,14 @@ function nightCell(){
   const dr=me.job==='doctor';
   const g=Math.max(20,Math.round(avgSalary()*.3*(dr?2:1)*(hasTime('offwork')?1.5:1)));gain(g,'야근 수당');
   perfAdd(4);if(dr)me.jp.rep=(me.jp.rep||0)+1;
+  let np='';const J=me.jp;
+  if(me.job==='lawyer'&&R()<.5){J.cases=(J.cases||0)+1;np=' 밤새 서면 작성 → 승소 +1'}
+  else if(me.job==='dev'&&R()<.5){J.proj=(J.proj||0)+1;np=' 밤샘 배포 성공 → 프로젝트 +1'}
+  else if(me.job==='realtor'&&R()<.5){J.deals=(J.deals||0)+1;np=' 야간 집 보여주기 → 중개 +1'}
+  else if(me.job==='tuber'){const a=r10((J.subs||0)*.05+500);J.subs=(J.subs||0)+a;np=` 새벽 편집 → 구독자 +${a.toLocaleString('ko-KR')}`}
+  else if(me.job==='chef'&&R()<.25){J.stars=Math.min(3,(J.stars||0)+1);np=' 야간 신메뉴 개발 → 미슐랭 별 +1'}
   const free=P('no_night')||has('car');const used=free?0:Math.min(me.rolls,dr?2:1);me.rolls-=used;
-  setMsg(`${pick(['팀장님이 퇴근 5분 전에 "잠깐 얘기 좀…"','오늘 저녁은 편의점 삼각김밥 두 개','사무실 불 끄는 마지막 사람이 됐어요','"내일 아침까지만 부탁해~" 한마디에 밤이 사라졌어요'])}. 수당 +${won(g)}${used?`, 주사위 -${used}`:` (${has('car')?'차로 퇴근해서':'야근 제한법 덕분에'} 주사위는 그대로)`}`);
+  setMsg(`${pf('night',['팀장님이 퇴근 5분 전에 "잠깐 얘기 좀…"','오늘 저녁은 편의점 삼각김밥 두 개','사무실 불 끄는 마지막 사람이 됐어요','"내일 아침까지만 부탁해~" 한마디에 밤이 사라졌어요'])}.${np} 수당 +${won(g)}${used?`, 주사위 -${used}`:` (${has('car')?'차로 퇴근해서':'야근 제한법 덕분에'} 주사위는 그대로)`}`);
 }
 
 /* ---------------- 결혼 ---------------- */
@@ -2480,7 +2848,7 @@ function payday(){
   if(virt&&joint) living*=2; // 둘이 쓰는 생활비
   if(virt&&!joint) living=0;  // 각자 관리: 생활비는 배우자가
   if(real) living*=.5;
-  if(P('welfare')) living*=.5;
+  living*=1-.5*PK('welfare');
   living=Math.round(living);
   let rent=rentNow();if(virt&&!joint) rent=Math.round(rent*.5); // 각자 관리: 월세 절반은 배우자가
   let care=0;minors().forEach(c=>care+=childCost(childAge(c)));
@@ -2488,7 +2856,7 @@ function payday(){
   if(me.married&&!joint) care*=.5;
   if(me.buff&&me.buff.kids&&care){care*=.7;delete me.buff.kids}
   care=Math.round(care);
-  const allowK=minors().length*(P('birth')?40:20);
+  const allowK=r10(minors().length*20*(1+PK('birth')));
   const extraPre=[];
   const card=hasTime('cardday')?Math.round(Math.max(0,me.cash)*.03):0;
   const it=Math.floor(me.savings*depRate());me.savings+=it;
@@ -2523,7 +2891,7 @@ function payday(){
   if(me.job==='tuber'&&R()<.04){me.jp.subs=Math.round((me.jp.subs||0)*.7);extra.push('논란 영상… 구독자 -30%');story('유튜브 논란')}
   if(me.job==='office'&&me.rank<4&&R()<.01){const sev=pay*6;me.cash+=sev;extra.push(`구조조정… 위로금 +${won(sev)} 받고 퇴사`);story('회사 구조조정으로 퇴사');leaveJob()}
   if(has('yacht')){me.cash+=250;extra.push('요트 대여 +250만')}
-  const mo=myOffice();if(mo){me.cash+=OFFICES[mo].pay;extra.push(`${OFFICES[mo].n} 수당 +${won(OFFICES[mo].pay)}`)}
+  me.cash+=paySalaries(extra);
   if(real&&joint&&pay>0){const s=Math.round(pay*.3);payLedger(me.spouseUid,s,`${dynName()}님이 보낸 공동 생활비`);me.cash-=s;extra.push(`공동 생활비로 배우자에게 ${won(s)}`)}
   // 자녀
   let allow=0;
@@ -2533,7 +2901,7 @@ function payday(){
     if(c.job===0){if(R()<.2){allow-=50;extra.push(`백수 ${c.name||ORD[i]}가 용돈을 달래요 -50만`)}}
     else if(R()<.35){const v=r10((J.lo+R()*(J.hi-J.lo))*(hasTime('parentday')?2:1));if(v>0){allow+=v;extra.push(`${c.name||ORD[i]}(${J.n})가 용돈 +${won(v)}`)}}});
   const wtax=wealthTax();if(wtax){extra.push(`부자세 -${won(wtax)}`);govPay('wealth',wtax)}
-  const sup=catchUp()?supportAmt():0;if(sup){extra.push(`따라잡기 지원금 +${won(sup)}`);stat('support')}
+  let sup=catchUp()?supportAmt():0;if(sup){const t=Math.max(0,treasury());if(db&&t<sup)sup=r10(t);if(sup>0){extra.push(`따라잡기 지원금(국고) +${won(sup)}`);stat('support');if(db)govGot(sup)}else extra.push('따라잡기 지원금: 국고가 비어 이번엔 못 받았어요')}
   if(me.home.type!=='own') me.noHome=(me.noHome||0)+1;
   me.cash+=pay+spInc-living-rent-care+allowK-card+rev-stax-ptax+allow-wtax+sup-li-rep+divi;if(divi)addLog(`주식 배당금 +${won(divi)}`);
   if(me.preg&&me.laps>=me.preg.due) giveBirth();
@@ -2541,9 +2909,9 @@ function payday(){
   track('payday');
 }
 function giveBirth(){
-  const n=R()<.08&&me.children.length<MAX_KIDS?2:1,cost=P('birth')?0:Math.round(150*(me.married&&me.finance==='split'?.5:1));
+  const n=R()<.08&&me.children.length<MAX_KIDS?2:1,cost=Math.round(150*(1-Math.min(1,PK('birth')))*(me.married&&me.finance==='split'?.5:1));
   for(let k=0;k<n;k++){const g=R()<.5?'m':'f';me.children.push({born:me.laps,g,name:pick(NAMES[g]),co:me.spouseUid||null})}
-  me.preg=null;me.cash-=cost;if(P('birth'))me.cash+=200;
+  me.preg=null;me.cash-=cost;if(P('birth'))me.cash+=r10(200*PK('birth'));
   const kids=me.children.slice(-n).map(c=>`${c.name}(${c.g==='m'?'아들':'딸'})`).join('·');
   addLog(`${n===2?'쌍둥이가':'아기가'} 태어났어요! ${kids} — 출산비 ${won(cost)}`);story(`${kids} 출생`);
   postNews(`${dynName()}님 가족에 ${n===2?'쌍둥이':'아기'}가 태어났어요! ${kids}`);checkTitles();
@@ -2632,7 +3000,7 @@ async function resumePending(){ // 칸 처리 중 새로고침했으면 그 칸�
 async function roll(){
   if(busy) return;refillRolls();
   if(me.rolls<1){setMsg(`주사위가 다 떨어졌어요. ${fmtSec(ROLL_MS/1000)}마다 1개씩 차요. 게임머니로 살 수도 있어요.`);return}
-  busy=true;me.rolls--;if(dawnNow())stat('owl');renderStats();$('actions').innerHTML='';
+  busy=true;me.rolls--;countRoll();if(dawnNow())stat('owl');renderStats();$('actions').innerHTML='';
   let dbl=0;
   while(true){
     const [a,b]=await rollDice();track('roll');
@@ -2816,7 +3184,8 @@ function renderBoard(){
     board.append(e);
   });
   const cnt=1+Object.values(others).filter(p=>p.v===VER).length;
-  $('boardNote').textContent=`판 ${SIDE+1}×${SIDE+1} · 주민 ${cnt}명${LEVEL<EXP.length?` · ${(LEVEL+1)*10+1}명이 되면 확장`:''}`;
+  $('boardNote').textContent=`판 ${SIDE+1}×${SIDE+1} · 주민 ${cnt}명${LEVEL<2?` · ${LEVEL===0?13:25}명이 되면 확장`:` · 판은 최대 크기 (37명부터 건물 최대 7층)`}`;
+  board.classList.toggle('compact',LEVEL>=1);if(typeof followTok==='function')followTok();
 }
 function renderLifeLine(){
   renderSky();
@@ -2830,9 +3199,10 @@ function renderLifeLine(){
   {const w=wealthTax();if(w){const s=el('span','pol rich','💸 부자세 대상');s.title=`순자산 ${TAX.rich1}억 초과분 ${TAX.rate1}%, ${TAX.rich2}억 초과분 ${TAX.rate2}%, 월급날마다 내요 (지금 -${won(w)})`;pl.append(s)}}
   [...T.pol].forEach(id=>{const s=el('span','pol',ALL_POL[id].n);s.title=ALL_POL[id].d;pl.append(s)});
   refillRolls();
-  const fullMs=me.rolls>=MAX_ROLLS?0:(MAX_ROLLS-me.rolls-1)*ROLL_MS+(ROLL_MS-(Date.now()-me.rollT));
+  const RM=effRollMs(),fullMs=me.rolls>=MAX_ROLLS?0:(MAX_ROLLS-me.rolls-1)*RM+(RM-(Date.now()-me.rollT));
   const fa=new Date(Date.now()+fullMs);
-  $('rolls').textContent=`주사위 ${me.rolls}/${MAX_ROLLS}${fullMs?` · ${fmtSec(Math.ceil((ROLL_MS-(Date.now()-me.rollT))/1000))} 뒤 +1 · ${fa.getHours()}:${String(fa.getMinutes()).padStart(2,'0')}에 가득`:' · 가득'}`;
+  $('rolls').textContent=`주사위 ${me.rolls}/${MAX_ROLLS}${fullMs?` · ${fmtSec(Math.ceil((RM-(Date.now()-me.rollT))/1000))} 뒤 +1 · ${fa.getHours()}:${String(fa.getMinutes()).padStart(2,'0')}에 가득`:' · 가득'}`;
+  {const st=stamStep(),n=rollsToday();if(STAM.base){$('rolls').textContent+=st<0?` · 오늘 체력 ${n}/${STAM.base}`:` · 조금 피곤해요… 지금 충전 ${fmtSec(RM/1000)} (다음 단계까지 ${STAM.gap-((n-STAM.base)%STAM.gap)}번)`}}
   const m=missionToday();$('missionMini').textContent=`오늘의 미션 ${m.done.length}/3`;
   const f=feed(1)[0];$('ticker').textContent=f?`동네 소식 · ${f.k==='c'?nameOf(f.uid)+': ':''}${f.x}`:'동네 소식 · 아직 조용해요';
 }
@@ -3037,7 +3407,10 @@ function renderStocks(){
 function renderTown(){
   const iss=ISSUE[issueToday()];
   const t=$('townIssue');t.innerHTML='';t.append(el('b','',`오늘의 동네 이슈: ${iss.n}`),' '+iss.d+(iss.id==='celeb'?` (핫플: ${CELL[celebShop()].n})`:''));
-  {const g=el('div','note');const by=treasuryBy();g.append(el('b','',`🏛️ 국고 ${won(treasury())}`),' · '+Object.entries(by).filter(([k,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([k,v])=>`${GOV_K[k]||k} ${won(v)}`).join(' · ')+' (화요일부터 정치인 월급·지원금·정책 예산으로 쓰여요)');t.append(g)}
+  {const g=el('div','note');g.append(el('b','',`🏛️ 국고 ${won(treasury())}`));
+    if(isPolitician()||isAdmin){const by=treasuryBy();let spent=govSum({})*0;for(const p of [me,...Object.values(others)])if(p&&p.v===VER)spent+=p.govGot||0;
+      g.append(' · 수입: '+Object.entries(by).filter(([k,v])=>v>0).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${GOV_K[k]||k} ${won(v)}`).join(', ')+` · 지출(월급·지원금·예산·매입) ${won(spent)} · 이번 주 예산 ${won(budgetNow())}`)}
+    else g.append(' (상세 장부는 대통령·총리·국회의원만 볼 수 있어요)');t.append(g)}
   const te=tev();if(te.length) t.append(el('div','note','지금: '+te.map(x=>`${x.n}(${x.d})`).join(' · ')));
   // 청혼
   const pb=$('propose');pb.innerHTML='';
@@ -3099,12 +3472,12 @@ function renderVote(){
   addRole('대통령',T.pres,PRES_POL);addRole('국회의원',T.mp,MP_LAW);s1.append(off);
   const mo=myOffice();
   if(mo&&!cands[ME()].weeks[T.w].policy){const set=mo==='pres'?PRES_POL:MP_LAW;s1.append(el('div','el-h',mo==='pres'?'대통령으로서 이번 주 정책을 고르세요.':'국회의원으로서 이번 주 법안을 고르세요.'));
-    const pk=el('div','picks');Object.entries(set).forEach(([k,v])=>{const b=el('button','mini',v.n);b.title=v.d;b.onclick=()=>{const weeks=clone(cands[ME()].weeks);weeks[T.w].policy=k;writeElection('cand',weeks);addLog(`${OFFICES[mo].n}으로서 「${v.n}」 시행`);postNews(`${OFFICES[mo].n} ${dynName()}님이 「${v.n}」을(를) 시행했어요: ${v.d}`);refreshTerm();renderAll()};pk.append(b)});s1.append(pk)}
-  box.append(s1);
+    const pk=el('div','picks');Object.entries(set).forEach(([k,v])=>{const b=el('button','mini',v.n);b.title=v.d;b.onclick=()=>{const weeks=clone(cands[ME()].weeks);weeks[T.w].policy=k;writeElection('cand',weeks);addLog(`${OFFICES[mo].n}으로서 「${v.n}」 ${mo==='pres'?'시행':'발의'}`);postNews(`${OFFICES[mo].n} ${dynName()}님이 「${v.n}」을(를) 시행했어요: ${v.d}`);refreshTerm();renderAll()};pk.append(b)});s1.append(pk)}
+  box.append(s1);renderGov(box);
   const res=results(w),s2=el('div','el-sec');
   s2.append(el('div','el-h',`이번 주 선거 · 개표까지 ${untilMs(MON0+(w+1)*WEEK-Date.now())}`));
   const myVote=(votes[ME()]&&votes[ME()].weeks&&votes[ME()].weeks[w])||{},myCand=cands[ME()]&&cands[ME()].weeks&&cands[ME()].weeks[w];
-  for(const k of ['pres','mp']){const O=OFFICES[k];s2.append(el('div','el-h',`${O.n} (${O.seats}명) · 총 ${res[k+'Total']}표`));
+  for(const k of ['pres','mp']){const O=OFFICES[k];s2.append(el('div','el-h',`${O.n} (${res[k+'Seats']||O.seats}명 · 투표 인원에 따라 바뀌어요) · 총 ${res[k+'Total']}표`));
     if(!res[k].length) s2.append(el('div','note','아직 출마한 주민이 없어요.'));
     res[k].forEach(x=>{const r=el('div','cand'),left=el('div','');left.append(el('div','cn',`${nameOf(x.id)}${x.id===ME()?' (나)':''}`));const p=x.id===ME()?me:others[x.id];left.append(el('div','pct',p?`${p.age}세 ${title(p)}`:''));
       const bw=el('div',''),bar=el('div','bar'),fill=el('i');fill.style.width=pct(x.share);bar.append(fill);bw.append(bar,el('div','pct',`${x.v}표 · ${pct(x.share)}`));
@@ -3240,6 +3613,110 @@ async function reclaimIdle(){ // 7일 넘게 안 들어온 주인의 층은 나�
 }
 
 /* =====================================================================
+   정부: 의원 정원 · 총리 지명/인준 · 예산(정책 강도) · 법안 표결 · 세법 · 탄핵
+   모든 결정은 각자 자기 출마 문서(cand5/{uid}.weeks[임기주])에 기록하고,
+   결과는 모두가 같은 규칙으로 계산한다.
+   ===================================================================== */
+function seatsFor(w,off){
+  if(off==='pres') return 1;
+  const voters=Object.values(votes).filter(v=>v&&v.weeks&&v.weeks[w]).length;
+  let s=clamp(Math.round(voters/4),3,9);if(s%2===0)s++;return Math.min(9,s);
+}
+const cw=uid=>(cands[uid]&&cands[uid].weeks&&cands[uid].weeks[T.w])||{};
+const presId=()=>T.pres[0]&&T.pres[0].id;
+const mpIds=()=>T.mp.map(x=>x.id);
+const majority=()=>Math.floor(mpIds().length/2)+1;
+function pmPick(){const p=presId();return p?cw(p).pm||null:null}
+function pmRejected(){const pm=pmPick();if(!pm||!mpIds().length)return false;return mpIds().filter(m=>cw(m).pmNo===pm).length>=majority()}
+function pmId(){const pm=pmPick();return pm&&!pmRejected()?pm:null}
+function impUsed(){ // 이번 시즌에 이미 탄핵이 있었는지 (지난 임기)
+  const s=(CFG.season&&CFG.season.n)||0;
+  for(const c of Object.values(cands)){if(!c||!c.weeks)continue;for(const [w,e] of Object.entries(c.weeks))if(+w<T.w&&e&&e.impDone===s)return true}
+  return false;
+}
+function impeached(){const m=mpIds();return m.length>0&&m.every(x=>cw(x).imp)&&!impUsed()}
+/* 법안: 의원이 발의, 의원 과반 찬성 시 시행 */
+function lawVotes(){const out={};for(const m of mpIds()){const e=cw(m);if(e.policy&&MP_LAW[e.policy]){out[e.policy]=out[e.policy]||new Set();out[e.policy].add(m)}for(const y of (e.yes||[]))if(MP_LAW[y]){out[y]=out[y]||new Set();out[y].add(m)}}return out}
+function passedLaws(){const v=lawVotes(),need=majority();return Object.entries(v).filter(([,s])=>s.size>=need).map(([k])=>k)}
+/* 세법: 의원 과반이 표를 내면 중앙값을 적용 (운영자 기준의 50~150%) */
+function taxMul(){const vals=mpIds().map(m=>Number(cw(m).taxv)).filter(x=>x>=.5&&x<=1.5).sort((a,b)=>a-b);if(!vals.length||vals.length<majority())return 1;return vals[Math.floor((vals.length-1)/2)]}
+/* 예산 → 정책 강도 */
+function treasuryPre(){let s=treasury();const add=p=>{if(p&&p.spent&&p.spent.w===T.w)s+=p.spent.amt||0};add(me);for(const p of Object.values(others))add(p);return s} // 이번 주 예산 집행 전 국고
+const stdBudget=()=>Math.max(0,Math.round(treasuryPre()*.1));
+const maxBudget=()=>Math.max(0,Math.round(treasuryPre()*.3));
+function budgetRejected(){if(!mpIds().length)return false;return mpIds().filter(m=>cw(m).budgetNo).length>=majority()}
+function budgetNow(){const pm=pmId();if(pm&&cw(pm).budget!=null&&!budgetRejected())return Math.max(0,Number(cw(pm).budget)||0);return stdBudget()}
+function polK(){const s=stdBudget();if(s<=0)return .5;return clamp(budgetNow()/s,.5,1.5)}
+const PK=id=>P(id)?polK():0; // 대통령 정책 강도 (0이면 꺼짐)
+/* 예산 집행 기록: 총리(승인된 예산) 또는 대통령(기본 예산)이 자기 문서에 국고 지출로 기록 */
+function syncSpend(){
+  if(!db||T.w<0) return;
+  let want=0;const pm=pmId();
+  if(pm===ME()&&cw(ME()).budget!=null&&!budgetRejected()) want=budgetNow();
+  else if(presId()===ME()&&!(pm&&cw(pm).budget!=null&&!budgetRejected())&&cw(ME()).policy&&!impeached()) want=stdBudget();
+  me.spent=me.spent&&me.spent.w===T.w?me.spent:{w:T.w,amt:0};
+  const d=Math.round(want-me.spent.amt);if(Math.abs(d)<1) return;
+  me.govGot=(me.govGot||0)+d;me.spent.amt=Math.round(want);
+}
+/* 정치인 월급 (국고에서, 부족하면 체불) */
+const salaryOf=role=>Math.round(((TAX&&TAX['pay_'+role])??{pres:400,pm:300,mp:200}[role])||0);
+function myRoles(){const r=[];if(presId()===ME())r.push('pres');if(pmId()===ME())r.push('pm');if(mpIds().includes(ME()))r.push('mp');return r}
+function paySalaries(extra){
+  const roles=myRoles();if(!roles.length&&!me.arrears) return 0;
+  let due=(me.arrears||0)+roles.reduce((s,r)=>s+salaryOf(r),0),t=Math.max(0,treasury()),paid=Math.min(due,t);
+  me.arrears=due-paid;if(paid>0){govGot(paid);extra.push(`정치인 월급(국고) +${won(paid)}`)}
+  if(me.arrears>0) extra.push(`국고 부족으로 월급 체불 ${won(me.arrears)}`);
+  return paid;
+}
+const isPolitician=()=>myRoles().length>0;
+
+/* ---- 선거 탭: 정부 패널 ---- */
+function writeTermEntry(patch){
+  const weeks=clone((cands[ME()]&&cands[ME()].weeks)||{});weeks[T.w]={...(weeks[T.w]||{}),...patch};writeElection('cand',weeks);refreshTerm();renderVote();renderLifeLine();
+}
+function renderGov(box){
+  if(T.w<0) return;const s=el('div','el-sec');s.append(el('div','el-h','정부 (이번 주)'));
+  const pres=presId(),pm=pmId(),pick=pmPick(),k=polK();
+  const info=el('div','office');
+  info.append(el('span','role','국무총리'),el('span','',pm?nameOf(pm)+(pm===ME()?' (나)':''):pick?`${nameOf(pick)} (국회 인준 거부됨)`:'미지명'));
+  info.append(el('span','role','예산'),el('span','',`${won(budgetNow())} · 정책 강도 ${Math.round(k*100)}%${budgetRejected()?' (국회가 예산안 거부 → 기본 예산)':''}`));
+  const laws=passedLaws();info.append(el('span','role','통과된 법'),el('span','',laws.length?laws.map(l=>MP_LAW[l].n).join(', '):'없음'));
+  info.append(el('span','role','세법'),el('span','',`부자세·상가 보유세 ${Math.round(taxMul()*100)}%`));
+  if(impeached()) info.append(el('span','role','탄핵'),el('span','','국회 전원 찬성으로 이번 주 대통령 정책이 취소됐어요'));
+  info.append(el('span','role','국회'),el('span','',`의원 ${mpIds().length}석 · 과반 ${majority()}표`));
+  s.append(info);
+  // 대통령: 총리 지명
+  if(pres===ME()){
+    const row=el('div','picks');row.append(el('span','note','총리 지명:'));
+    const sel=el('select');const o0=el('option','','— 주민 선택 —');o0.value='';sel.append(o0);
+    [[ME(),me],...Object.entries(others).filter(([,p])=>p&&p.v===VER)].forEach(([id,p])=>{const o=el('option','',dynName(p)+(id===ME()?' (나)':''));o.value=id;if(pick===id)o.selected=true;sel.append(o)});
+    const b=el('button','mini','지명');b.onclick=()=>{if(!sel.value)return;writeTermEntry({pm:sel.value});postNews(`대통령 ${dynName()}님이 ${nameOf(sel.value)}님을 국무총리로 지명했어요`)};row.append(sel,b);s.append(row);
+  }
+  // 총리: 예산 편성
+  if(pm===ME()){
+    const row=el('div','picks'),inp=el('input');inp.type='number';inp.step='10';inp.min='0';inp.max=String(maxBudget());inp.value=cw(ME()).budget??stdBudget();
+    const b=el('button','mini','예산 편성');b.onclick=()=>{const v=clamp(Math.round(Number(inp.value)||0),0,maxBudget());writeTermEntry({budget:v});postNews(`국무총리 ${dynName()}님이 이번 주 예산을 ${won(v)}으로 편성했어요`)};
+    row.append(el('span','note',`예산 (0~${won(maxBudget())}, 기본 ${won(stdBudget())}):`),inp,b);s.append(row);
+  }
+  // 국회의원: 법안 찬성·인준·예산·세법·탄핵
+  if(mpIds().includes(ME())){
+    const e=cw(ME()),v=lawVotes();
+    const props=mpIds().map(m=>cw(m).policy).filter(p=>p&&MP_LAW[p]&&p!==e.policy);
+    if(props.length){const row=el('div','picks');row.append(el('span','note','다른 의원 발의 법안 찬성:'));
+      [...new Set(props)].forEach(p=>{const on=(e.yes||[]).includes(p);const b=el('button','mini'+(on?' primary':''),`${MP_LAW[p].n} (${(v[p]||new Set()).size}/${majority()})`);b.title=MP_LAW[p].d;
+        b.onclick=()=>{const y=new Set(e.yes||[]);on?y.delete(p):y.add(p);writeTermEntry({yes:[...y]})};row.append(b)});s.append(row)}
+    const row2=el('div','picks');
+    if(pick){const no=e.pmNo===pick;const b=el('button','mini'+(no?' danger':''),no?`총리 인준 반대 중 (${nameOf(pick)})`:`총리 인준 반대`);b.onclick=()=>writeTermEntry({pmNo:no?null:pick});row2.append(b)}
+    {const no=!!e.budgetNo;const b=el('button','mini'+(no?' danger':''),no?'예산안 반대 중':'예산안 반대');b.onclick=()=>writeTermEntry({budgetNo:!no});row2.append(b)}
+    {const sel=el('select');[.5,.75,1,1.25,1.5].forEach(x=>{const o=el('option','',`세법: 부자세·보유세 ${x*100}%`);o.value=x;if(Number(e.taxv||1)===x)o.selected=true;sel.append(o)});sel.onchange=()=>writeTermEntry({taxv:Number(sel.value)});row2.append(sel)}
+    if(!impUsed()||e.impDone!=null){const on=!!e.imp;const b=el('button','mini'+(on?' danger':''),on?'탄핵 찬성 중':'대통령 탄핵 (전원 찬성 필요, 시즌 1회)');b.onclick=()=>{writeTermEntry({imp:!on});if(!on)postNews(`국회의원 ${dynName()}님이 대통령 탄핵에 찬성했어요`)};row2.append(b)}
+    s.append(row2);
+    if(impeached()&&e.impDone==null) writeTermEntry({impDone:(CFG.season&&CFG.season.n)||0});
+  }
+  box.append(s);
+}
+
+/* =====================================================================
    탭 · 안내 · 요약 카드 · 운영자 · 로그인 · 시작
    ===================================================================== */
 const TABS=[['life','인생'],['home','집'],['bank','은행'],['items','쇼핑'],['jobs','직업'],['stock','주식'],['vote','선거'],['town','동네'],['rank','랭킹'],['log','일지']];
@@ -3311,11 +3788,12 @@ function showSummary(life,wasBest){
 
 /* ---------------- 운영자 설정 ---------------- */
 const ADMIN_EMAIL='duddnddl89@gmail.com';
-const DEF_SET={rollSec:60,maxRolls:30,payMul:1,event:'',lpy:4,startCash:600};
+const DEF_SET={rollSec:60,maxRolls:30,payMul:1,event:'',lpy:4,startCash:600,stamBase:300,stamGap:100,stamFirst:60,stamInc:30,stamMax:300};
 function applySettings(s){
   const v={...DEF_SET,...(s||{})};let sec=Number(v.rollSec);if(!sec&&v.rollMin)sec=Number(v.rollMin)*60;
   ROLL_MS=clamp(Math.round((sec||60)/10)*10,10,7200)*1000;MAX_ROLLS=clamp(Math.round(v.maxRolls)||30,5,500);
   PAY_MUL=clamp(Number(v.payMul)||1,.1,10);EVENT_NAME=String(v.event||'').slice(0,30);LPY=clamp(Math.round(v.lpy)||4,1,10);START_CASH=clamp(Math.round(Number(v.startCash))||600,0,1000000);
+  STAM={base:clamp(Math.round(Number(v.stamBase)),0,100000),gap:clamp(Math.round(Number(v.stamGap))||100,1,10000),first:clamp(Math.round(Number(v.stamFirst))||60,10,7200),inc:clamp(Math.round(Number(v.stamInc)),0,7200),max:clamp(Math.round(Number(v.stamMax))||300,10,7200)};if(!isFinite(STAM.base))STAM.base=300;if(!isFinite(STAM.inc))STAM.inc=30;
 }
 function renderNotice(){const n=CFG.notice,box=$('notice');if(n&&n.text){box.hidden=false;box.textContent='';box.append(el('b','','공지'),' '+n.text)}else box.hidden=true}
 function applyBan(){
@@ -3368,19 +3846,19 @@ function renderAdmin(){
   r2.append(b2,b2c);s2.append(ta,r2);
   // 밸런스
   const s3=sec('이벤트·밸런스 (모든 주민에게 바로 적용)');const cur={...DEF_SET,...CFG.settings};
-  const fields=[['rollSec','주사위 충전 (초, 10초 단위)',Math.round(ROLL_MS/1000),'10'],['maxRolls','주사위 최대 개수',MAX_ROLLS,'1'],['lpy','몇 바퀴에 1살',LPY,'1'],['payMul','월급 배율',cur.payMul,'0.1'],['startCash','초기 자본금 (만원, 새 인생부터)',START_CASH,'100'],['event','이벤트 이름',cur.event,'']];
+  const fields=[['rollSec','주사위 충전 (초, 10초 단위)',Math.round(ROLL_MS/1000),'10'],['maxRolls','주사위 최대 개수',MAX_ROLLS,'1'],['lpy','몇 바퀴에 1살',LPY,'1'],['payMul','월급 배율',cur.payMul,'0.1'],['startCash','초기 자본금 (만원, 새 인생부터)',START_CASH,'100'],['stamBase','체력 기준 횟수 (0이면 끔)',STAM.base,'10'],['stamGap','체력 단계 간격 (번)',STAM.gap,'10'],['stamFirst','첫 단계 충전 (초)',STAM.first,'10'],['stamInc','단계마다 늘어나는 충전 (초)',STAM.inc,'10'],['stamMax','최대 충전 (초)',STAM.max,'10'],['event','이벤트 이름',cur.event,'']];
   const grid=el('div','adm-grid');fields.forEach(([k,l,v,st])=>{const lab=el('label','',l),i=el('input');i.id='set_'+k;i.value=v;if(st){i.type='number';i.step=st}lab.append(i);grid.append(lab)});
   const prev=el('div','note');const upd=()=>{const sc=clamp(Math.round((Number($('set_rollSec').value)||0)/10)*10,10,7200),mx=clamp(Math.round(Number($('set_maxRolls').value)||0),5,500),lp=clamp(Math.round(Number($('set_lpy').value)||3),1,10);
-    prev.textContent=`→ ${fmtSec(sc)}마다 1개 · 가득 차기까지 ${fmtSec(sc*mx)} · 하루 최대 ${Math.floor(86400/sc)}개 · 한 인생(20→60세) 약 ${40*lp*4}번 굴리기`};
-  setTimeout(()=>{['set_rollSec','set_maxRolls','set_lpy'].forEach(id=>$(id).addEventListener('input',upd));upd()},0);
+    prev.textContent=`→ ${fmtSec(sc)}마다 1개 · 가득 차기까지 ${fmtSec(sc*mx)} · 하루 최대 ${Math.floor(86400/sc)}개 · 한 인생(20→60세) 약 ${40*lp*4}번 굴리기`+(()=>{const b=Number($('set_stamBase')?.value)||0;if(!b)return ' · 오늘의 체력 꺼짐';const g=Number($('set_stamGap').value)||100,f=Number($('set_stamFirst').value)||60,c=Number($('set_stamInc').value)||0,m=Number($('set_stamMax').value)||300;return ` · 체력: 하루 ${b}번까지 기본 → ${b}~${b+g-1}번 ${fmtSec(f)}, ${b+g}~${b+2*g-1}번 ${fmtSec(Math.min(m,f+c))}, … 최대 ${fmtSec(m)}`})()};
+  setTimeout(()=>{['set_rollSec','set_maxRolls','set_lpy','set_stamBase','set_stamGap','set_stamFirst','set_stamInc','set_stamMax'].forEach(id=>$(id)&&$(id).addEventListener('input',upd));upd()},0);
   const r3=el('div','adm-row'),b3=el('button','btn primary','적용'),b3d=el('button','btn','기본값으로');
-  b3.onclick=async()=>{const v={rollSec:clamp(Math.round((Number($('set_rollSec').value)||360)/10)*10,10,7200),maxRolls:Number($('set_maxRolls').value),lpy:Number($('set_lpy').value),payMul:Number($('set_payMul').value),startCash:Number($('set_startCash').value),event:$('set_event').value.trim()};useCnt('w');await FS.doc('config/settings').set(v);admMsg('적용했어요')};
+  b3.onclick=async()=>{const v={rollSec:clamp(Math.round((Number($('set_rollSec').value)||360)/10)*10,10,7200),maxRolls:Number($('set_maxRolls').value),lpy:Number($('set_lpy').value),payMul:Number($('set_payMul').value),startCash:Number($('set_startCash').value),stamBase:Number($('set_stamBase').value),stamGap:Number($('set_stamGap').value),stamFirst:Number($('set_stamFirst').value),stamInc:Number($('set_stamInc').value),stamMax:Number($('set_stamMax').value),event:$('set_event').value.trim()};useCnt('w');await FS.doc('config/settings').set(v);admMsg('적용했어요')};
   b3d.onclick=async()=>{useCnt('w');await FS.doc('config/settings').set(DEF_SET);admMsg('기본값(1분·30개·4바퀴 1살·월급 1배)')};
   r3.append(b3,b3d);s3.append(grid,prev,r3);
   // 세금·지원
   const txSec=sec('세금·지원 (부자세 · 따라잡기 · 상속세)');
   const tf=[['rich1','부자세 1구간 시작 (억)','0.5'],['rate1','1구간 세율 (% / 월급날)','0.05'],['rich2','부자세 2구간 시작 (억)','1'],['rate2','2구간 세율 (% / 월급날)','0.05'],
-    ['holdMul','상가 보유세 배율 (1=기본 0.3~3%)','0.1'],['cuPct','지원 대상: 순자산 하위 (%)','5'],['cuMin','지원 시작 최소 주민 수','1'],['cuRatio','지원금 (월급의 %)','5'],
+    ['holdMul','상가 보유세 배율 (1=기본 0.3~3%)','0.1'],['pay_pres','대통령 월급 (만원, 국고)','10'],['pay_pm','국무총리 월급 (만원, 국고)','10'],['pay_mp','국회의원 월급 (만원, 국고)','10'],['cuPct','지원 대상: 순자산 하위 (%)','5'],['cuMin','지원 시작 최소 주민 수','1'],['cuRatio','지원금 (월급의 %)','5'],
     ['cuFloor','최소 지원금 (만원)','10'],['cuLuck','지원 대상 행운 배율','0.1'],['inhAdd','대 이을 때마다 상속세 가산 (%p)','5'],['inhMax','상속세 최고 세율 (%)','5']];
   const txGrid=el('div','adm-grid');tf.forEach(([k,l,st])=>{const lab=el('label','',l),i=el('input');i.id='tax_'+k;i.type='number';i.step=st;i.min='0';i.value=TAX[k];lab.append(i);txGrid.append(lab)});
   const txNote=el('div','note');
@@ -3540,6 +4018,7 @@ function unstick(){ // 안전장치: 버튼이 하나도 없이 멈춰 있으면
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&me){unstick();if(!busy){renderLifeLine();const rb=$('rollBtn');if(rb)rb.disabled=me.rolls<1}}});
 function tick(){
+  try{syncSpend()}catch(e){}
   if(unstick()) return;renderLifeLine();renderStocks();const rb=$('rollBtn');if(rb)rb.disabled=me.rolls<1;
   if(weekId()!==lastWeek){lastWeek=weekId();refreshTerm();settleElections();renderAll()}
   if(kstDay()!==lastDay){lastDay=kstDay();settleLotto();settleCheongyak();renderAll();toast('새로운 하루! 오늘의 이슈와 미션이 바뀌었어요')}
@@ -3553,7 +4032,7 @@ function otherDevice(){
   const b=el('button','btn primary','이 화면에서 다시 하기');b.onclick=()=>location.reload();c.append(b);d.append(c);document.body.append(d);
 }
 function boot(){
-  initSound();placeActions();
+  initSound();placeActions();initZoom();
   buildBoard(0);initTabs();applySettings({});
   let stored=null;try{const s=localStorage.getItem('lifemarble5.me');if(s)stored=JSON.parse(s);logs=JSON.parse(localStorage.getItem('lifemarble5.log')||'[]')}catch(e){}
   me=normalize(stored);shops=me.localBld||{};migrateOldShops();
