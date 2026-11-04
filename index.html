@@ -378,6 +378,8 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
@@ -3693,6 +3695,8 @@ function buyDice(){
   addLog(`편의점에서 에너지드링크 한 박스! 주사위 +${DICE_PACK} (-${won(pr)})`);setMsg(`주사위 ${DICE_PACK}개 충전! 오늘 ${diceLeft()}번 더 살 수 있어요.`);save();renderStats();idleActions();
 }
 function idleActions(){
+  { // 선택지가 떠 있는 동안(칸 처리 중)에는 덮어쓰지 않음 — 덮어쓰면 선택을 못 해서 멈춤
+    const a0=$('actions');if(busy&&a0&&a0.querySelector('button')&&!$('rollBtn')) return; }
   $('scrollHint')?.remove();$('actions').classList.remove('scrolls');$('center').classList.remove('choosing');
   if(me.pend&&!busy&&!resumed){resumed=true;setTimeout(resumePending,300)}
   const a=$('actions');a.innerHTML='';
