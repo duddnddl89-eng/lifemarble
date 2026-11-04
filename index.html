@@ -476,6 +476,10 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 </head>
 <body>
 <header>
@@ -939,7 +943,7 @@ const ISSUES=[
  {id:'dust',n:'미세먼지 최악',d:'야외 가게 매출 절반, 헬스장 1.5배'},
  {id:'festival',n:'동네 축제',d:'모든 가게 매출 1.3배'},
  {id:'celeb',n:'연예인 방문',d:'오늘의 핫플 한 곳 매출 3배'},
- {id:'lotto_fever',n:'로또 열풍',d:'로또 1등 상금 +2,000만'},
+ {id:'lotto_fever',n:'로또 열풍',d:'로또 1등 상금 +3,000만'},
  {id:'bonus',n:'성과급 시즌',d:'회사원 평가 점수 2배, 성과급 확률 2배'},
  {id:'snow',n:'첫눈 오는 날',d:'카페 매출 2배, 야외 가게 0.7배, 설레는 사건이 자주'},
  {id:'yearend',n:'연말 회식 시즌',d:'음식 가게 매출 1.5배, 회식비로 생활비 +10만'},
@@ -3953,16 +3957,24 @@ function renderTown(){
     list.append(li)});
   renderLotto();
 }
+let lottoPick=[];
 function renderLotto(){
   const box=$('lottoBox');box.innerHTML='';
   const d=kstDay(),mine=(lottos[ME()]&&lottos[ME()].days)||{},today=(mine[d]&&mine[d].t)||[];
   const pot=lottoPot(d);
-  box.append(el('div','el-h',`오늘의 로또 · 1~12 중 숫자 3개 · 한 장 10만 · 하루 5장 · 내일 0시 추첨`));
-  kv(box.appendChild(el('div','kv')),[['오늘 1등 상금(예상)',won(pot)],['오늘 판매',`${lottoSales(d)}장`],['내 표',`${today.length}/5장`],['2개 맞히면','20만']]);
-  if(today.length) box.append(el('div','note','내 번호: '+today.map(t=>t.join('-')).join(' · ')));
-  const r=el('div','adm-row');const b=el('button','btn primary','자동으로 1장 사기');b.disabled=busy||today.length>=5||me.cash<10;b.onclick=()=>buyLotto();r.append(b);box.append(r);
-  const y=kstDay(Date.now()-864e5),wn=lottoDraw(y);
+  box.append(el('div','el-h',`오늘의 로또 · 1~${LOTTO_N} 중 숫자 3개 · 한 장 10만 · 하루 5장 · 내일 0시 추첨`));
+  kv(box.appendChild(el('div','kv')),[['오늘 1등 상금(예상)',won(pot)],['오늘 판매',`${lottoSales(d)}장`],['내 표',`${today.length}/5장`],['2개 맞히면',won(LOTTO_2)]]);
+  if(today.length) box.append(el('div','note','오늘 내 번호: '+today.map(t=>t.join('-')).join(' · ')));
+  const full=today.length>=5,poor=me.cash<10;
+  const r=el('div','adm-row');const b=el('button','btn primary','자동으로 1장 사기');b.type='button';b.disabled=full||poor;b.onclick=()=>buyLotto();r.append(b);box.append(r);
+  // 직접 고르기
+  const pk=el('div','picks');pk.append(el('span','note','직접 고르기:'));
+  for(let n=1;n<=LOTTO_N;n++){const on=lottoPick.includes(n),nb=el('button','mini'+(on?' primary':''),String(n));nb.type='button';nb.onclick=()=>{lottoPick=on?lottoPick.filter(x=>x!==n):lottoPick.length<3?[...lottoPick,n]:lottoPick;renderLotto()};pk.append(nb)}
+  const mb=el('button','btn',lottoPick.length===3?`${[...lottoPick].sort((a,b)=>a-b).join('-')} 사기`:`숫자 ${3-lottoPick.length}개 더 고르기`);mb.type='button';mb.disabled=lottoPick.length!==3||full||poor;mb.onclick=()=>{buyLotto(lottoPick);lottoPick=[];renderLotto()};pk.append(mb);box.append(pk);
+  if(full) box.append(el('div','note','오늘은 5장을 다 샀어요. 내일 또 만나요!'));else if(poor) box.append(el('div','note','현금 10만이 필요해요.'));
+  const y=kstDay(Date.now()-864e5),wn=lottoDraw(y),yt=(mine[y]&&mine[y].t)||[];
   box.append(el('div','note',`어제(${y}) 당첨 번호: ${wn.join('-')}`));
+  if(yt.length) box.append(el('div','note','어제 내 결과: '+yt.map(t=>{const m=t.filter(n=>wn.includes(n)).length;return `${t.join('-')} → ${m===3?'1등!':m===2?`2개 (+${won(LOTTO_2)})`:`${m}개`}`}).join(' · ')));
 }
 
 /* ---------------- 랭킹·일지 ---------------- */
@@ -4059,29 +4071,30 @@ async function settleMarket(){
 }
 
 /* ---------------- 로또 ---------------- */
-function lottoDraw(day){const out=[];let h=hstr('lotto'+day);while(out.length<3){const n=1+h%12;if(!out.includes(n))out.push(n);h=hstr(h+'n')}return out.sort((a,b)=>a-b)}
+const LOTTO_N=15,LOTTO_BASE=3000,LOTTO_2=30; // 1~15 중 3개, 1등 기본 3,000만, 2개 맞히면 30만
+function lottoDraw(day){const out=[];let h=hstr('lotto'+day);while(out.length<3){const n=1+h%LOTTO_N;if(!out.includes(n))out.push(n);h=hstr(h+'n')}return out.sort((a,b)=>a-b)}
 function lottoTickets(day){const out=[];for(const [uid,l] of Object.entries(lottos)){const d=l&&l.days&&l.days[day];if(d&&d.t)d.t.forEach(t=>out.push({uid,t}))}return out}
 const lottoSales=day=>lottoTickets(day).length;
 function lottoJack(day){const w=lottoDraw(day).join('-');return lottoTickets(day).filter(x=>x.t.join('-')===w)}
 function issueOfDay(day){return day===kstDay()?issueToday():issueAuto(day)}
 function lottoPot(day,depth=0){
-  let p=1000+6*lottoSales(day)+(issueOfDay(day)==='lotto_fever'?2000:0);
+  let p=LOTTO_BASE+6*lottoSales(day)+(issueOfDay(day)==='lotto_fever'?3000:0);
   if(depth<7){const prev=kstDay(Date.parse(day+'T12:00:00+09:00')-864e5);if(lottoSales(prev)&&!lottoJack(prev).length)p+=lottoPot(prev,depth+1)}
   return p;
 }
-function buyLotto(){
+function buyLotto(pickNums){
   const d=kstDay(),doc=clone(lottos[ME()]||{days:{}}),day=doc.days[d]||{t:[]};
-  if(day.t.length>=5||me.cash<10) return;
-  const t=[];while(t.length<3){const n=1+Math.floor(R()*12);if(!t.includes(n))t.push(n)}t.sort((a,b)=>a-b);
+  if(day.t.length>=5){toast('오늘은 5장까지만 살 수 있어요');return}if(me.cash<10){toast('현금 10만이 필요해요');return}
+  let t=[];if(pickNums&&pickNums.length===3)t=pickNums.slice();else while(t.length<3){const n=1+Math.floor(R()*LOTTO_N);if(!t.includes(n))t.push(n)}t.sort((a,b)=>a-b);
   day.t.push(t);doc.days[d]=day;
   for(const k of Object.keys(doc.days)) if(k<kstDay(Date.now()-8*864e5)) delete doc.days[k];
   lottos[ME()]=doc;spend(10,'로또 1장');track('lotto');if(db)dset(COL.lotto+'/'+myId,doc);
-  setMsg(`로또 ${t.join('-')} 구매! 내일 0시에 추첨해요.`);renderTown();renderStats();
+  toast(`로또 ${t.join('-')} 구매! 내일 0시 추첨`);save();renderTown();renderStats();
 }
 function settleLotto(){
   const doc=lottos[ME()];if(!doc||!doc.days) return;const today=kstDay();let ch=false,total=0;
   for(const [d,x] of Object.entries(doc.days)){if(d>=today||x.c)continue;const w=lottoDraw(d),jack=lottoJack(d),pot=lottoPot(d);
-    x.t.forEach(t=>{const m=t.filter(n=>w.includes(n)).length;if(m===3){const v=Math.round(pot/Math.max(1,jack.length));total+=v;award('lotto1');story(`로또 1등 당첨 (${won(v)})`);postNews(`${dynName()}님이 로또 1등! ${won(v)} 당첨`)}else if(m===2)total+=20});
+    x.t.forEach(t=>{const m=t.filter(n=>w.includes(n)).length;if(m===3){const v=Math.round(pot/Math.max(1,jack.length));total+=v;award('lotto1');story(`로또 1등 당첨 (${won(v)})`);postNews(`${dynName()}님이 로또 1등! ${won(v)} 당첨`)}else if(m===2)total+=LOTTO_2;x.r=(x.r||[]);x.r.push(m)});
     x.c=true;ch=true}
   if(ch){if(total){me.cash+=total;addLog(`로또 당첨금 +${won(total)}`);toast(`로또 당첨금 +${won(total)}!`)}lottos[ME()]=doc;if(db)dset(COL.lotto+'/'+myId,doc);save();renderAll()}
 }
