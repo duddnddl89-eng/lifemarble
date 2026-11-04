@@ -484,6 +484,8 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 </head>
 <body>
 <header>
@@ -3938,17 +3940,23 @@ function renderJobs(){
 }
 function spark(h){if(h.length<2)return '';const mn=Math.min(...h),mx=Math.max(...h),sp=mx-mn||1;const xy=h.map((v,i)=>[(i/(h.length-1)*60+2).toFixed(1),(19-(v-mn)/sp*16).toFixed(1)]);const up=h[h.length-1]>=h[0],l=xy[xy.length-1];
   return `<svg class="spark" viewBox="0 0 64 22" aria-hidden="true"><polyline points="${xy.map(p=>p.join(',')).join(' ')}" fill="none" stroke="var(${up?'--up':'--down'})" stroke-width="1.5"/><circle cx="${l[0]}" cy="${l[1]}" r="2" fill="var(${up?'--up':'--down'})"/></svg>`}
+let stockQty=1; // 한 번에 사고팔 수량: 1 · 10 · 100 · 'max'
 function renderStocks(){
   advanceMarket();const box=$('stocks');box.innerHTML='';
+  const qr=el('div','picks');qr.append(el('span','note','한 번에:'));
+  [[1,'1주'],[10,'10주'],[100,'100주'],['max','최대']].forEach(([q,l])=>{const b=el('button','mini'+(stockQty===q?' primary':''),l);b.type='button';b.onclick=()=>{stockQty=q;renderStocks()};qr.append(b)});box.append(qr);
   STOCKS.forEach((s,i)=>{const p=price(i),pv=prevPrice(i),ch=pv?((p-pv)/pv*100):0,bp=Math.round(p*(me.job==='fund'?.95:1-.02*certLv('invest'))),sp=Math.round(p*(me.job==='fund'?1.05:1+.02*certLv('invest')));
-    const row=el('div','row');row.innerHTML=`<div><div class="n"></div><div class="h"></div></div>${spark(walk.hist[i])}<div class="px"><div class="num">${won(p)}</div><div class="chg num ${ch>0?'up':ch<0?'down':''}">${ch>0?'▲':ch<0?'▼':''}${Math.abs(ch).toFixed(1)}%</div></div><div class="trade"><button class="mini">사기</button><button class="mini">팔기</button></div>`;
+    const canBuy=Math.floor(Math.max(0,me.cash)/bp),nb=stockQty==='max'?canBuy:Math.min(stockQty,canBuy),ns=stockQty==='max'?me.shares[i]:Math.min(stockQty,me.shares[i]);
+    const row=el('div','row');row.innerHTML=`<div><div class="n"></div><div class="h"></div></div>${spark(walk.hist[i])}<div class="px"><div class="num">${won(p)}</div><div class="chg num ${ch>0?'up':ch<0?'down':''}">${ch>0?'▲':ch<0?'▼':''}${Math.abs(ch).toFixed(1)}%</div></div><div class="trade"><button class="mini"></button><button class="mini"></button></div>`;
     row.querySelector('.n').textContent=`${s.n} · ${s.ty}${s.div?` · 배당 ${(s.div*100).toFixed(1)}%/바퀴`:''}`;
     const avg=me.shares[i]?Math.round(me.cost[i]/me.shares[i]):0;
-    row.querySelector('.h').textContent=me.shares[i]?`${me.shares[i]}주 · 평단 ${won(avg)} · ${won(me.shares[i]*p)}`:'보유 없음';
-    const [bb,sb]=row.querySelectorAll('.mini');bb.disabled=busy||me.cash<bp;sb.disabled=busy||!me.shares[i];
-    bb.setAttribute('aria-label',`${s.n} 1주 사기 ${won(bp)}`);sb.setAttribute('aria-label',`${s.n} 1주 팔기 ${won(sp)}`);
-    bb.onclick=()=>{if(me.cash<bp)return;me.cash-=bp;me.shares[i]++;me.cost[i]+=bp;track('stock');addLog(`${s.n} 1주 매수 ${won(bp)}`);save();renderAll()};
-    sb.onclick=()=>{if(!me.shares[i])return;const a=me.cost[i]/me.shares[i];me.cash+=sp;me.shares[i]--;me.cost[i]-=a;const pf=Math.round(sp-a);if(me.job==='fund'&&pf>0)me.jp.profit=(me.jp.profit||0)+pf;addLog(`${s.n} 1주 매도 ${won(sp)} (${pf>=0?'+':''}${won(pf)})`);save();renderAll()};
+    row.querySelector('.h').textContent=me.shares[i]?`${me.shares[i]}주 · 평단 ${won(avg)} · ${won(me.shares[i]*p)} (${p>=avg?'+':''}${avg?Math.round((p/avg-1)*100):0}%)`:'보유 없음';
+    const [bb,sb]=row.querySelectorAll('.mini');bb.type='button';sb.type='button';
+    bb.textContent=nb>1?`사기 ×${nb}`:'사기';sb.textContent=ns>1?`팔기 ×${ns}`:'팔기';
+    bb.disabled=nb<1;sb.disabled=ns<1;bb.title=nb?`${nb}주 · ${won(nb*bp)}`:'현금이 모자라요';sb.title=ns?`${ns}주 · ${won(ns*sp)}`:'';
+    bb.setAttribute('aria-label',`${s.n} ${nb}주 사기 ${won(nb*bp)}`);sb.setAttribute('aria-label',`${s.n} ${ns}주 팔기 ${won(ns*sp)}`);
+    bb.onclick=()=>{const n=stockQty==='max'?Math.floor(Math.max(0,me.cash)/bp):Math.min(stockQty,Math.floor(Math.max(0,me.cash)/bp));if(n<1)return;me.cash-=bp*n;me.shares[i]+=n;me.cost[i]+=bp*n;track('stock');addLog(`${s.n} ${n}주 매수 ${won(bp*n)} (주당 ${won(bp)})`);save();renderAll()};
+    sb.onclick=()=>{const n=stockQty==='max'?me.shares[i]:Math.min(stockQty,me.shares[i]);if(n<1)return;const a=me.cost[i]/me.shares[i];me.cash+=sp*n;me.shares[i]-=n;me.cost[i]=me.shares[i]?me.cost[i]-a*n:0;const pf=Math.round((sp-a)*n);if(me.job==='fund'&&pf>0)me.jp.profit=(me.jp.profit||0)+pf;addLog(`${s.n} ${n}주 매도 ${won(sp*n)} (${pf>=0?'+':''}${won(pf)})`);save();renderAll()};
     box.append(row)});
   if(me.job==='fund') box.append(el('div','note',`금융인 실현 수익 ${won(me.jp.profit||0)} — 승진 기준에 들어가요`));
 }
