@@ -376,6 +376,8 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
@@ -3845,7 +3847,7 @@ function renderHome(){
   const cur=el('div','trait');
   if(h.type==='rent') cur.append(el('b','',`월세 · ${H.n}`),` 월세 ${won(rentNow())}/바퀴`);
   if(h.type==='jeonse') cur.append(el('b','',`전세 · ${H.n}`),` 보증금 ${won(h.deposit)}${h.ins?' · 보증보험 가입':' · 보증보험 없음(전세사기 주의)'}`);
-  if(h.type==='own'){const v=housePrice(h.tier);cur.append(el('b','',`자가 · ${H.n}`),` 시세 ${won(v)} (산 가격 ${won(h.bought||v)}, ${v>=(h.bought||v)?'+':''}${won(v-(h.bought||v))})`);const sb=el('button','mini','집 팔기');twoStep(sb,sellHouse,'정말 팔기?');cur.append(' ',sb)}
+  if(h.type==='own'){const v=housePrice(h.tier);cur.append(el('b','',`자가 · ${H.n}`),` 시세 ${won(v)} (산 가격 ${won(h.bought||v)}, ${v>=(h.bought||v)?'+':''}${won(v-(h.bought||v))})`);cur.append(el('br'),el('span','note',`팔면 시세의 99%(${won(Math.round(v*.99))})를 받고 원룸 월세로 옮겨요. 다른 집으로 이사하면 자동으로 팔려요.`));const sb=el('button','btn','🏠 집 팔기 '+won(Math.round(v*.99)));sb.type='button';sb.style.marginTop='6px';twoStep(sb,sellHouse,'한 번 더 누르면 판매');cur.append(el('br'),sb)}
   box.append(cur);
   const disc=me.buff.realty===kstDay();
   box.append(el('div','note',`집값 지수 ${Math.round(hpi()*100)} (기준 100) · 주택대출 한도 집값의 ${pct(LTV())}${disc?' · 오늘 부동산 급매 5% 할인 중':''} · 무주택 ${Math.floor((me.noHome||0)/LPY)}년 · 청약 가점 ${cyScore()}점`));
