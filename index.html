@@ -482,6 +482,8 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 </head>
 <body>
 <header>
@@ -621,7 +623,7 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
     </ol></section>
     <section class="adm-sec"><h3>직업 얻기 — 직접 플레이해요</h3><ul>
       <li><b>학교</b>: 기말고사(단어 암기)를 통과해야 졸업.</li>
-      <li><b>자격증학원</b>: 정보처리기사(버그 찾기), 조리기능사(불 조절 타이밍), 건축기사(평수·면적 계산, 건축가 필수), 투자자산운용사(수익률 계산, 금융인 필수), 세무회계 자격(세무사 필수), 영상편집(컷 순서).</li>
+      <li><b>자격증학원</b>: 정보처리기사, 조리기능사, 건축기사(건축가 필수), 투자자산운용사(금융인 필수), 세무회계 자격(세무사 필수), 영상편집. <b>직업과 상관없이 혜택</b>이 있어요: 정보처리기사 미니게임 +2초 · 조리기능사 음식 가게 이용료 -20%·내 음식 가게 +5% · 건축기사 리모델링·증축 -10% · 투자자산운용사 주식 2% 유리 · 세무회계 세금 -10% · 영상편집 선거 홍보·좋은 일 +10%. <b>심화 과정</b>(응시료 2배)을 마치면 혜택 1.5배. 자격증이 있으면 하루 1번 <b>강사 알바</b>(자격증 1개당 15만, 경험 +1).</li>
       <li><b>시험장</b>: 직업별 필기 4문제. 많이 맞힐수록 합격 확률이 크게 올라가요. 떨어질수록 다음 기본 합격률도 올라가요.</li>
       <li><b>직장</b>: 직업마다 일이 달라요 — 회사원 평가 점수와 승진 면접, 공무원 호봉과 승진시험, 의사 전문의 시험과 평판, 변호사 재판, 금융인 투자 수익, 창업가 투자 유치, 자영업 사장 단골 별, 건축가 설계 수주, 세무사 상담 고객, 기자 특종. 최고 직급은 동네에 자리가 한정돼요. 같은 직업이 많이 몰리면 월급이 줄고, 아무도 없는 직업은 인력난 수당(+15%)이 붙어요.</li>
     </ul></section>
@@ -819,12 +821,12 @@ const HOME_TYPE={rent:'월세',jeonse:'전세',own:'자가'};
 const EDU=['고졸','전문대졸','대졸','대학원졸'];
 const EDU_COST=[120,200,300];
 const CERTS={
-  code:{n:'정보처리기사',c:150,mg:'find',d:'코드 속 버그 찾기'},
-  cook:{n:'조리기능사',c:100,mg:'timing',d:'불 조절 타이밍'},
-  realty:{n:'건축기사',c:180,mg:'realtyMath',d:'평수·면적 계산'},
-  taxc:{n:'세무회계 자격',c:160,mg:'investMath',d:'세금·수익률 계산'},
-  invest:{n:'투자자산운용사',c:200,mg:'investMath',d:'수익률 계산'},
-  sns:{n:'영상편집 수료',c:90,mg:'order',d:'컷 순서 맞추기'},
+  code:{n:'정보처리기사',c:150,mg:'find',d:'코드 속 버그 찾기',perk:'미니게임 제한시간 +2초'},
+  cook:{n:'조리기능사',c:100,mg:'timing',d:'불 조절 타이밍',perk:'음식 가게 이용료 -20%, 내 음식 가게 매출 +5%'},
+  realty:{n:'건축기사',c:180,mg:'realtyMath',d:'평수·면적 계산',perk:'리모델링·증축 -10%'},
+  taxc:{n:'세무회계 자격',c:160,mg:'investMath',d:'세금·수익률 계산',perk:'세무서 세금·보유세·부자세·재산세 -10%'},
+  invest:{n:'투자자산운용사',c:200,mg:'investMath',d:'수익률 계산',perk:'주식 2% 싸게 사고 2% 비싸게 팔기'},
+  sns:{n:'영상편집 수료',c:90,mg:'order',d:'컷 순서 맞추기',perk:'출마하면 홍보영상으로 이웃 주민 표 얻기 쉬움, 황금열쇠 좋은 일 +10%'},
 };
 const JOBS={
   none:{n:'백수',titles:['백수'],sal:[0],trait:'월급이 없어요. 직장 칸에서 알바를 구하고, 스펙을 쌓아 시험장에서 직업에 도전하세요.'},
@@ -1889,7 +1891,9 @@ const eduCost=n=>Math.round(n*(P('edu_aid')?.7:1));
 const kidsMinor=()=>me.children.filter(c=>childAge(c)<ADULT).length;
 const taxRate=()=>(.1-.05*PK('tax_cut')+.05*PK('welfare'))*Math.max(.4,1-.2*me.children.length);
 const depRate=()=>.005+.005*PK('rate_up')-.0025*PK('rate_down')+(me&&me.job==='fund'?.002:0);
-const taxCut=()=>me.job==='tax'?.6:1; // 세무사 절세
+/* 자격증 혜택 (직업과 상관없이): 보유 1, 심화 과정 1.5 */
+const certLv=(k,p=me)=>{const c=(p&&p.certs)||[];return c.includes(k)?(((p.certAdv)||[]).includes(k)?1.5:1):0};
+const taxCut=()=>me.job==='tax'?.6:1-.1*certLv('taxc'); // 세무사 절세 40%, 세무회계 자격 10%(심화 15%)
 const loanRate=()=>Math.max(.002,(.007+.005*PK('rate_up')-.003*PK('rate_down'))+(issueOn('rate_shock')?.003:0)-(me.job==='fund'?.0015:me.job==='civil'?.001:0));
 const avgSalary=()=>{const [lo,hi]=salRange(me.job,me.rank);return Math.round((lo+hi)/2)};
 function guaranteedForMe(){let s=0;for(const [gid,g] of Object.entries(guars)){if(gid!==ME()&&g&&g.acc&&g.acc[ME()])s+=Number(g.acc[ME()])||0}return s}
@@ -2011,7 +2015,7 @@ function wealthTax(){
 }
 const supportAmt=()=>r10(Math.max(TAX.cuFloor,avgSalary()*TAX.cuRatio/100));
 function lucky(n,why){
-  let m=(me.job==='tuber'?2:1)*(has('necklace')?1.3:1)*(me.spouse&&me.spouse.trait==='fun'?1.2:1)*(me.luck?1.5:1);
+  let m=(me.job==='tuber'?2:1)*(1+.1*certLv('sns'))*(has('necklace')?1.3:1)*(me.spouse&&me.spouse.trait==='fun'?1.2:1)*(me.luck?1.5:1);
   if(catchUp())m*=(TAX.cuLuck||1);me.luck=0;const g=Math.round(n*m);gain(g,why+(g!==n?' (행운 보너스)':''));return g;
 }
 
@@ -2060,12 +2064,14 @@ const bizCount=biz=>{let n=0;for(const id of BOARD){const b=shops[id];if(!b||!b.
 const compFactor=biz=>{const n=Math.max(1,bizCount(biz)),c=(BIZ[biz]&&BIZ[biz].comp)??.3;return 1/(1+c*(n-1))};
 function opBonus(id,f){const F=flOf(id,f),op=operatorOf(id,f);if(!op)return 1;const p=playerInfo(op);let m=1;
   if(BIZ_JOB[F.biz]&&BIZ_JOB[F.biz]===p.job) m*=1.5;
-  if(p.job==='chef'&&BIZ[F.biz]) m*=(BIZ[F.biz].food?1.5:1.3)*(1+.15*((p.jp&&p.jp.stars)||0));return m}
+  if(p.job==='chef'&&BIZ[F.biz]) m*=(BIZ[F.biz].food?1.5:1.3)*(1+.15*((p.jp&&p.jp.stars)||0));
+  else if(BIZ[F.biz]&&BIZ[F.biz].food) m*=1+.05*certLv('cook',p); // 조리기능사
+  return m}
 function floorToll(id,f){ // 이웃이 이 층 가게에서 쓰는 돈
   const F=flOf(id,f);if(!operatorOf(id,f)||!F.biz)return 0;
   return r10(floorPrice(id,f)*.003*shopMul(id,F.biz)*compFactor(F.biz)*opBonus(id,f)*(1+.2*(F.reno||0))*floorFit(F.biz,f));
 }
-function payAtFloor(id,f){const F=flOf(id,f);if(me.job==='chef'&&BIZ[F.biz]&&BIZ[F.biz].food)return 0;let t=floorToll(id,f);if(me.job==='lawyer')t*=.9;return r10(t)}
+function payAtFloor(id,f){const F=flOf(id,f);if(me.job==='chef'&&BIZ[F.biz]&&BIZ[F.biz].food)return 0;let t=floorToll(id,f);if(me.job==='lawyer')t*=.9;if(BIZ[F.biz]&&BIZ[F.biz].food)t*=1-.2*certLv('cook');return r10(t)}
 function floorBaseRev(id,f){const F=flOf(id,f);if(!F.biz)return 0;const B=BIZ[F.biz]||{};return r10(floorPrice(id,f)*.016*(1-(B.cost??.25))*shopMul(id,F.biz)*compFactor(F.biz)*opBonus(id,f)*(1+.2*(F.reno||0))*condMul(F)*floorFit(F.biz,f))} // 매출 - 운영비(업종별)
 const bizSetup=(id,f,biz)=>r10(floorPrice(id,f)*((BIZ[biz]&&BIZ[biz].setup)??.1)*(me.job==='chef'?.8:1)); // 개업 인테리어비
 const LT_N={m:'월세',h:'반전세',j:'전세'};
@@ -2079,8 +2085,8 @@ function leaseOpts(id,f,pre=''){ // 세 들기 선택지 3종
     return {label:`${LT_N[lt]} — 보증금 ${won(d)}${r?` · 월세 ${won(r)}/바퀴`:' · 월세 없음'} + 개업비 ${won(su)}~${ok?'':` (현금 ${won(Math.max(d,d+su-room))} 필요)`}`,v:pre+lt,primary:lt==='m'&&ok,disabled:!ok}})}
 const buyFloorPrice=(id,f)=>{const F=flOf(id,f);if(F.dev&&F.sale)return F.sale;const s=bld(id).sale&&bld(id).sale[f];if(s&&s.until>Date.now())return s.price;return r10(floorPrice(id,f)*(me.job==='realtor'?.9:1))};
 const quickSale=k=>{const [id,f]=fsplit(k);return r10(floorPrice(id,f)*.7)};
-const renoCost=(id,f)=>r10(floorPrice(id,f)*.15*(wholeOwner(id)===ME()?.8:1)*(1-.2*PK('realty_boom'))*(me.job==='realtor'?.7:1));
-const extendCost=id=>r10(CELL[id].p*BLD_K*(FL_MUL[nFloors(id)+1]||.7)*shopIdx()*(bld(id).m||1)*.8*(wholeOwner(id)===ME()?.8:1)*(1-.2*PK('realty_boom'))*(me.job==='realtor'?.7:1));
+const renoCost=(id,f)=>r10(floorPrice(id,f)*.15*(wholeOwner(id)===ME()?.8:1)*(1-.2*PK('realty_boom'))*(me.job==='realtor'?.7:1-.1*certLv('realty')));
+const extendCost=id=>r10(CELL[id].p*BLD_K*(FL_MUL[nFloors(id)+1]||.7)*shopIdx()*(bld(id).m||1)*.8*(wholeOwner(id)===ME()?.8:1)*(1-.2*PK('realty_boom'))*(me.job==='realtor'?.7:1-.1*certLv('realty')));
 const pubFee=()=>r10(clamp(netWorth()*.002,10,300));
 const holdRateAt=i=>i>=6?.03:i>=4?.015:i>=2?.008:.003; // i번째 층(0부터)의 세율: 넘는 층에만 높은 세율
 function holdRate(n){if(!n)return 0;let s=0;for(let i=0;i<n;i++)s+=holdRateAt(i);return s/n} // 평균 세율 (표시용)
@@ -2293,7 +2299,7 @@ function npcVotes(w,off,list,realVotes){
   for(let i=0;i<n;i++){
     if(hmix('nv'+i+'#'+w+off)%100<25) continue; // 투표 안 하는 주
     const pref=(NPC_PREF[i]||{})[off==='pres'?'pp':'lp']||[];let best=null,bs=-1;
-    for(const x of list){const pl=cands[x.id].weeks[w].pledge||cands[x.id].weeks[w].policy;const r=pref.indexOf(pl);const sc=(r<0?0:30-r*10)+hmix('nc'+i+x.id+w)%10;if(sc>bs){bs=sc;best=x.id}}
+    for(const x of list){const pl=cands[x.id].weeks[w].pledge||cands[x.id].weeks[w].policy;const r=pref.indexOf(pl);const sc=(r<0?0:30-r*10)+hmix('nc'+i+x.id+w)%10+8*certLv('sns',x.id===ME()?me:others[x.id]);if(sc>bs){bs=sc;best=x.id}}
     if(best){out[best]=(out[best]||0)+1;used++}
   }
   return out;
@@ -2621,6 +2627,7 @@ let mgRaf=0,mgTimer=0;
 function mgOpen(t,d){$('mg').hidden=false;$('mgTitle').textContent=t;$('mgDesc').textContent=d||'';$('mgArea').innerHTML='';$('mgFoot').innerHTML='';$('mgBar').style.width='0%';$('mgStep').textContent=''}
 function mgClose(){$('mg').hidden=true;cancelAnimationFrame(mgRaf);clearInterval(mgTimer)}
 function mgCount(sec,onEnd){
+  if(sec>=6&&typeof certLv==='function') sec+=2*certLv('code'); // 정보처리기사: 제한시간 +2초 (심화 +3초)
   clearInterval(mgTimer);const t0=Date.now(),ms=sec*1000;$('mgBar').style.width='100%';
   mgTimer=setInterval(()=>{const left=Math.max(0,ms-(Date.now()-t0));$('mgBar').style.width=(left/ms*100)+'%';if(left<=0){clearInterval(mgTimer);onEnd()}},100);
 }
@@ -2785,7 +2792,7 @@ async function resolve(id){
     case 'night': return nightCell();
     case 'tax':{
       if(me.job==='tax'){const fee=r10(50*(me.rank+1));gain(fee,'세무 상담료');me.jp.clients=(me.jp.clients||0)+1;setMsg(`세무서 앞에서 상담 부스를 열었어요. 상담 고객 ${me.jp.clients}명, 상담료 +${won(fee)} (세무사는 여기서 세금을 안 내요)`);return}
-      const rate=taxRate()*(me.job==='lawyer'?.5:1),t=Math.max(0,Math.round(me.cash*rate));
+      const rate=taxRate()*(me.job==='lawyer'?.5:1)*(1-.1*certLv('taxc')),t=Math.max(0,Math.round(me.cash*rate));
       if(t<1){setMsg('세무서에 갔는데 통장이 텅 비어서 직원이 그냥 사탕 하나 주고 보내줬어요. 세금 면제!');return}
       spend(t,`세무서 세금 ${pct(rate)}`);govPay('tax',t);
       setMsg(`${pf('tax',['세무서 직원이 너무 반갑게 맞아줘서 오히려 무서웠어요','인생에서 피할 수 없는 세 가지: 죽음, 세금, 월요일','세무서 앞 화분이 유난히 싱싱하네요. 내 세금으로 키웠나 봐요'])}. 세금 -${won(t)} (세율 ${pct(rate)}${me.children.length?', 자녀 공제 적용':''})`);return}
@@ -3082,15 +3089,24 @@ async function schoolCell(){
   else{const back=Math.round(cost/2);gain(back,'학비 절반 환불');await mgResult(`F학점… 재수강이에요. 학비 절반 환불 +${won(back)}`,false);setMsg('F학점을 받았어요. 다음에 다시 등록하세요.')}
 }
 async function academyCell(){
+  me.certAdv=me.certAdv||[];
   const left=Object.entries(CERTS).filter(([k])=>!me.certs.includes(k));
-  if(!left.length){gain(60,'학원 강사 알바');setMsg('자격증을 다 땄어요. 학원 강사 알바 +60만');return}
-  const v=await choose('자격증학원이에요. 어떤 자격증 실기시험을 볼까요?',[...left.map(([k,C])=>({label:`${C.n} ${won(eduCost(C.c))} · ${C.d}`,v:k,disabled:me.cash<eduCost(C.c)})),{label:'안 함',v:0}]);
+  const adv=Object.entries(CERTS).filter(([k])=>me.certs.includes(k)&&!me.certAdv.includes(k));
+  const tutorOk=me.certs.length>0&&me.tutorDay!==kstDay(),tutorPay=r10(15*me.certs.length);
+  const opts=[...left.map(([k,C])=>({label:`${C.n} 실기 ${won(eduCost(C.c))} · ${C.d} · 혜택: ${C.perk}`,v:'n:'+k,disabled:me.cash<eduCost(C.c)})),
+    ...adv.map(([k,C])=>({label:`${C.n} 심화 과정 ${won(eduCost(C.c*2))} · 혜택 1.5배`,v:'a:'+k,disabled:me.cash<eduCost(C.c*2)})),
+    ...(me.certs.length?[{label:tutorOk?`자격증 강사 알바 +${won(tutorPay)}, 경험 +1 (하루 1번)`:'자격증 강사 알바 (오늘은 이미 했어요)',v:'t',disabled:!tutorOk}]:[]),{label:'안 함',v:0}];
+  if(!left.length&&!adv.length&&!tutorOk){gain(30,'학원 상담 알바');setMsg('자격증도 심화 과정도 다 마쳤어요. 학원 상담 알바 +30만');return}
+  const v=await choose('자격증학원이에요. 무엇을 할까요? (자격증은 직업과 상관없이 작은 혜택이 있어요)',opts);
   if(!v){setMsg('구경만 하고 나왔어요.');return}
-  const C=CERTS[v],cost=eduCost(C.c);spend(cost,`${C.n} 응시료`);track('exam');
-  const g=await runMG(C.mg,`${C.n} 실기시험`);
-  if(g.pass){me.certs.push(v);const opens=EXAM_JOBS.filter(j=>JOBS[j].req&&JOBS[j].req.cert===v).map(j=>JOBS[j].n);
-    await mgResult(`${C.n} 합격! ${g.r}/${g.max}`,true);addLog(`${C.n} 취득`);story(`${C.n} 취득`);setMsg(`${C.n} 취득! ${opens.join('·')} 시험 조건에 한 걸음 가까워졌어요.`)}
-  else{me.fails['c_'+v]=(me.fails['c_'+v]||0)+1;await mgResult(`${g.r}/${g.max}… 불합격. 다음에 다시 도전하세요`,false);setMsg(`${C.n} 불합격 (${me.fails['c_'+v]}번째)`);checkTitles()}
+  if(v==='t'){me.tutorDay=kstDay();gain(tutorPay,'자격증 강사 알바');me.exp=Math.min(10,me.exp+1);setMsg(`자격증 ${me.certs.length}개로 특강을 했어요. +${won(tutorPay)}, 경험 +1`);return}
+  const [kind,k]=v.split(':'),C=CERTS[k],cost=eduCost(kind==='a'?C.c*2:C.c);spend(cost,`${C.n} ${kind==='a'?'심화 과정':'응시료'}`);track('exam');
+  const g=await runMG(C.mg,`${C.n} ${kind==='a'?'심화 시험':'실기시험'}`);
+  if(g.pass){
+    if(kind==='a'){me.certAdv.push(k);await mgResult(`${C.n} 심화 과정 수료! 혜택 1.5배`,true);addLog(`${C.n} 심화 수료`);setMsg(`${C.n} 심화 수료! ${C.perk} → 1.5배`);return}
+    me.certs.push(k);const opens=EXAM_JOBS.filter(j=>JOBS[j].req&&JOBS[j].req.cert===k).map(j=>JOBS[j].n);
+    await mgResult(`${C.n} 합격! ${g.r}/${g.max}`,true);addLog(`${C.n} 취득`);story(`${C.n} 취득`);setMsg(`${C.n} 취득! 혜택: ${C.perk}${opens.length?` · ${opens.join('·')} 시험 조건 충족`:''}`)}
+  else{me.fails['c_'+k]=(me.fails['c_'+k]||0)+1;await mgResult(`${g.r}/${g.max}… 불합격. 다음에 다시 도전하세요`,false);setMsg(`${C.n} ${kind==='a'?'심화 ':''}불합격 (${me.fails['c_'+k]}번째)`);checkTitles()}
 }
 async function examCell(){
   const opts=EXAM_JOBS.filter(j=>j!==me.job&&eligible(j));
@@ -3770,7 +3786,7 @@ function renderStats(){
     const bar=el('div','bar');const f=el('i');f.style.width=Math.min(100,need?val/need*100:100)+'%';bar.append(f);
     pr.append(el('span','',`다음 직급 ${JOBS[me.job].titles[me.rank+1]}: ${info.kind==='tenure'?'근속':METRIC[info.kind]} ${info.kind==='subs'?val.toLocaleString('ko-KR'):val}/${info.kind==='subs'?need.toLocaleString('ko-KR'):need}${info.kind!=='tenure'?` · 근속 ${info.tenure}/${info.min}`:''}${info.cool?` · 재도전 ${info.cool}바퀴 뒤`:''}${info.test?' · 시험 있음':''}${info.seat?` · 자리 ${info.seat}개`:''}`),bar);tr.append(pr)}
   const ch=$('certs');ch.innerHTML='';
-  Object.entries(CERTS).forEach(([k,C])=>{const s=el('span','chip'+(me.certs.includes(k)?'':' off'),C.n);s.title=me.certs.includes(k)?'보유':`미보유 · 자격증학원 ${won(eduCost(C.c))} · ${C.d}`;ch.append(s)});
+  Object.entries(CERTS).forEach(([k,C])=>{const lv=certLv(k),s=el('span','chip'+(lv?'':' off'),C.n+(lv>1?' (심화)':''));s.title=(lv?`보유${lv>1?'·심화':''} · `:`미보유 · 자격증학원 ${won(eduCost(C.c))} · `)+`혜택: ${C.perk||''}${lv>1?' (1.5배)':''}`;ch.append(s)});
   renderFamily();renderMission();renderTitles();
   $('net').textContent=won(netWorth());
   $('lives').textContent=`${me.nick||''} 가문 ${me.gen}대 · ${me.lives}번째 인생${me.best?' · 최고 '+won(me.best):''}`;
@@ -3924,7 +3940,7 @@ function spark(h){if(h.length<2)return '';const mn=Math.min(...h),mx=Math.max(..
   return `<svg class="spark" viewBox="0 0 64 22" aria-hidden="true"><polyline points="${xy.map(p=>p.join(',')).join(' ')}" fill="none" stroke="var(${up?'--up':'--down'})" stroke-width="1.5"/><circle cx="${l[0]}" cy="${l[1]}" r="2" fill="var(${up?'--up':'--down'})"/></svg>`}
 function renderStocks(){
   advanceMarket();const box=$('stocks');box.innerHTML='';
-  STOCKS.forEach((s,i)=>{const p=price(i),pv=prevPrice(i),ch=pv?((p-pv)/pv*100):0,bp=Math.round(p*(me.job==='fund'?.95:1)),sp=Math.round(p*(me.job==='fund'?1.05:1));
+  STOCKS.forEach((s,i)=>{const p=price(i),pv=prevPrice(i),ch=pv?((p-pv)/pv*100):0,bp=Math.round(p*(me.job==='fund'?.95:1-.02*certLv('invest'))),sp=Math.round(p*(me.job==='fund'?1.05:1+.02*certLv('invest')));
     const row=el('div','row');row.innerHTML=`<div><div class="n"></div><div class="h"></div></div>${spark(walk.hist[i])}<div class="px"><div class="num">${won(p)}</div><div class="chg num ${ch>0?'up':ch<0?'down':''}">${ch>0?'▲':ch<0?'▼':''}${Math.abs(ch).toFixed(1)}%</div></div><div class="trade"><button class="mini">사기</button><button class="mini">팔기</button></div>`;
     row.querySelector('.n').textContent=`${s.n} · ${s.ty}${s.div?` · 배당 ${(s.div*100).toFixed(1)}%/바퀴`:''}`;
     const avg=me.shares[i]?Math.round(me.cost[i]/me.shares[i]):0;
