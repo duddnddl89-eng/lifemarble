@@ -470,6 +470,10 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 </head>
 <body>
 <header>
@@ -2062,8 +2066,9 @@ const leaseDep=(id,f,lt)=>r10(floorPrice(id,f)*(lt==='j'?.7:lt==='h'?.4:.1)*1);
 const fmtLeft=t=>{const m=Math.max(0,Math.round((t-Date.now())/6e4));return m>=1440?`${Math.floor(m/1440)}일 ${Math.floor(m%1440/60)}시간 뒤`:m>=60?`${Math.floor(m/60)}시간 뒤`:`${m}분 뒤`};
 const LEASE_DAYS=4; // 계약 갱신 주기(일), 갱신 때 월세·보증금 최대 +5%
 function leaseOpts(id,f,pre=''){ // 세 들기 선택지 3종
-  return ['m','h','j'].map(lt=>{const d=leaseDep(id,f,lt),r=leaseRent(id,f,lt);
-    return {label:`${LT_N[lt]} — 보증금 ${won(d)}${r?` · 월세 ${won(r)}/바퀴`:' · 월세 없음'}`,v:pre+lt,primary:lt==='m'&&me.cash>=d,disabled:me.cash<d}})}
+  const su=Math.min(...BIZ_OPEN().map(k=>bizSetup(id,f,k))),room=Math.max(0,loanLimit()-me.loan);
+  return ['m','h','j'].map(lt=>{const d=leaseDep(id,f,lt),r=leaseRent(id,f,lt),ok=me.cash>=d&&me.cash+room>=d+su;
+    return {label:`${LT_N[lt]} — 보증금 ${won(d)}${r?` · 월세 ${won(r)}/바퀴`:' · 월세 없음'} + 개업비 ${won(su)}~${ok?'':` (현금 ${won(Math.max(d,d+su-room))} 필요)`}`,v:pre+lt,primary:lt==='m'&&ok,disabled:!ok}})}
 const buyFloorPrice=(id,f)=>{const F=flOf(id,f);if(F.dev&&F.sale)return F.sale;const s=bld(id).sale&&bld(id).sale[f];if(s&&s.until>Date.now())return s.price;return r10(floorPrice(id,f)*(me.job==='realtor'?.9:1))};
 const quickSale=k=>{const [id,f]=fsplit(k);return r10(floorPrice(id,f)*.7)};
 const renoCost=(id,f)=>r10(floorPrice(id,f)*.15*(wholeOwner(id)===ME()?.8:1)*(1-.2*PK('realty_boom'))*(me.job==='realtor'?.7:1));
@@ -2813,9 +2818,17 @@ function floorLabel(id,f){const F=flOf(id,f);const op=operatorOf(id,f);
   if(op) return `${BIZ_EMO[F.biz]||'🏪'} ${nameOf(op)}네 ${BIZ[F.biz].n}${F.t&&!F.o?' (나라 건물 세입자)':F.t&&F.t!==F.o?' (세입자)':''}`;
   if(!F.o) return F.dev?`분양 중 ${won(F.sale)}`:`${pubOf(id,f).e} ${pubOf(id,f).n} (나라 소유)`;
   return `빈 층 · 주인 ${nameOf(F.o)}`;}
-async function chooseBiz(text,id,f,extra=0){ // extra: 함께 낼 돈(보증금 등) — 개업비까지 모자라면 고를 수 없음
-  return await choose(text+' (개업 인테리어비가 들어요)',BIZ_OPEN().map(k=>{const B=BIZ[k],n=bizCount(k),fit=id?floorFit(k,f):1,su=id?bizSetup(id,f,k):0;
-    return {label:`${BIZ_EMO[k]||''} ${B.n}${n?` (동네 ${n}곳)`:' (독점!)'}${BIZ_JOB[k]&&BIZ_JOB[k]===me.job?' ★직업보너스':''}${id?` · 개업비 ${won(su)} · ${f}층 궁합 ${fit>1?'좋음':fit<1?'나쁨':'보통'}(${Math.round(fit*100)}%)`:''} — ${B.tip}`,v:k,disabled:id&&me.cash<su+extra}}))}
+const bizRoom=()=>Math.max(0,loanLimit()-me.loan); // 개업비가 모자라면 쓸 수 있는 사업자 대출 여유
+function paySetup(amt,label){ // 개업비: 현금이 모자라면 사업자 대출로 메움
+  if(me.cash<amt){const L=r10(Math.min(bizRoom(),amt-me.cash)+5);if(L>0){me.loan+=L;me.cash+=L;addLog(`사업자 대출 ${won(L)} (개업비)`)}}
+  spend(amt,label);
+}
+async function chooseBiz(text,id,f,extra=0){ // extra: 함께 현금으로 낼 돈(보증금). 개업비는 모자라면 사업자 대출
+  const opts=BIZ_OPEN().map(k=>{const B=BIZ[k],n=bizCount(k),fit=id?floorFit(k,f):1,su=id?bizSetup(id,f,k):0,cashOk=me.cash>=extra,ok=cashOk&&me.cash+bizRoom()>=su+extra,loan=ok&&me.cash<su+extra;
+    return {label:`${BIZ_EMO[k]||''} ${B.n}${n?` (동네 ${n}곳)`:' (독점!)'}${BIZ_JOB[k]&&BIZ_JOB[k]===me.job?' ★직업보너스':''}${id?` · 개업비 ${won(su)}${loan?' (모자란 만큼 사업자 대출)':''}${!ok?' · 돈이 모자라요':''} · ${f}층 궁합 ${fit>1?'좋음':fit<1?'나쁨':'보통'}(${Math.round(fit*100)}%)`:''} — ${B.tip}`,v:k,disabled:id&&!ok}});
+  opts.push({label:'그만두기',v:''});
+  return await choose(text+' (업종마다 개업 인테리어비가 들어요)',opts);
+}
 async function shopCell(id){
   const f=await pickFloor(id),F=flOf(id,f);
   if(!F.o&&!F.t) return publicFloor(id,f);
@@ -2856,10 +2869,10 @@ async function publicDeal(id,f,msg){
   if(!v){setMsg(msg+'.');return}
   if(typeof v==='string'&&v[0]==='g'){
     const lt=v[1],dep=leaseDep(id,f,lt),rent=leaseRent(id,f,lt);
-    const biz=await chooseBiz('어떤 가게를 열까요? 같은 업종이 많으면 손님을 나눠 가져요.',id,f,dep);if(!biz){setMsg('가게 열 돈이 모자라요.');return}
+    const biz=await chooseBiz('어떤 가게를 열까요? 같은 업종이 많으면 손님을 나눠 가져요.',id,f,dep);if(!biz){setMsg('가게 열기를 그만뒀어요.');return}
     const ok=await writeBld(id,b=>{const x=(b.f||{})[f]||{};if(x.o||x.t||x.dev)throw new Error('taken');if(b.sale)delete b.sale[f];return setF(b,f,{t:ME(),biz,dep,rent,lt,gov:1,since:Date.now(),rt:Date.now(),rn:Date.now()})});
     if(!ok){setMsg('한발 늦었어요. 다른 주민이 먼저 계약했어요.');return}
-    spend(dep,`${c.n} ${f}층 보증금 (나라)`);spend(bizSetup(id,f,biz),`${c.n} ${f}층 ${BIZ[biz].n} 개업비`);me.leases=me.leases||{};me.leases[fkey(id,f)]={dep};track('build');
+    spend(dep,`${c.n} ${f}층 보증금 (나라)`);paySetup(bizSetup(id,f,biz),`${c.n} ${f}층 ${BIZ[biz].n} 개업비`);me.leases=me.leases||{};me.leases[fkey(id,f)]={dep};track('build');
     postNews(`${dynName()}님이 나라 건물 ${c.n} ${f}층에 ${BIZ[biz].n}을(를) 열었어요`);
     setMsg(`${c.n} ${f}층에 ${BIZ[biz].n} 오픈 (${LT_N[lt]})! ${rent?`월급날마다 월세 ${won(rent)}은 국고로, `:''}손님 돈과 기본 매출은 내 거예요. ${LEASE_DAYS}일마다 계약 갱신.`);return}
   const dev=F.dev;
@@ -2903,11 +2916,11 @@ async function leaseOffer(id,f){
   if(me.job==='civil'){setMsg(`${tag}은(는) ${nameOf(F.o)}님 소유 빈 층이에요. 공무원은 겸직 금지라 장사는 못 해요.`);return}
   const v=await choose(`${tag}: ${nameOf(F.o)}님 건물의 빈 층이에요. 세 들어 장사해 볼까요? (${LEASE_DAYS}일마다 갱신, 최대 +5%)`,[...leaseOpts(id,f),{label:'지나가기',v:0}]);
   if(!v){setMsg('구경만 하고 지나갔어요.');return}
-  const biz=await chooseBiz('어떤 가게를 열까요? 같은 업종이 많으면 손님을 나눠 가져요.',id,f,leaseDep(id,f,v));if(!biz){setMsg('가게 열 돈이 모자라요.');return}
+  const biz=await chooseBiz('어떤 가게를 열까요? 같은 업종이 많으면 손님을 나눠 가져요.',id,f,leaseDep(id,f,v));if(!biz){setMsg('가게 열기를 그만뒀어요.');return}
   const dep=leaseDep(id,f,v),rent=leaseRent(id,f,v),owner=F.o;
   const ok=await writeBld(id,b=>{const x=(b.f||{})[f]||{};if(x.o!==owner||x.t||x.biz||x.pubL)throw new Error('taken');delete x.ad;Object.assign(x,{t:ME(),biz,dep,rent,lt:v,since:Date.now(),rn:Date.now()});return setF(b,f,x)});
   if(!ok){setMsg('한발 늦었어요. 다른 사람이 먼저 계약했어요.');return}
-  spend(dep,`${tag} 보증금`);spend(bizSetup(id,f,biz),`${tag} ${BIZ[biz].n} 개업비`);me.leases=me.leases||{};me.leases[fkey(id,f)]={dep};track('build');
+  spend(dep,`${tag} 보증금`);paySetup(bizSetup(id,f,biz),`${tag} ${BIZ[biz].n} 개업비`);me.leases=me.leases||{};me.leases[fkey(id,f)]={dep};track('build');
   postNews(`${dynName()}님이 ${tag}에 ${BIZ[biz].n}을(를) 열었어요 (${nameOf(owner)}님 건물)`);
   setMsg(`${tag}에 ${BIZ[biz].n} 오픈 (${LT_N[v]})! ${rent?`월급날마다 월세 ${won(rent)}을 건물주에게 내고, `:''}손님 돈과 기본 매출은 내 거예요.`);
 }
@@ -2918,7 +2931,7 @@ async function myLeaseMenu(id,f){
   const rc=r10(floorPrice(id,f)*.03);
   const v=await choose(`내 ${B.n}(${c.n} ${f}층, ${F.o?nameOf(F.o)+'님':'나라'} 건물, ${LT_N[F.lt||'m']}). 출근 매출 +${won(g)}. ${F.rent?`월세 ${won(F.rent)}/바퀴`:'월세 없음'} · 다음 갱신 ${fmtLeft((F.rn||F.since||Date.now())+LEASE_DAYS*864e5)}.`,[
     {label:'그대로',v:0,primary:true},{label:'업종 바꾸기 (새 업종 개업비)',v:'biz'},{label:`가게 빼기 (보증금 ${won(F.dep)} 돌려받음)`,v:'out'}]);
-  if(v==='biz'){const nb=await chooseBiz('어떤 업종으로 바꿀까요?',id,f);if(!nb)return;const su=bizSetup(id,f,nb);const ok=await writeBld(id,b=>{const x=b.f[f];if(!x||x.t!==ME())throw 0;x.biz=nb;x.rt=Date.now();return b});if(ok){spend(su,`${c.n} ${f}층 ${BIZ[nb].n} 개업비`);setMsg(`${BIZ[nb].n}(으)로 새 단장했어요. 개업비 -${won(su)}`)}return}
+  if(v==='biz'){const nb=await chooseBiz('어떤 업종으로 바꿀까요?',id,f);if(!nb)return;const su=bizSetup(id,f,nb);const ok=await writeBld(id,b=>{const x=b.f[f];if(!x||x.t!==ME())throw 0;x.biz=nb;x.rt=Date.now();return b});if(ok){paySetup(su,`${c.n} ${f}층 ${BIZ[nb].n} 개업비`);setMsg(`${BIZ[nb].n}(으)로 새 단장했어요. 개업비 -${won(su)}`)}return}
   if(v==='out'){const ok=await writeBld(id,b=>{const x=b.f[f];if(!x||x.t!==ME())throw 0;if(!x.o)return setF(b,f,null);delete x.t;delete x.biz;delete x.dep;delete x.rent;delete x.lt;delete x.rn;return b});if(ok){syncLeases();setMsg(`${c.n} ${f}층 가게를 정리했어요.`)}return}
   setMsg(`오늘도 장사 잘되길! 출근 매출 +${won(g)}`);
 }
@@ -2947,8 +2960,8 @@ async function myFloorMenu(id,f,fresh){
   opts.push({label:`급매 (나라에 ${won(quickSale(fkey(id,f)))})`,v:'sell'});
   const v=await choose(head+(whole?' · 🏷️ 통건물 주인 (인생 탭에서 건물 이름 짓기)':''),opts);
   if(!v){setMsg(head);return}
-  if(v==='open'){const biz=await chooseBiz('어떤 가게를 열까요?',id,f);if(!biz){setMsg('개업비가 모자라요.');return}const su=bizSetup(id,f,biz);const ok=await writeBld(id,b=>{const x=b.f[f];if(!x||x.o!==ME()||x.t||x.pubL)throw 0;x.biz=biz;delete x.ad;return b});
-    if(ok){spend(su,`${tag} ${BIZ[biz].n} 개업비`);track('build');postNews(`${dynName()}님이 ${tag}에 ${BIZ[biz].n}을(를) 열었어요`);setMsg(`${tag}에 ${BIZ[biz].n} 오픈! 손님 돈과 월급날 기본 매출이 들어와요.`)}return}
+  if(v==='open'){const biz=await chooseBiz('어떤 가게를 열까요?',id,f);if(!biz){setMsg('가게 열기를 그만뒀어요.');return}const su=bizSetup(id,f,biz);const ok=await writeBld(id,b=>{const x=b.f[f];if(!x||x.o!==ME()||x.t||x.pubL)throw 0;x.biz=biz;delete x.ad;return b});
+    if(ok){paySetup(su,`${tag} ${BIZ[biz].n} 개업비`);track('build');postNews(`${dynName()}님이 ${tag}에 ${BIZ[biz].n}을(를) 열었어요`);setMsg(`${tag}에 ${BIZ[biz].n} 오픈! 손님 돈과 월급날 기본 매출이 들어와요.`)}return}
   if(v==='adon'||v==='adoff'){const ok=await writeBld(id,b=>{const x=b.f[f];if(!x||x.o!==ME()||x.t)throw 0;if(v==='adon')x.ad=Date.now();else delete x.ad;return b});if(ok)setMsg(v==='adon'?`${tag} 임대 모집을 시작했어요. 세입자가 들어오면 월세를 받아요.`:`${tag} 임대 모집을 멈췄어요.`);return}
   if(v==='pubon'||v==='puboff'){const ok=await writeBld(id,b=>{const x=b.f[f];if(!x||x.o!==ME()||x.t||x.biz)throw 0;if(v==='pubon'){x.pubL=Date.now();delete x.ad}else delete x.pubL;return b});
     if(ok){if(v==='pubon')postNews(`나라가 ${dynName()}님의 ${tag}을(를) 공공시설로 임대했어요`);setMsg(v==='pubon'?`${tag}을(를) 나라에 임대했어요. 월급날마다 국고에서 ${won(pubLRent(id,f))}이 들어와요.`:`${tag} 공공임대를 해지했어요.`)}return}
