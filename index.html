@@ -480,6 +480,8 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 </head>
 <body>
 <header>
@@ -3000,7 +3002,10 @@ async function workCell(){
   }
   if(me.job==='alba'){gain(40,'알바 주휴수당');setMsg('알바는 승진이 없어요. 학교·자격증학원에서 스펙을 쌓고 시험장에 가 보세요. (주휴수당 +40만)');return}
   const J=JOBS[me.job],info=promoInfo();
-  if(info&&info.top){const b=Math.round(avgSalary()*.3);gain(b,`${J.titles[me.rank]} 특별상여`);setMsg(`최고 직급 ${J.titles[me.rank]}! 특별상여 +${won(b)}`);return}
+  if(info&&info.top){const b=Math.round(avgSalary()*.3),act=JOB_ACT[me.job],maxed=me.job==='chef'&&(me.jp.stars||0)>=3;
+    const v=act?await choose(`최고 직급 ${J.titles[me.rank]}! 오늘은 무엇을 할까요?`,[{label:`특별상여 받기 (+${won(b)})`,v:'bonus',primary:true},{label:act.l+(maxed?' (단골 별 3개 최대)':''),v:'act',disabled:maxed}]):'bonus';
+    if(v==='act') return act.f();
+    gain(b,`${J.titles[me.rank]} 특별상여`);setMsg(`최고 직급 ${J.titles[me.rank]}! 특별상여 +${won(b)}`);return}
   const prog=info.kind==='tenure'?`근속 ${info.tenure}/${info.min}바퀴`:`${METRIC[info.kind]} ${info.kind==='subs'?(info.val||0).toLocaleString('ko-KR'):info.val}/${info.kind==='subs'?info.need.toLocaleString('ko-KR'):info.need} · 근속 ${info.tenure}/${info.min}바퀴`;
   const auto=info.kind==='tenure'&&!info.test;
   const ready=info.okT&&info.okM&&!info.cool&&!auto&&(!info.own||ownFood());
