@@ -474,6 +474,8 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 </head>
 <body>
 <header>
@@ -621,7 +623,7 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
     <section class="adm-sec"><h3>상가 건물</h3><p>상가 칸은 <b>3층 건물</b>(증축하면 최대 5층)이에요. 도착하면 <b>층을 뽑아요</b>.
       <br>· <b>나라 소유 층</b>: 공영주차장·보건소·주민센터·도서관·어린이집. 공공요금(순자산 비례)을 국고에 내고 작은 혜택을 받아요. 그 층을 <b>분양</b>받거나(부족하면 상가 담보대출), 돈이 없으면 <b>나라에 세 들어</b> 장사할 수 있어요(월세는 국고로).
       <br>· <b>내 층</b>: 직접 장사, 비워 두고 세입자 받기, <b>리모델링</b>(매출·월세·시세↑, 3일마다 낡아요), <b>증축</b>(새 층 분양으로 개발 이익), <b>급매</b>(시세 70%).
-      <br>· <b>세 들기</b>: 남의 빈 층이나 나라 층에 <b>월세</b>(보증금 10%, 월세 1%/바퀴), <b>반전세</b>(보증금 40%, 월세 0.5%), <b>전세</b>(보증금 70%, 월세 없음)로 장사해요. 보증금은 나갈 때 돌려받아요. <b>4일마다 계약 갱신</b>: 월세·보증금이 시세를 따라가되 한 번에 최대 +5%. 보증금 인상분이 없으면 계약이 끝나요.<br>· <b>건물주</b>: 빈 층은 <b>임대 모집</b>을 걸면 공실세 면제, 이웃이나 다른 주민이 세 들 수 있어요. 세입자가 맡긴 보증금은 건물주가 굴려요(예금 이자의 2배가 건물주 수입). 세입자가 없으면 <b>나라에 공공임대</b>(시세 0.6%/바퀴, 국고에서·자리 한정)도 가능해요.
+      <br>· <b>세 들기</b>: 남의 빈 층이나 나라 층에 <b>월세</b>(보증금 10%, 월세 1%/바퀴), <b>반전세</b>(보증금 40%, 월세 0.5%), <b>전세</b>(보증금 70%, 월세 없음)로 장사해요. 보증금은 나갈 때 돌려받아요. <b>4일마다 계약 갱신</b>: 월세·보증금이 시세를 따라가되 한 번에 최대 +5%. 보증금 인상분이 없으면 계약이 끝나요. 인생 탭의 내 가게 목록에서 <b>언제든 월세·반전세·전세로 계약을 바꾸거나</b>(지금 시세로 새 계약), 나라 층이면 <b>바로 매입</b>(보증금을 돌려받아 보탬)할 수 있어요.<br>· <b>건물주</b>: 빈 층은 <b>임대 모집</b>을 걸면 공실세 면제, 이웃이나 다른 주민이 세 들 수 있어요. 세입자가 맡긴 보증금은 건물주가 굴려요(예금 이자의 2배가 건물주 수입). 세입자가 없으면 <b>나라에 공공임대</b>(시세 0.6%/바퀴, 국고에서·자리 한정)도 가능해요.
       <br>· <b>남의 가게</b>: 이용료를 내요. 세입자 가게는 <b>권리금</b>을 주고 넘겨받을 수 있어요.
       <br>· <b>통건물</b>: 한 건물 모든 층을 가지면 <b>건물 이름</b>을 짓고 시세 +15%. 과반 층을 가지면 나머지 층을 시세 130%에 <b>매도청구</b>할 수 있어요.
       <br>· <b>세금</b>: 보유세는 <b>넘는 층에만 높은 세율</b>(1~2번째 층 0.3%, 3~4번째 0.8%, 5~6번째 1.5%, 7번째부터 3%/바퀴), 비워 둔 층은 공실세 0.5%(임대 모집 중엔 면제). 가게를 많이 운영하면 <b>사업소득세</b>(4~5곳 10%, 6곳 이상 25%, 기본 매출에). 나라 건물은 국고로 관리해서 낡지 않아요. 세금은 모두 <b>국고</b>로 가요.</p></section>
@@ -2930,7 +2932,9 @@ async function myLeaseMenu(id,f){
   if(g)gain(g,`${c.n} ${f}층 ${B.n} 출근 매출`);
   const rc=r10(floorPrice(id,f)*.03);
   const v=await choose(`내 ${B.n}(${c.n} ${f}층, ${F.o?nameOf(F.o)+'님':'나라'} 건물, ${LT_N[F.lt||'m']}). 출근 매출 +${won(g)}. ${F.rent?`월세 ${won(F.rent)}/바퀴`:'월세 없음'} · 다음 갱신 ${fmtLeft((F.rn||F.since||Date.now())+LEASE_DAYS*864e5)}.`,[
-    {label:'그대로',v:0,primary:true},{label:'업종 바꾸기 (새 업종 개업비)',v:'biz'},{label:`가게 빼기 (보증금 ${won(F.dep)} 돌려받음)`,v:'out'}]);
+    {label:'그대로',v:0,primary:true},{label:'업종 바꾸기 (새 업종 개업비)',v:'biz'},...['m','h','j'].filter(lt=>lt!==(F.lt||'m')).map(lt=>{const d=leaseDep(id,f,lt)-(F.dep||0);return {label:`${LT_N[lt]}로 바꾸기 (보증금 ${d>=0?'+':''}${won(d)} · 월세 ${won(leaseRent(id,f,lt))})`,v:'lt'+lt,disabled:d>me.cash}}),...(canBuyLeased(fkey(id,f))?[{label:`이 층 사기 ${won(buyFloorPrice(id,f))} (보증금 보탬)`,v:'buy'}]:[]),{label:`가게 빼기 (보증금 ${won(F.dep)} 돌려받음)`,v:'out'}]);
+  if(typeof v==='string'&&v.startsWith('lt')){if(await changeLease(fkey(id,f),v[2]))setMsg(`${LT_N[v[2]]} 계약으로 바꿨어요.`);return}
+  if(v==='buy'){if(await buyLeased(fkey(id,f)))setMsg(`${c.n} ${f}층을 샀어요! 이제 건물주로 장사해요.`);return}
   if(v==='biz'){const nb=await chooseBiz('어떤 업종으로 바꿀까요?',id,f);if(!nb)return;const su=bizSetup(id,f,nb);const ok=await writeBld(id,b=>{const x=b.f[f];if(!x||x.t!==ME())throw 0;x.biz=nb;x.rt=Date.now();return b});if(ok){paySetup(su,`${c.n} ${f}층 ${BIZ[nb].n} 개업비`);setMsg(`${BIZ[nb].n}(으)로 새 단장했어요. 개업비 -${won(su)}`)}return}
   if(v==='out'){const ok=await writeBld(id,b=>{const x=b.f[f];if(!x||x.t!==ME())throw 0;if(!x.o)return setF(b,f,null);delete x.t;delete x.biz;delete x.dep;delete x.rent;delete x.lt;delete x.rn;return b});if(ok){syncLeases();setMsg(`${c.n} ${f}층 가게를 정리했어요.`)}return}
   setMsg(`오늘도 장사 잘되길! 출근 매출 +${won(g)}`);
@@ -3587,6 +3591,31 @@ function retireAt60(){
   postNews(`${dynName()}님이 ${was}(으)로 정년퇴직했어요. 수고 많으셨어요!`);
 }
 
+/* 세 든 가게: 그 칸에 다시 가지 않고 계약 바꾸기 / 나라 층이면 바로 매입 */
+async function changeLease(k,lt){
+  const [id,f]=fsplit(k),F=(bld(id).f||{})[f]||{};if(F.t!==ME()||F.lt===lt) return false;
+  const nd=leaseDep(id,f,lt),nr=leaseRent(id,f,lt),diff=nd-(F.dep||0),tag=`${CELL[id].n} ${f}층`;
+  if(diff>me.cash){toast(`보증금 차액 ${won(diff)}이 모자라요`);return false}
+  const ok=await writeBld(id,b=>{const x=(b.f||{})[f];if(!x||x.t!==ME())throw 0;x.lt=lt;x.dep=nd;x.rent=nr;x.rn=Date.now();return b});
+  if(!ok){toast('그사이 계약이 바뀌었어요');return false}
+  if(diff>0)spend(diff,`${tag} 보증금 차액 (${LT_N[lt]} 전환)`);else me.cash-=diff;
+  me.leases=me.leases||{};me.leases[k]={dep:nd};
+  addLog(`${tag} ${LT_N[F.lt||'m']} → ${LT_N[lt]} 전환: 보증금 ${won(nd)}${nr?` · 월세 ${won(nr)}`:' · 월세 없음'}${diff<0?` (차액 ${won(-diff)} 돌려받음)`:''}`);return true;
+}
+const canBuyLeased=k=>{const [id,f]=fsplit(k),F=(bld(id).f||{})[f]||{};return F.t===ME()&&!F.o};
+async function buyLeased(k){
+  const [id,f]=fsplit(k),F=(bld(id).f||{})[f]||{},tag=`${CELL[id].n} ${f}층`;if(!canBuyLeased(k)) return false;
+  const price=buyFloorPrice(id,f),dep=F.dep||0,room=Math.max(0,loanLimit()+price*.6-me.loan);
+  if(me.cash+dep+room<price){toast(`돈이 모자라요 (필요 ${won(price)}, 보증금 ${won(dep)} 포함)`);return false}
+  const saved=me.leases&&me.leases[k];if(me.leases)delete me.leases[k]; // 보증금 이중 환급 방지
+  const ok=await writeBld(id,b=>{const x=(b.f||{})[f];if(!x||x.t!==ME()||x.o)throw 0;b.deals=(b.deals||0)+1;b.m=Math.round((b.m||1)*1.02*1000)/1000;if(b.sale)delete b.sale[f];
+    return setF(b,f,{o:ME(),biz:x.biz,since:Date.now(),rt:x.rt||Date.now(),reno:x.reno})});
+  if(!ok){if(saved){me.leases=me.leases||{};me.leases[k]=saved}toast('그사이 계약이 바뀌었어요');return false}
+  me.cash+=dep;if(me.cash<price){const L=r10(price-me.cash+5);me.loan+=L;me.cash+=L;addLog(`상가 담보대출 ${won(L)}`)}
+  spend(price,`${tag} 매입 (세 들던 층)`);govPay('sale',price);track('build');story(`${tag} 건물주`);
+  postNews(`${dynName()}님이 세 들어 장사하던 ${tag}을(를) 샀어요!`);addLog(`${tag} 매입: 보증금 ${won(dep)}을 돌려받아 매매대금에 보탰어요. 가게는 그대로 내가 운영해요`);syncLeases();return true;
+}
+
 /* =====================================================================
    화면
    ===================================================================== */
@@ -3720,7 +3749,11 @@ function renderStats(){
       row.append(el('span','',`${CELL[id].n} 통건물`),inp,b);ms.append(row)}}
   if(ten.length){ms.append(el('div','fam-h','세 들어 장사 중'));
     for(const k of ten){const [id,f]=fsplit(k),F=flOf(id,f),row=el('div','ms-row');
-      row.append(el('span','',`${CELL[id].n} ${f}층 ${BIZ_EMO[F.biz]||''} ${(BIZ[F.biz]||{}).n||''} · 월세 ${won(F.rent)} · 보증금 ${won(F.dep)}`));
+      row.append(el('span','',`${CELL[id].n} ${f}층 ${BIZ_EMO[F.biz]||''} ${(BIZ[F.biz]||{}).n||''} · ${LT_N[F.lt||'m']}${F.rent?` · 월세 ${won(F.rent)}`:''} · 보증금 ${won(F.dep)} · 갱신 ${fmtLeft((F.rn||F.since||Date.now())+LEASE_DAYS*864e5)}`));
+      for(const lt of ['m','h','j']){if(lt===(F.lt||'m'))continue;const d=leaseDep(id,f,lt)-(F.dep||0);const cb=el('button','mini',`${LT_N[lt]}로 (보증금 ${d>=0?'+':''}${won(d)})`);cb.type='button';cb.disabled=busy||d>me.cash;cb.title=`월세 ${won(leaseRent(id,f,lt))}/바퀴 · 지금 시세로 새 계약`;
+        twoStep(cb,async()=>{if(busy)return;busy=true;await changeLease(k,lt);busy=false;save();renderAll();idleActions()},'한 번 더 누르면 전환');row.append(cb)}
+      if(canBuyLeased(k)){const pr=buyFloorPrice(id,f),bb=el('button','mini primary',`이 층 사기 ${won(pr)}`);bb.type='button';bb.title=`보증금 ${won(F.dep||0)}을 돌려받아 보태고, 모자라면 상가 담보대출`;bb.disabled=busy;
+        twoStep(bb,async()=>{if(busy)return;busy=true;await buyLeased(k);busy=false;save();renderAll();idleActions()},'한 번 더 누르면 매입');row.append(bb)}
       const b=el('button','mini','가게 빼기');b.type='button';b.disabled=busy;twoStep(b,async()=>{if(busy)return;busy=true;await endLease(k);busy=false;save();renderAll();idleActions()},'한 번 더 누르면 정리');row.append(b);ms.append(row)}}
   const tr=$('trait');tr.innerHTML='';tr.append(el('b','',JOBS[me.job].n+' 특징'),' '+JOBS[me.job].trait);
   const info=promoInfo();
