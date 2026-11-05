@@ -388,7 +388,12 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 .sum-badges{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.sum-badge{background:color-mix(in srgb,var(--me,#3F8F62) 12%,var(--paper));border-radius:999px;padding:2px 10px;font-size:.85em}
 .sum-graph{width:100%;max-width:420px;height:auto;display:block;margin:4px 0 8px}
 .sum-critics{display:grid;gap:6px;margin:8px 0}.sum-cr{display:grid;gap:2px;border-left:3px solid #E0512F;padding-left:8px}.sum-cr b{font-size:.8em;color:var(--ink-2,#666)}
+.bet-in{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.bet-in input{width:9em;padding:8px;border:1px solid var(--line,#ccc);border-radius:8px;font:inherit;background:var(--paper);color:inherit}
 </style>
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
@@ -746,6 +751,8 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
       <li><b>시작 특성 카드</b>: 새 인생(새로 가입·다음 세대·파산 후·시즌 리셋)마다 돈·일·사람 분야에서 한 장씩, 뒤집힌 카드 3장 중 1장을 골라요. 등급은 일반·희귀·전설(금수저 3%). 고르면 그 인생 동안 바뀌지 않고, 이름 옆·랭킹에 표시돼요. 뽑아 본 카드는 카드 도감에 쌓여요.<table class="biz-tbl"><tr><th>특성</th><th>장점</th><th>단점</th></tr><tr><td>금수저 (전설)</td><td>시작 현금 +5,000만</td><td>월급 -10%, 남의 가게 통행료 2배</td></tr><tr><td>흙수저</td><td>경험 +2, 승진 확률 +5%p</td><td>학자금 대출 1,000만 (500만은 이미 씀)</td></tr><tr><td>짠돌이</td><td>생활비·쇼핑 -25%, 예금 이자 +0.5%p</td><td>축의금 절반</td></tr><tr><td>투자 감각</td><td>주식 팔 때 +3%</td><td>예금 이자 -0.5%p</td></tr><tr><td>부동산 촉</td><td>집·상가 살 때 -7%</td><td>월세·전세 비용 +10%</td></tr><tr><td>공부 머리</td><td>시험 합격률 +15%p, 학원·학비 -30%</td><td>미니게임 제한시간 -1초</td></tr><tr><td>장사의 신</td><td>내 가게 매출 +20%, 개업비 -20%</td><td>직장 월급 -15%</td></tr><tr><td>손재주</td><td>리모델링·증축 -30%, 단골 별 쉽게</td><td>회사원 승진 -5%p</td></tr><tr><td>성실왕</td><td>월급 +10%, 바퀴마다 경험 +1</td><td>주식·로또 수익 -20%</td></tr><tr><td>운빨 인생</td><td>좋은 일 +30%, 로또 2배</td><td>황금열쇠 나쁜 일 손해 +20%</td></tr><tr><td>인싸</td><td>축의금 +50%, 득표 +10%</td><td>회식·경조사 지출 +30%</td></tr><tr><td>정치 DNA</td><td>기탁금 반값, 득표 +8%</td><td>모든 세금 +5%</td></tr></table></li>
       <li><b>이장님 가이드</b>: 처음 오면 동네 이장님이 특성 카드 → 주사위 → 집 → 가게 → 직업 → 은행 순서로 알려줘요. 할 일을 할 때마다 주사위 +2, 끝까지 마치면 주사위 +10과 칭호「새내기 주민」. 도움말 위쪽 버튼으로 언제든 다시 볼 수 있어요.</li>
       <li><b>인생 결과 카드</b>: 은퇴·100세·파산·시즌 종료·운영자 초기화 때 나와요. 인생 등급(S~F), 나이별 순자산 그래프, 업적 배지, 평론가 3명(경제 평론가·동네 할머니·연예 기자)의 한 줄평, 다음 인생 팁. 이미지 저장·복사·단톡방 자랑 가능.</li>
+      <li><b>황금열쇠</b>: 내 형편(순자산)에 맞춰 금액이 커져요(최대 ×6, 결과에 '내 형편 반영'으로 표시). 비상장 투자·코인 단톡방·먼 친척 유산·보이스피싱·경품 자동차·스카우트·교통사고 합의금·친구 사업 자금 같은 한탕 사건도 나와요(현금·자산 비례).</li>
+      <li><b>동네 하우스 (베팅)</b>: 황금열쇠 '간판 없는 가게' 초대장이나 야근 칸에서 '퇴근하고 하우스'를 고르면 들어가요. 하루 30판(운영자가 조절), 현금 안에서만 걸 수 있고(대출 불가) 10%·25%·절반·올인 또는 직접 입력. 홀짝(1.95배·50%), 룰렛(색 2배·47% / 숫자 9배·10%), 하이로우(맞힐 때마다 ×1.8, 언제든 멈추기, 6연속이면 끝). 크게 따거나 잃으면 동네 뉴스, 5연승 칭호「타짜」, 올인 실패 칭호「탕진잼」. ※ 게임 속 돈으로만 하는 놀이예요.</li>
       <li><b>선거</b>: 매주 대통령·국회의원 선거. 당선되면 정책으로 동네 전체를 바꿔요. 대통령은 <b>한 인생에 한 번만</b>(한 번 대통령을 하면 이번 시즌·이번 인생 동안 대통령 선거엔 다시 못 나가요. 국회의원 출마와 국무총리 지명은 계속 가능, 자녀 세대는 다시 도전 가능). 출마할 때 <b>공약</b>(대통령은 정책, 국회의원은 법안)을 정하고, 주민들은 공약을 보고 투표해요. 선거 탭의 <b>동네 여론</b>에서 주민들이 바라는 정책을 보고, 민심에 맞는 공약을 걸면 표가 몰려요. 후보마다 <b>여론조사 지지율</b>이 보여요. 투표는 일요일 자정 개표 전까지 <b>취소·갈아타기</b>가 자유로워요(마지막 표만 집계). 당선 후 공약을 지킬지 바꿀지는 당선자 마음이지만, 바꾸면 동네 뉴스에 "공약 파기"가 떠요.</li>
       <li><b>정부</b>: 대통령은 공약 정책 1개 + <b>추가 정책 최대 2개</b>(국회 과반 승인, 국회가 없으면 자동 승인, 서로 반대되는 정책은 함께 불가). 정책이 늘면 예산도 그만큼 필요해요(정책 1개당 국고 10%가 기본). 국무총리(대통령 본인은 불가)가 예산을 편성하고, 총리가 없으면 대통령이 직접 편성. 대통령은 <b>정책 우선</b>(국고가 비면 정치인 월급 체불) 또는 <b>월급 우선</b>(정치인 월급 약 10번 치를 먼저 떼어 둠)을 골라요. 대통령·총리·국회가 비어 있어도 동네는 그대로 굴러가고, 쓰지 않은 국고는 쌓여요.</li>
       <li><b>단톡방·로또·보증·마주침</b>: 동네 소식이 자동으로 올라오고, 매일 로또를 추첨하고, 친구에게 보증을 서 줄 수 있어요(파산하면 빚을 떠안아요). 같은 칸에서 마주치면 밥을 사거나 가위바위보 내기!</li>
@@ -1196,6 +1203,8 @@ const qPick=(bank,n)=>{ // 최근에 나온 문제는 당분간 다시 안 나�
 
 /* ---------------- 칭호 ---------------- */
 const TITLES={
+ tazza:{n:'타짜',d:'하우스에서 5판 연속으로 이겼어요'},
+ tangjin:{n:'탕진잼',d:'하우스에서 올인했다가 다 잃었어요'},
  newbie:{n:'새내기 주민',d:'동네 이장님 가이드를 끝까지 마쳤어요'},
  nsoo:{n:'N수생',d:'같은 시험에 3번 이상 떨어졌어요'},
  chilsoo:{n:'7수생',d:'같은 시험에 7번 이상 떨어졌어요'},
@@ -3139,14 +3148,21 @@ async function resolve(id){
 }
 
 /* ---------------- 황금열쇠 ---------------- */
-async function openKey(){KEYCTX=1;try{return await openKey0()}finally{KEYCTX=0}}
+let KEYPICK=null;
+async function openKey(){ // 황금열쇠: 끝난 뒤 생긴 돈 변화에 내 형편 배율을 곱해 줌 (한탕 사건은 이미 비례라 제외)
+  const KS=keyScale(),c0=me.cash;KEYCTX=1;KEYPICK=null;
+  try{await openKey0()}finally{KEYCTX=0}
+  const d=me.cash-c0;
+  if(d&&KS>1.05&&KEYPICK&&!KEYPICK.raw){const ex=r10(d*(KS-1));me.cash+=ex;addLog(`황금열쇠 형편 보정 ×${KS.toFixed(1)} ${ex>=0?'+':''}${won(ex)}`);
+    setMsg($('msg').textContent+` → 내 형편 반영 ×${KS.toFixed(1)}: 총 ${d+ex>=0?'+':'-'}${won(Math.abs(d+ex))}`)}
+}
 async function openKey0(){
   track('key');await keyFlip();
   const list=KEYS.filter(k=>!k.c||k.c());
   const rk=me.rk||[];const ws=list.map(k=>(typeof k.w==='function'?k.w():(k.w||1))*(rk.includes(KEYS.indexOf(k))?.08:1)); // 최근에 나온 황금열쇠는 잘 안 나오게
   let r=R()*ws.reduce((a,b)=>a+b,0),k=list[0];
   for(let i=0;i<list.length;i++){r-=ws[i];if(r<=0){k=list[i];break}}
-  me.rk=[...rk,KEYS.indexOf(k)].slice(-25);
+  me.rk=[...rk,KEYS.indexOf(k)].slice(-25);KEYPICK=k;
   const text=typeof k.t==='function'?k.t():k.t;
   if(k.quiz){
     setMsg('황금열쇠 — '+text);
@@ -3157,7 +3173,7 @@ async function openKey0(){
   }
   if(k.opts){
     const v=await choose('황금열쇠 — '+text,k.opts.map((o,i)=>({label:o.l,v:i,primary:i===0})));
-    setMsg(k.opts[v].f());return;
+    setMsg(k.opts[v].f());if(k.opts[v].after){KEYCTX=0;await k.opts[v].after()}return;
   }
   setMsg('황금열쇠 — '+k.f());
 }
@@ -3490,7 +3506,12 @@ async function bankCell(){
   else if(v==='repay'){const a=Math.min(me.loan,me.cash);me.loan-=a;me.cash-=a;addLog(`대출 상환 ${won(a)}`);setMsg(me.loan?`${won(a)} 갚았어요.`:'대출을 모두 갚았어요!')}
   else setMsg('은행을 나왔어요.');
 }
-function nightCell(){
+async function nightCell(){
+  const v=await choose(`야근 칸이에요. 오늘 밤은? (하우스 남은 판 ${houseLeft()}/${HOUSE_MAX})`,[{label:me.job==='none'?'그냥 집에 가서 잔다':'야근한다 (수당)',v:'w',primary:true},{label:'🎲 퇴근하고 동네 하우스 간다',v:'h',disabled:houseLeft()<=0||me.cash<10}]);
+  if(v==='h') return houseVisit('퇴근길');
+  return nightWork();
+}
+function nightWork(){
   if(me.job==='none'){setMsg('야근할 회사가 없어요. 대신 푹 잤어요.');return}
   const dr=me.job==='doctor';
   const g=Math.max(20,Math.round(avgSalary()*.3*(dr?2:1)*(hasTime('offwork')?1.5:1)));gain(g,'야근 수당');
@@ -3564,6 +3585,98 @@ async function realtyCell(){
   if(v==='home'){showTab('home');setMsg('오른쪽 "집" 탭에서 월세·전세·매매를 골라 보세요.')}
   else if(v==='cy') applyCheongyak();
   else setMsg('구경만 하고 나왔어요.');
+}
+
+/* =====================================================================
+   황금열쇠 강화(형편 보정·한탕 사건) · 동네 하우스(베팅 게임)
+   ===================================================================== */
+/* 황금열쇠 금액을 내 형편에 맞게: 순자산이 클수록 크게 (최대 ×6) */
+const keyScale=()=>clamp(Math.sqrt(Math.max(netWorth(),START_CASH)/Math.max(100,START_CASH)),1,6);
+const cashPct=(p,min=10)=>r10(Math.max(min,Math.max(0,me.cash)*p));
+
+/* ---- 한탕 황금열쇠 (금액이 이미 형편 비례라 raw:1) ---- */
+KEYS.push(
+ {raw:1,w:1.2,t:'고등학교 동창이 "확실한 정보"라며 비상장 주식 투자를 권해요. 현금의 30%를 넣으래요.',opts:[
+   {l:'눈 딱 감고 투자 (현금 30%)',f:()=>{const v=cashPct(.3);if(v<10)return '넣을 돈이 없어요. 동창이 실망한 눈치예요';spend(v,'황금열쇠: 비상장 투자');if(R()<.45){const g=r10(v*2.5);gain(g,'황금열쇠: 비상장 대박');postNews(`${dynName()}님 비상장 투자 대박! +${won(g-v)}`);return `상장 소식! 넣은 돈이 2.5배가 됐어요 +${won(g)}`}return `동창이 연락이 안 돼요… 투자금 -${won(v)} 증발`}},
+   {l:'정중히 거절',f:()=>'"다음에 꼭 같이 하자"는 말을 남기고 동창이 떠났어요'}]},
+ {raw:1,w:1,t:'단톡방에 "내일 10배 간다"는 코인 정보가 돌아요.',opts:[
+   {l:'크게 탄다 (현금 25%)',f:()=>{const v=cashPct(.25);if(v<10)return '탈 돈이 없어서 구경만 했어요';spend(v,'황금열쇠: 코인');const m=[0,.1,.3,.6,1.2,2,4,6][Math.floor(R()*8)];const g=r10(v*m);if(g)gain(g,'황금열쇠: 코인 정산');if(m>=4)postNews(`${dynName()}님 코인 ${m}배 떡상!`);return m>=1?`${m}배! +${won(g-v)} 수익`:`${Math.round((1-m)*100)}% 손실… -${won(v-g)}`}},
+   {l:'소액만 (현금 5%)',f:()=>{const v=cashPct(.05);spend(v,'황금열쇠: 코인 소액');const m=[0,.5,1,1.5,3][Math.floor(R()*5)];const g=r10(v*m);if(g)gain(g,'황금열쇠: 코인 정산');return `소심하게 탔더니 ${m}배. ${g>=v?'+':'-'}${won(Math.abs(g-v))}`}},
+   {l:'안 탄다',f:()=>'다음 날 차트를 보니… 모르는 게 약이에요'}]},
+ {raw:1,w:.4,f:()=>{const g=r10(clamp(netWorth()*.08,1000,30000));gain(g,'황금열쇠: 먼 친척 유산');postNews(`${dynName()}님, 얼굴도 모르는 먼 친척에게 유산 ${won(g)}을 물려받았어요!`);return `연락 한 번 없던 먼 친척 할아버지가 유산을 남기셨어요 +${won(g)}`}},
+ {raw:1,w:.8,t:'"고객님 계좌가 범죄에 연루됐습니다" 검찰청이라며 전화가 왔어요.',opts:[
+   {l:'시키는 대로 앱을 깐다',f:()=>{const v=cashPct(.15);spend(v,'황금열쇠: 보이스피싱');postNews(`${dynName()}님 보이스피싱 피해… 다들 조심하세요`);return `보이스피싱이었어요… -${won(v)}. 은행에 신고는 했어요`}},
+   {l:'끊고 112에 신고',f:()=>{me.exp=Math.min(10,me.exp+1);const g=lucky(50,'황금열쇠: 신고 포상금');return `조직 검거에 도움! 포상금 +${won(g)}, 경험 +1`}}]},
+ {raw:1,w:.6,f:()=>{const g=r10(clamp(netWorth()*.04,800,8000));gain(g,'황금열쇠: 경품 자동차');postNews(`${dynName()}님 백화점 경품 자동차 당첨!`);return `백화점 경품 추첨에서 자동차 당첨! 바로 팔아서 +${won(g)}`}},
+ {raw:1,w:.8,c:()=>me.job!=='none'&&me.job!=='alba',f:()=>{const g=r10(Math.max(300,avgSalary()*3));gain(g,'황금열쇠: 스카우트 사이닝 보너스');return `경쟁사에서 스카우트 제안! 거절했더니 회사가 붙잡으려고 보너스를 줬어요 +${won(g)}`}},
+ {raw:1,w:.8,f:()=>{if(R()<.5){const g=r10(clamp(netWorth()*.03,200,5000));gain(g,'황금열쇠: 교통사고 합의금');return `신호 대기 중 뒤에서 쿵! 상대 과실 100% 합의금 +${won(g)}`}const v=cashPct(.06,50);spend(v,'황금열쇠: 접촉사고 수리비');return `주차하다 외제차를 긁었어요… 수리비 -${won(v)}`}},
+ {raw:1,w:.7,t:'오랜 친구가 사업 자금 1,000만이 급하다며 빌려 달래요.',opts:[
+   {l:'빌려준다 (1,000만)',f:()=>{if(me.cash<1000)return '빌려줄 돈이 없어서 미안하다고 했어요';spend(1000,'황금열쇠: 친구 사업 자금');if(R()<.4){gain(3000,'황금열쇠: 친구 사업 성공 사례');return '친구 사업이 대박! 3배로 갚았어요 +3,000만'}if(R()<.5){gain(1000,'황금열쇠: 친구가 갚음');return '1년 뒤 원금 그대로 갚았어요. 우정은 지켰어요'}return '친구가 잠수를 탔어요… -1,000만. 인생 공부 비싸게 했어요'}},
+   {l:'거절한다',f:()=>'"돈 거래는 안 하기로 했어" 친구가 서운해했지만 이해했어요'}]},
+ {raw:1,w:1.5,t:'골목 끝 간판 없는 가게에서 "형님, 한 판 하고 가요" 하는 목소리가 들려요.',opts:[
+   {l:'들어가 본다 (하우스 초대장)',f:()=>{me.houseTicket=kstDay();return '하우스 초대장을 받았어요! 지금 바로 한 판 해 볼까요?'},after:()=>houseVisit('초대장')},
+   {l:'그냥 지나간다',f:()=>'뒤도 안 돌아보고 집에 왔어요. 현명한 선택일지도'}]},
+);
+
+/* ---- 금액 고르기 (직접 입력 가능) ---- */
+function chooseAmount(text,max,min=10){
+  setMsg(text);
+  return new Promise(res=>{
+    const a=$('actions');a.innerHTML='';const fin=v=>{a.innerHTML='';res(v)};
+    const pcts=[[.1,'10%'],[.25,'25%'],[.5,'절반'],[1,'올인']];
+    pcts.forEach(([p,l])=>{const v=r10(max*p);const b=el('button','btn'+(p===.1?' primary':''),`${l} ${won(v)}`);b.disabled=v<min;b.onclick=()=>fin(v);a.append(b)});
+    const w=el('div','bet-in');const inp=el('input','');inp.type='number';inp.min=min;inp.max=max;inp.step=10;inp.placeholder='직접 입력 (만)';inp.inputMode='numeric';
+    const ok=el('button','btn','걸기');ok.onclick=()=>{const v=r10(Number(inp.value)||0);if(v<min||v>max){toast(`${won(min)} ~ ${won(max)} 사이로 걸어 주세요`);return}fin(v)};
+    w.append(inp,ok);a.append(w);const no=el('button','btn','안 할래요');no.onclick=()=>fin(0);a.append(no);
+  });
+}
+/* ---- 동네 하우스: 하루 5판, 현금 안에서만 (대출 불가) ---- */
+let HOUSE_MAX=30; // 운영자 설정 houseMax
+const houseLeft=()=>HOUSE_MAX-(me.gb&&me.gb.d===kstDay()?me.gb.n:0);
+function houseCount(win,stake,profit){const d=kstDay();if(!me.gb||me.gb.d!==d)me.gb={d,n:0};me.gb.n++;stat('gamble');
+  me.gbSum=(me.gbSum||0)+profit;if(win){me.gbStreak=(me.gbStreak||0)+1;if(me.gbStreak>=5)award('tazza')}else me.gbStreak=0;
+  if(!win&&stake>=me.cash+stake-1&&stake>=100)award('tangjin');
+  if(Math.abs(profit)>=Math.max(1000,netWorth()*.1))postNews(profit>0?`${dynName()}님 하우스에서 ${won(profit)} 땄어요! 오늘 한턱?`:`${dynName()}님 하우스에서 ${won(-profit)} 잃었어요… 다들 위로를`);
+  save()}
+async function houseVisit(from){
+  KEYCTX=0;
+  if(HOUSE_MAX<=0){setMsg('하우스가 영업을 쉬고 있어요 (운영자 설정).');return}
+  if(houseLeft()<=0){setMsg(`오늘 하우스는 문 닫았어요 (하루 ${HOUSE_MAX}판). 내일 다시 와요.`);return}
+  if(me.cash<10){setMsg('하우스 입장하려면 현금 10만은 있어야 해요.');return}
+  const g=await choose(`🎲 동네 하우스 (${from}) · 오늘 남은 판 ${houseLeft()}/${HOUSE_MAX} · 내 현금 ${won(me.cash)} · 대출로는 못 걸어요`,[
+    {label:'홀짝 — 맞히면 1.95배 (확률 50%)',v:'oe',primary:true},
+    {label:'룰렛 — 색깔 2배(47%) / 숫자 하나 9배(10%)',v:'rl'},
+    {label:'하이로우 — 맞힐 때마다 ×1.8, 언제든 멈추기',v:'hl'},
+    {label:'그냥 나간다',v:0}]);
+  if(!g){setMsg('구경만 하고 나왔어요. 지갑은 무사해요.');return}
+  const stake=await chooseAmount(`얼마 걸까요? (최소 10만, 최대 현금 ${won(me.cash)})`,me.cash);
+  if(!stake){setMsg('겁이 나서 그냥 나왔어요.');return}
+  spend(stake,'하우스 베팅');let back=0;
+  if(g==='oe'){
+    const pick=await choose(`${won(stake)} 걸었어요. 홀? 짝?`,[{label:'홀',v:1,primary:true},{label:'짝',v:2}]);
+    const a=1+Math.floor(R()*6),b=1+Math.floor(R()*6);for(let k=0;k<6;k++){setMsg(`🎲 ${1+Math.floor(Math.random()*6)} + ${1+Math.floor(Math.random()*6)} …`);await sleep(90)}
+    const odd=(a+b)%2===1,win=(pick===1)===odd;if(win)back=r10(stake*1.95);
+    setMsg(`🎲 ${a} + ${b} = ${a+b} (${odd?'홀':'짝'})! ${win?`맞혔어요 +${won(back)}`:`꽝… -${won(stake)}`}`);
+  }else if(g==='rl'){
+    const kind=await choose(`${won(stake)} 걸었어요. 어디에 걸까요?`,[{label:'빨강 (2배)',v:'r',primary:true},{label:'검정 (2배)',v:'b'},{label:'숫자 하나 (9배)',v:'n'}]);
+    let num=0;if(kind==='n')num=await choose('숫자를 골라요 (1~10)',[...Array(10)].map((_,i)=>({label:String(i+1),v:i+1})));
+    const r=Math.floor(R()*21); // 0=초록(하우스), 1~10 빨강, 11~20 검정 (숫자는 1~10 두 번)
+    const n=r===0?0:((r-1)%10)+1,col=r===0?'g':r<=10?'r':'b';
+    for(let k=0;k<8;k++){setMsg(`🎡 ${['🔴','⚫','🟢'][k%3]} 빙글빙글…`);await sleep(110)}
+    const win=kind==='n'?n===num:col===kind;if(win)back=r10(stake*(kind==='n'?9:2));
+    setMsg(`🎡 ${col==='g'?'🟢 초록 0 (하우스 승)':`${col==='r'?'🔴 빨강':'⚫ 검정'} ${n}`}! ${win?`당첨 +${won(back)}`:`꽝… -${won(stake)}`}`);
+  }else{
+    let cur=1+Math.floor(R()*13),pot=stake,round=0;const C=n=>['A','2','3','4','5','6','7','8','9','10','J','Q','K'][n-1];
+    while(true){
+      const v=await choose(`🃏 지금 카드 ${C(cur)} · 판돈 ${won(pot)}${round?` (${round}연속 성공)`:''}. 다음 카드는?`,[{label:'높다 ▲',v:'h',primary:true},{label:'낮다 ▼',v:'l'},...(round?[{label:`멈추고 ${won(pot)} 챙기기`,v:'s'}]:[])]);
+      if(v==='s'){back=pot;setMsg(`${round}연속 성공 후 멈췄어요! +${won(pot)}`);break}
+      const nx=1+Math.floor(R()*13);const ok=v==='h'?nx>cur:nx<cur;
+      if(!ok){setMsg(`🃏 ${C(nx)}! ${nx===cur?'같은 숫자는 하우스 승':'틀렸어요'}… 판돈 -${won(stake)}`);break}
+      round++;pot=r10(pot*1.8);cur=nx;if(round>=6){back=pot;setMsg(`🃏 ${C(nx)}! 6연속 성공, 하우스가 손을 들었어요 +${won(pot)}`);break}
+      sfx&&sfx('dbl');
+    }
+  }
+  if(back)gain(back,'하우스 당첨금');houseCount(back>stake,stake,back-stake);
 }
 
 /* =====================================================================
@@ -4766,13 +4879,14 @@ function showSummary(life,wasBest){
 
 /* ---------------- 운영자 설정 ---------------- */
 const ADMIN_EMAIL='duddnddl89@gmail.com';
-const DEF_SET={rollSec:60,maxRolls:30,payMul:1,event:'',lpy:4,startCash:600,stamBase:300,stamGap:100,stamFirst:60,stamInc:30,stamMax:300,npcTarget:8};
+const DEF_SET={rollSec:60,maxRolls:30,payMul:1,event:'',lpy:4,startCash:600,stamBase:300,stamGap:100,stamFirst:60,stamInc:30,stamMax:300,npcTarget:8,houseMax:30};
 function applySettings(s){
   const v={...DEF_SET,...(s||{})};let sec=Number(v.rollSec);if(!sec&&v.rollMin)sec=Number(v.rollMin)*60;
   ROLL_MS=clamp(Math.round((sec||60)/10)*10,10,7200)*1000;MAX_ROLLS=clamp(Math.round(v.maxRolls)||30,5,500);
   PAY_MUL=clamp(Number(v.payMul)||1,.1,10);EVENT_NAME=String(v.event||'').slice(0,30);LPY=clamp(Math.round(v.lpy)||4,1,10);START_CASH=clamp(Math.round(Number(v.startCash))||600,0,1000000);
   STAM={base:clamp(Math.round(Number(v.stamBase)),0,100000),gap:clamp(Math.round(Number(v.stamGap))||100,1,10000),first:clamp(Math.round(Number(v.stamFirst))||60,10,7200),inc:clamp(Math.round(Number(v.stamInc)),0,7200),max:clamp(Math.round(Number(v.stamMax))||300,10,7200)};if(!isFinite(STAM.base))STAM.base=300;if(!isFinite(STAM.inc))STAM.inc=30;
   {const n=Math.round(Number(v.npcTarget));NPC_TARGET=isFinite(n)?clamp(n,0,12):8}
+  {const n=Math.round(Number(v.houseMax));HOUSE_MAX=v.houseMax!=null&&v.houseMax!==''&&isFinite(n)?clamp(n,0,200):30}
 }
 function renderNotice(){const n=CFG.notice,box=$('notice');if(n&&n.text){box.hidden=false;box.textContent='';box.append(el('b','','공지'),' '+n.text)}else box.hidden=true}
 function applyBan(){
@@ -4827,13 +4941,13 @@ function renderAdmin(){
   r2.append(b2,b2c);s2.append(ta,r2);
   // 밸런스
   const s3=sec('이벤트·밸런스 (모든 주민에게 바로 적용)');const cur={...DEF_SET,...CFG.settings};
-  const fields=[['rollSec','주사위 충전 (초, 10초 단위)',Math.round(ROLL_MS/1000),'10'],['maxRolls','주사위 최대 개수',MAX_ROLLS,'1'],['lpy','몇 바퀴에 1살',LPY,'1'],['payMul','월급 배율',cur.payMul,'0.1'],['startCash','초기 자본금 (만원, 새 인생부터)',START_CASH,'100'],['stamBase','체력 기준 횟수 (0이면 끔)',STAM.base,'10'],['stamGap','체력 단계 간격 (번)',STAM.gap,'10'],['stamFirst','첫 단계 충전 (초)',STAM.first,'10'],['stamInc','단계마다 늘어나는 충전 (초)',STAM.inc,'10'],['stamMax','최대 충전 (초)',STAM.max,'10'],['npcTarget','이웃 주민 포함 목표 인원 (0이면 끔)',NPC_TARGET,'1'],['event','이벤트 이름',cur.event,'']];
+  const fields=[['rollSec','주사위 충전 (초, 10초 단위)',Math.round(ROLL_MS/1000),'10'],['maxRolls','주사위 최대 개수',MAX_ROLLS,'1'],['lpy','몇 바퀴에 1살',LPY,'1'],['payMul','월급 배율',cur.payMul,'0.1'],['startCash','초기 자본금 (만원, 새 인생부터)',START_CASH,'100'],['stamBase','체력 기준 횟수 (0이면 끔)',STAM.base,'10'],['stamGap','체력 단계 간격 (번)',STAM.gap,'10'],['stamFirst','첫 단계 충전 (초)',STAM.first,'10'],['stamInc','단계마다 늘어나는 충전 (초)',STAM.inc,'10'],['stamMax','최대 충전 (초)',STAM.max,'10'],['npcTarget','이웃 주민 포함 목표 인원 (0이면 끔)',NPC_TARGET,'1'],['houseMax','하우스(베팅) 하루 최대 판 수 (0이면 하우스 닫음)',HOUSE_MAX,'1'],['event','이벤트 이름',cur.event,'']];
   const grid=el('div','adm-grid');fields.forEach(([k,l,v,st])=>{const lab=el('label','',l),i=el('input');i.id='set_'+k;i.value=v;if(st){i.type='number';i.step=st}lab.append(i);grid.append(lab)});
   const prev=el('div','note');const upd=()=>{const sc=clamp(Math.round((Number($('set_rollSec').value)||0)/10)*10,10,7200),mx=clamp(Math.round(Number($('set_maxRolls').value)||0),5,500),lp=clamp(Math.round(Number($('set_lpy').value)||3),1,10);
     prev.textContent=`→ ${fmtSec(sc)}마다 1개 · 가득 차기까지 ${fmtSec(sc*mx)} · 하루 최대 ${Math.floor(86400/sc)}개 · 한 인생(20→100세, 60세부터 2배속) 약 ${(40*lp+40*Math.max(1,Math.round(lp/2)))*4}번 굴리기`+(()=>{const b=Number($('set_stamBase')?.value)||0;if(!b)return ' · 오늘의 체력 꺼짐';const g=Number($('set_stamGap').value)||100,f=Number($('set_stamFirst').value)||60,c=Number($('set_stamInc').value)||0,m=Number($('set_stamMax').value)||300;return ` · 체력: 하루 ${b}번까지 기본 → ${b}~${b+g-1}번 ${fmtSec(f)}, ${b+g}~${b+2*g-1}번 ${fmtSec(Math.min(m,f+c))}, … 최대 ${fmtSec(m)}`})()};
   setTimeout(()=>{['set_rollSec','set_maxRolls','set_lpy','set_stamBase','set_stamGap','set_stamFirst','set_stamInc','set_stamMax'].forEach(id=>$(id)&&$(id).addEventListener('input',upd));upd()},0);
   const r3=el('div','adm-row'),b3=el('button','btn primary','적용'),b3d=el('button','btn','기본값으로');
-  b3.onclick=async()=>{const v={rollSec:clamp(Math.round((Number($('set_rollSec').value)||360)/10)*10,10,7200),maxRolls:Number($('set_maxRolls').value),lpy:Number($('set_lpy').value),payMul:Number($('set_payMul').value),startCash:Number($('set_startCash').value),stamBase:Number($('set_stamBase').value),stamGap:Number($('set_stamGap').value),stamFirst:Number($('set_stamFirst').value),stamInc:Number($('set_stamInc').value),stamMax:Number($('set_stamMax').value),npcTarget:Number($('set_npcTarget').value),event:$('set_event').value.trim()};useCnt('w');await FS.doc('config/settings').set(v);admMsg('적용했어요')};
+  b3.onclick=async()=>{const v={rollSec:clamp(Math.round((Number($('set_rollSec').value)||360)/10)*10,10,7200),maxRolls:Number($('set_maxRolls').value),lpy:Number($('set_lpy').value),payMul:Number($('set_payMul').value),startCash:Number($('set_startCash').value),stamBase:Number($('set_stamBase').value),stamGap:Number($('set_stamGap').value),stamFirst:Number($('set_stamFirst').value),stamInc:Number($('set_stamInc').value),stamMax:Number($('set_stamMax').value),npcTarget:Number($('set_npcTarget').value),houseMax:Number($('set_houseMax').value),event:$('set_event').value.trim()};useCnt('w');await FS.doc('config/settings').set(v);admMsg('적용했어요')};
   b3d.onclick=async()=>{useCnt('w');await FS.doc('config/settings').set(DEF_SET);admMsg('기본값(1분·30개·4바퀴 1살·월급 1배)')};
   r3.append(b3,b3d);s3.append(grid,prev,r3);
   {const a=npcAll(),fm=npcFloorMap(),fl={};for(const [k,F] of Object.entries(fm)){const [id,f]=fsplit(k);if(npcFloor(id,f))(fl[F.t]=fl[F.t]||[]).push(`${CELL[id].n} ${f}층 ${BIZ[F.biz].n}`)}
