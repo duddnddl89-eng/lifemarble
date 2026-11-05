@@ -435,6 +435,10 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
@@ -2078,7 +2082,7 @@ function passRate(jid){
 
 /* ---- 작은 도우미 ---- */
 function stat(k,n=1){me.stats[k]=(me.stats[k]||0)+n}
-function story(t){me.story.push({a:me.age,t});if(me.story.length>40)me.story.shift()}
+function story(t){me.story.push({a:me.age,t});if(me.story.length>40)me.story.shift();setTimeout(()=>{try{save(true)}catch(e){}},50)} // 중요한 일(자격증·취업·집·결혼 등)은 바로 서버에 저장
 function gain(n,why){me.cash+=n;if(why)addLog(`${why} +${won(n)}`)}
 function spend(n,why){n=trSpend(n,why);me.cash-=n;if(why)addLog(`${why} -${won(n)}`)}
 /* ---- 밸런스: 따라잡기 · 부자세 (운영자 화면 config/tax 로 조정) ---- */
@@ -2208,7 +2212,7 @@ async function migrateOldShops(){
   if(me.mig6) return;me.mig6=1;let total=0;const names=[];
   try{
     let docs={};
-    if(db){useCnt('r',40);const s=await FS.collection(COL.shops).get();s.docs.forEach(d=>docs[d.id]=d.data())}
+    if(db){useCnt('r',40);const s=await FS.collection(COL.shops).get();s.docs.forEach(d=>docs[d.id]=fsDec(d.data()))}
     else docs=me.localShops||{};
     for(const [id,r] of Object.entries(docs)){if(!r||r.owner!==ME()||!CELL[id])continue;const p=r.p||CELL[id].p;const v=p+(r.l||0)*Math.round(p*.6);total+=v;names.push(CELL[id].n)}
   }catch(e){}
@@ -2640,11 +2644,15 @@ const ptDay=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles'}
 function useCnt(kind,n=1){if(!me)return;const d=ptDay();if(!me.usage||me.usage.d!==d)me.usage={d,r:0,w:0};me.usage[kind]+=n}
 
 /* ---- 저장 ---- */
-function chain(fn){saving=saving.then(fn).catch(e=>{if(e&&e.code==='resource-exhausted')toast('오늘 무료 저장 한도를 넘었어요. 운영자에게 알려주세요.');});return saving}
-function dset(path,data,merge){useCnt('w');return chain(()=>FS.doc(path).set(data,merge?{merge:true}:undefined))}
+/* Firestore는 배열 안의 배열을 저장 못 함 → {__a:[...]}로 감싸 저장하고 읽을 때 되돌림 */
+function fsEnc(v,inArr){if(Array.isArray(v)){const a=v.map(x=>fsEnc(x,true));return inArr?{__a:a}:a}if(v&&typeof v==='object'){const o={};for(const k in v)o[k]=fsEnc(v[k],false);return o}return v}
+function fsDec(v){if(Array.isArray(v))return v.map(fsDec);if(v&&typeof v==='object'){if(Array.isArray(v.__a)&&Object.keys(v).length===1)return v.__a.map(fsDec);const o={};for(const k in v)o[k]=fsDec(v[k]);return o}return v}
+let saveErrT=0;
+function chain(fn){saving=saving.then(fn).catch(e=>{console.error('save failed',e);if(e&&e.code==='resource-exhausted')toast('오늘 무료 저장 한도를 넘었어요. 운영자에게 알려주세요.');else if(Date.now()-saveErrT>60000){saveErrT=Date.now();toast('서버 저장에 실패했어요. 인터넷 연결을 확인해 주세요.')}});return saving}
+function dset(path,data,merge){useCnt('w');const d=fsEnc(data,false);return chain(()=>FS.doc(path).set(d,merge?{merge:true}:undefined))}
 /* 저장: 내 기기(localStorage)에는 즉시, 서버에는 20초에 한 번 몰아서 (창을 닫거나 앱을 나갈 때는 즉시) */
 const SID=Math.random().toString(36).slice(2,10),startedAt=Date.now();
-const SAVE_GAP=20000;let saveDirty=false,saveTimer=null,lastFlush=0;
+const SAVE_GAP=8000;let saveDirty=false,saveTimer=null,lastFlush=0;
 function save(force){
   me.sid=SID;me.net=netWorth();me.updated=Date.now();me.shopCount=myShops().length;me.baseLimit=loanLimit(true);
   if(!db) me.localBld={...shops};
@@ -2670,7 +2678,7 @@ function payLedger(to,amt,memo){
 }
 async function txn(path,fn){ // fn(cur|null) → 새 데이터 또는 throw
   if(!db) return false;useCnt('r');useCnt('w');
-  try{await FS.runTransaction(async tx=>{const ref=FS.doc(path);const cur=await tx.get(ref);const nx=fn(cur.exists?cur.data():null);tx.set(ref,nx)});return true}
+  try{await FS.runTransaction(async tx=>{const ref=FS.doc(path);const cur=await tx.get(ref);const nx=fn(cur.exists?fsDec(cur.data()):null);tx.set(ref,fsEnc(nx,false))});return true}
   catch(e){return e&&e.message?e.message:false}
 }
 
@@ -3419,16 +3427,17 @@ async function academyCell(){
   const adv=Object.entries(CERTS).filter(([k])=>me.certs.includes(k)&&!me.certAdv.includes(k));
   const tutorOk=me.certs.length>0&&me.tutorDay!==kstDay(),tutorPay=r10(15*me.certs.length);
   const opts=[...left.map(([k,C])=>({label:`${C.n} 실기 ${won(eduCost(C.c))} · ${C.d} · 혜택: ${C.perk}`,v:'n:'+k,disabled:me.cash<eduCost(C.c)})),
-    ...adv.map(([k,C])=>({label:`${C.n} 심화 과정 ${won(eduCost(C.c*2))} · 혜택 1.5배`,v:'a:'+k,disabled:me.cash<eduCost(C.c*2)})),
+    ...adv.map(([k,C])=>({label:`✔ 보유 중인 ${C.n} → 심화 과정(레벨업) ${won(eduCost(C.c*2))} · 혜택 1.5배`,v:'a:'+k,disabled:me.cash<eduCost(C.c*2)})),
     ...(me.certs.length?[{label:tutorOk?`자격증 강사 알바 +${won(tutorPay)}, 경험 +1 (하루 1번)`:'자격증 강사 알바 (오늘은 이미 했어요)',v:'t',disabled:!tutorOk}]:[]),{label:'안 함',v:0}];
   if(!left.length&&!adv.length&&!tutorOk){gain(30,'학원 상담 알바');setMsg('자격증도 심화 과정도 다 마쳤어요. 학원 상담 알바 +30만');return}
-  const v=await choose('자격증학원이에요. 무엇을 할까요? (자격증은 직업과 상관없이 작은 혜택이 있어요)',opts);
+  const own=me.certs.map(k=>CERTS[k]&&CERTS[k].n+(me.certAdv.includes(k)?'(심화)':'')).filter(Boolean);
+  const v=await choose(`자격증학원이에요. 무엇을 할까요? ${own.length?`내 자격증: ${own.join(', ')}. `:''}(자격증은 직업과 상관없이 작은 혜택이 있어요)`,opts);
   if(!v){setMsg('구경만 하고 나왔어요.');return}
   if(v==='t'){me.tutorDay=kstDay();gain(tutorPay,'자격증 강사 알바');me.exp=Math.min(10,me.exp+1);setMsg(`자격증 ${me.certs.length}개로 특강을 했어요. +${won(tutorPay)}, 경험 +1`);return}
   const [kind,k]=v.split(':'),C=CERTS[k],cost=eduCost(kind==='a'?C.c*2:C.c);spend(cost,`${C.n} ${kind==='a'?'심화 과정':'응시료'}`);track('exam');
   const g=await runMG(C.mg,`${C.n} ${kind==='a'?'심화 시험':'실기시험'}`);
   if(g.pass){
-    if(kind==='a'){me.certAdv.push(k);await mgResult(`${C.n} 심화 과정 수료! 혜택 1.5배`,true);addLog(`${C.n} 심화 수료`);setMsg(`${C.n} 심화 수료! ${C.perk} → 1.5배`);return}
+    if(kind==='a'){me.certAdv.push(k);story(`${C.n} 심화 수료`);await mgResult(`${C.n} 심화 과정 수료! 혜택 1.5배`,true);addLog(`${C.n} 심화 수료`);setMsg(`${C.n} 심화 수료! ${C.perk} → 1.5배`);return}
     me.certs.push(k);const opens=EXAM_JOBS.filter(j=>JOBS[j].req&&JOBS[j].req.cert===k).map(j=>JOBS[j].n);
     await mgResult(`${C.n} 합격! ${g.r}/${g.max}`,true);addLog(`${C.n} 취득`);story(`${C.n} 취득`);setMsg(`${C.n} 취득! 혜택: ${C.perk}${opens.length?` · ${opens.join('·')} 시험 조건 충족`:''}`)}
   else{me.fails['c_'+k]=(me.fails['c_'+k]||0)+1;await mgResult(`${g.r}/${g.max}… 불합격. 다음에 다시 도전하세요`,false);setMsg(`${C.n} ${kind==='a'?'심화 ':''}불합격 (${me.fails['c_'+k]}번째)`);checkTitles()}
@@ -4925,7 +4934,7 @@ function wireAuth(){
   $('logoutBtn').onclick=async()=>{try{await AUTH.signOut()}catch(e){}location.reload()};
 }
 function sub(key,col,fn){
-  FS.collection(col).onSnapshot(s=>{useCnt('r',Math.max(1,s.docChanges().length));const d={};s.docs.forEach(x=>{d[x.id]=x.data()});got[key]=true;try{fn(d)}catch(e){console.error(e)}},e=>console.warn(col,e&&e.code));
+  FS.collection(col).onSnapshot(s=>{useCnt('r',Math.max(1,s.docChanges().length));const d={};s.docs.forEach(x=>{d[x.id]=fsDec(x.data())});got[key]=true;try{fn(d)}catch(e){console.error(e)}},e=>console.warn(col,e&&e.code));
 }
 let subscribed=false;
 async function startOnline(){
@@ -4938,7 +4947,7 @@ async function startOnline(){
     if(myId===u.uid&&db&&me&&me.nick) return; // 이미 접속 중 — 재호출 무시
     myId=u.uid;db={};isAdmin=(u.email||'').toLowerCase()===ADMIN_EMAIL&&u.emailVerified!==false;$('adminBtn').hidden=!isAdmin;
     $('who').textContent=u.email||'구글 계정';$('logoutBtn').hidden=false;$('loginBtn').hidden=true;
-    try{useCnt('r');const snap=await FS.doc(COL.players+'/'+myId).get();let remote=snap.exists?clone(snap.data()):null;
+    try{useCnt('r');const snap=await FS.doc(COL.players+'/'+myId).get();let remote=snap.exists?fsDec(clone(snap.data())):null;
       try{const lu=localStorage.getItem('lifemarble5.uid'),lm=JSON.parse(localStorage.getItem('lifemarble5.me')||'null');
         if(remote&&lu===myId&&lm&&lm.v===VER&&remote.v===VER&&(lm.updated||0)>(remote.updated||0)&&lm.nick===remote.nick){delete lm.localShops;remote=lm;setTimeout(()=>save(true),1500)}}catch(e){}
       me=normalize(remote);shops={};
