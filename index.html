@@ -470,6 +470,8 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
@@ -788,6 +790,8 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
       <li><b>직급 확장</b>: 모든 직업이 6~8단계가 됐어요(예: 회사원 인턴→사원→주임→대리→과장→차장→부장→임원, 공무원 9급→8급→…→국장, 의사 인턴→레지던트→전문의→펠로우→과장→부원장→병원장). 기존 직급은 월급이 줄지 않는 자리로 옮겨졌어요. <b>승진 시험은 직급별로</b>: 아래쪽 단계는 미니게임 1개, 중간은 2개 연속, 위쪽은 2개 연속 + 직업 퀴즈(제한시간 1초 짧음). 공무원 9급→8급은 근속만 채우면 자동.</li>
       <li><b>군인 (신규 직업)</b>: 하사→중사→상사→소위→대위→소령→대령→장군(월급 220~1,200만). 시험장에서 응시(학력 무관). 관사 무료(월세 0, 계급 따라 원룸→빌라→아파트로 관사 이동), PX 쇼핑 -20%, 군인연금(국민연금 1.5배), 직장 칸에서 사격 훈련·예비군 칸에서 교관 근무로 훈련 점수. 겸직 금지(직접 운영 가게 매출 -30%), 비상소집 황금열쇠(주사위 -2), 출마하려면 전역.</li>
       <li><b>예비군 훈련장 (출장·외근 자리)</b>: 성별 상관없이 20~40세는 7일마다 소집. 기한 안에 칸에 가면 교통비 +30만·주사위 -1, 사격 만발이면 조기 퇴소(주사위 그대로·+100만·칭호「명사수」). 안 가면 월급날 벌금 100만, 3번 연속이면 고발(추가 300만). 41~50세 민방위 +10만, 51세 이상 안보 견학 경험 +1. 회사원은 근무 인정 평가 +2. 집 탭에 소집까지 남은 시간 표시.</li>
+      <li><b>배달 라이더 (신규 직업)</b>: 초보 라이더 → 배달 라이더 → 베테랑 → 에이스 → 배달 대행 팀장 → 배달 대행사 대표 (월급 150~550만). 조건 없이 응시, 합격률 높음. 눈·한파·태풍·연말·주말 축제 날 월급 2배. 직장 칸 '배달 콜 잡기'(주소 외우기)로 팁과 배달 건수(대목엔 2배). 프리랜서라 국민연금 없음, 콜을 놓치면 접촉사고.</li>
+      <li><b>축제 예고·이웃 주민 참가</b>: 토요일 12시부터 축제 카운트다운 배너, 18:30 예고 뉴스·알림. 이웃 주민도 축제에 참가해 순위를 겨뤄요(상금은 사람 중 상위 3명).</li>
       <li><b>칸 특성</b>: 음식 칸(골목시장·분식집거리·먹자골목·카페거리·전통시장·야시장·푸드코트 등)에 음식 가게를 열면 매출 +20%. 놀거리 칸(영화관·백화점 등)에 노래방·PC방·카페는 +15%.</li>
       <li><b>권리금·매도청구 쿨타임</b>: 권리금 인수는 하루 1번, 연 지 2일 안 된 가게는 인수할 수 없어요. 매도청구는 건물마다 하루, 사람마다 3일 쿨타임이고 산 지 3일 안 된 층이 있으면 못 해요.</li>
       <li><b>건축가·기자</b>: 11/6부터 새로 응시할 수 없어요. 지금 일하는 사람은 그대로 일할 수 있어요.</li>
@@ -1314,6 +1318,11 @@ for(const k of ['realtor','reporter']){JOBS[k].hidden=1;const i=EXAM_JOBS.indexO
 /* 직급별 승진 시험: 앞쪽 1/3은 미니게임 1개, 중간은 2개 연속, 위쪽은 2개 연속 + 직업 퀴즈(제한시간 1초 짧게) */
 const JOB_TEST={office:['order','interview'],civil:['memory','civil'],doctor:['memory','doctor'],lawyer:['order','lawyer'],fund:['investMath','fund'],dev:['find','startup'],chef:['timing','owner'],realtor:['realtyMath','realty'],tax:['order','tax'],reporter:['memory','news'],soldier:['timing','army']};
 const promoTier=(job,next)=>{const top=JOBS[job].titles.length-1;return next<=Math.ceil(top/3)?1:next<=Math.ceil(top*2/3)?2:3};
+/* 배달 라이더 (11/6 신규) */
+JOBS.rider={n:'배달 라이더',titles:['초보 라이더','배달 라이더','베테랑 라이더','에이스 라이더','배달 대행 팀장','배달 대행사 대표'],sal:[150,200,260,330,420,550],req:{},pass:.8,fee:10,bank:'rider',
+  promo:{kind:'deliv',need:[5,12,22,35,50],min:[2,4,6,8,10],test:[1,1,1,1,1],seat:1},
+  trait:'👍 조건 없이 바로 응시(합격률 높음), 눈·한파·태풍·연말·주말 축제 날 월급 2배, 직장 칸 "배달 콜 잡기"로 팁 수입. 👎 프리랜서라 국민연금 없음, 콜을 놓치면 접촉사고(자동차보험 있으면 90% 보장). 승진: 배달 건수 + 직급별 시험. 대행사 대표는 기본 1명, 주민 10명마다 +1.'};
+EXAM_JOBS.push('rider');METRIC.deliv='배달 건수';JOB_TEST.rider=['memory','rider'];
 
 /* =====================================================================
    황금열쇠 — 선택형 사건. opts가 있으면 고르고, 없으면 바로 일어나요.
@@ -2111,6 +2120,7 @@ function payNow(){
   if(me.job==='fund'&&issueOn('stock_down')) p*=.5;
   if(me.job==='alba') p+=r10(60*PK('min_wage'));
   if(hasTime('payday25')) p*=1.2;
+  if(me.job==='rider'&&(issueOn('snow')||issueOn('cold')||issueOn('typhoon')||issueOn('yearend')||(typeof festOn==='function'&&festOn())))p*=2; // 배달 대목
   return Math.round(p*PAY_MUL*trPay());
 }
 function spouseIncome(){
@@ -3005,7 +3015,7 @@ async function keyFlip(){
 }
 
 /* ---- 9. 캐릭터 말: 나이·성별·직업 아바타 ---- */
-const AV_JOB={office:'💼',civil:'💼',doctor:'⚕️',lawyer:'💼',dev:'💻',chef:'🍳',realtor:'🔧',fund:'💼',tuber:'🎤',tax:'💼',reporter:'🎤',soldier:'🎖️'};
+const AV_JOB={office:'💼',civil:'💼',doctor:'⚕️',lawyer:'💼',dev:'💻',chef:'🍳',realtor:'🔧',fund:'💼',tuber:'🎤',tax:'💼',reporter:'🎤',soldier:'🎖️',rider:'🛵'};
 function avatar(p){
   if(!p) return '🙂';const g=p.gender==='m'?'m':p.gender==='f'?'f':'x';
   if((p.age||20)>=60) return g==='m'?'👴':g==='f'?'👵':'🧓';
@@ -3904,14 +3914,19 @@ function festOver(){const d=kstNow();return (d.getUTCDay()===6&&d.getUTCHours()>
 const FEST_TRIES=2,BELL_N=10;
 function myFest(){const d=festDay();if(!me.fest||me.fest.d!==d)me.fest={d};return me.fest}
 function festPlayers(){const d=festDay(),out=[];const add=(id,p)=>{const f=p&&p.fest;if(f&&f.d===d)out.push({id,f,p})};add(ME(),me);for(const [id,p] of Object.entries(others))if(p&&p.v===VER)add(id,p);return out}
+/* 이웃 주민(봇)도 축제에 참가: 축제 시간 중 각자 정해진 시각에 기록 제출 (상금은 사람만) */
+function festNpcs(){if(!db||!NPC_TARGET)return [];const d=festDay(),t0=Date.parse(d+'T19:00:00+09:00'),now=Date.now(),out=[];
+  for(const x of npcAll().present){const h=hmix(x.p.nick+'#fest#'+d);if(h%10<3)continue; // 30%는 안 옴
+    const at=t0+(h>>>4)%(170*6e4);if(now<at)continue;const mg=3+((h>>>12)%8),bell=(h>>>16)%100<8?BELL_N:(h>>>20)%9;
+    out.push({id:x.id,npc:1,p:x.p,f:{d,mg,mgT:at,bell}})}return out}
 function festResult(){
-  const L=festPlayers(),mg=L.filter(x=>x.f.mg!=null).sort((a,b)=>b.f.mg-a.f.mg||(a.f.mgT||0)-(b.f.mgT||0));
+  const L0=festPlayers(),N=festNpcs(),mgAll=[...L0,...N].filter(x=>x.f.mg!=null).sort((a,b)=>b.f.mg-a.f.mg||(a.f.mgT||0)-(b.f.mgT||0)),mg=mgAll.filter(x=>!x.npc),L=L0;
   const nets=[me,...Object.values(others).filter(p=>p&&p.v===VER)].map(p=>p===me?netWorth():(p.net||0)).filter(x=>x>0);
   const avg=nets.length?nets.reduce((a,b)=>a+b,0)/nets.length:5000;
   const prize=[[.05,3000],[.03,1500],[.02,1000]].map(([p,m])=>r10(Math.max(m,avg*p)));
   const bellP=L.filter(x=>x.f.bell!=null),pool=5000+300*bellP.length,full=bellP.filter(x=>x.f.bell>=BELL_N);
   let bellW=full,bellPool=pool;if(!full.length){const mx=Math.max(0,...bellP.map(x=>x.f.bell));bellW=mx>=5?bellP.filter(x=>x.f.bell===mx):[];bellPool=r10(pool/2)}
-  return {mg,prize,bellW,bellShare:bellW.length?r10(bellPool/bellW.length):0,pool,L};
+  return {mg,mgAll,prize,bellW,bellShare:bellW.length?r10(bellPool/bellW.length):0,pool,L,N};
 }
 function festClaim(){
   if(!festOver())return;const f=me.fest;if(!f||f.d!==festDay()||f.claimed||(f.mg==null&&f.bell==null))return;
@@ -3945,13 +3960,15 @@ function renderFest(){
   box.append(el('div','note','축제 동안 모든 가게 매출 1.5배. 미니게임 대회(2번 도전, 최고 기록) 1등 동네 평균 순자산 5%(최소 3,000만)+주사위 30+칭호, 2등 3%(최소 1,500만), 3등 2%(최소 1,000만). 골든벨(10문제 연속) 상금 5,000만+참가자당 300만을 끝까지 맞힌 사람끼리. 참가만 해도 200만+주사위 10.'));
   if(on){const r=el('div','adm-row');const b1=el('button','btn primary',`미니게임 대회 도전 (${FEST_TRIES-(f.tries||0)}번 남음)`);b1.type='button';b1.disabled=busy||(f.tries||0)>=FEST_TRIES;b1.onclick=()=>festMG();
     const b2=el('button','btn',f.bell!=null?`골든벨 ${f.bell}문제 완료`:'골든벨 도전');b2.type='button';b2.disabled=busy||f.bell!=null;b2.onclick=()=>festBell();r.append(b1,b2);box.append(r)}
-  if(on||over){const R0=festResult();const t=el('div','note');t.append(el('b','','실시간 순위 '),R0.mg.slice(0,5).map((x,i)=>`${i+1}. ${dynName(x.p===me?undefined:x.p)||nameOf(x.id)} ${x.f.mg}점`).join(' · ')||'아직 도전자가 없어요');
-    t.append(el('br'),`골든벨 참가 ${R0.L.filter(x=>x.f.bell!=null).length}명 · 상금 풀 ${won(R0.pool)}${R0.bellW.length?` · 우승 ${R0.bellW.length}명`:''}`);box.append(t)}
+  if(on||over){const R0=festResult();const t=el('div','note');t.append(el('b','','실시간 순위 '),R0.mgAll.slice(0,6).map((x,i)=>`${i+1}. ${x.npc?x.p.nick:(dynName(x.p===me?undefined:x.p)||nameOf(x.id))} ${x.f.mg}점`).join(' · ')||'아직 도전자가 없어요');t.append(el('br'),'상금은 주민(사람) 중 상위 3명이 받아요. 이웃 주민도 참가해서 기록을 겨뤄요.');
+    t.append(el('br'),`골든벨 참가 ${R0.L.filter(x=>x.f.bell!=null).length+R0.N.length}명${R0.N.some(x=>x.f.bell>=BELL_N)?` (이웃 주민 ${R0.N.filter(x=>x.f.bell>=BELL_N).map(x=>x.p.nick).join('·')} 골든벨!)`:''} · 상금 풀 ${won(R0.pool)}${R0.bellW.length?` · 우승 ${R0.bellW.length}명`:''}`);box.append(t)}
   if(!notifyOn()){const nb=el('button','mini','브라우저 알림 켜기 (축제·타임세일·주사위 가득)');nb.type='button';nb.onclick=askNotify;box.append(nb)}
 }
 setInterval(()=>{try{if(!me)return;notifyTick();festClaim();const b=$('festBar');const on=festOn();
   if(on){let x=b;if(!x){x=el('div','sale-bar fest');x.id='festBar';document.body.prepend(x)}x.hidden=false;const d=kstNow();const left=(22*60-(d.getUTCHours()*60+d.getUTCMinutes()));x.textContent=`주말 동네 축제 진행 중 · 가게 매출 1.5배 · 동네 탭에서 미니게임 대회·골든벨 · ${Math.floor(left/60)}시간 ${left%60}분 남음`}
-  else if(b)b.hidden=true}catch(e){}},5000);
+  else{const d=kstNow(),m=d.getUTCHours()*60+d.getUTCMinutes();if(d.getUTCDay()===6&&m>=12*60&&m<19*60){let x=b;if(!x){x=el('div','sale-bar fest');x.id='festBar';document.body.prepend(x)}x.hidden=false;const left=19*60-m;x.textContent=`오늘 저녁 7시 주말 동네 축제! ${Math.floor(left/60)}시간 ${left%60}분 남음 · 가게 매출 1.5배 · 미니게임 대회 · 골든벨`;
+      if(m>=18*60+30&&me.festPre!==festDay()){me.festPre=festDay();if(hmix(ME()+festDay())%3===0)postNews('30분 뒤 주말 동네 축제 시작! 미니게임 대회 1등 상금 최소 3,000만, 골든벨 5,000만+');notify('30분 뒤 축제 시작','저녁 7시 주말 동네 축제')}}
+    else if(b)b.hidden=true}}catch(e){}},5000);
 
 /* ---- 하우스 게임 추가 ---- */
 async function extraGame(g,stake){
@@ -4133,6 +4150,26 @@ Q.army=(Q.army||[]).concat([
  ['훈련 중 동료가 쓰러졌을 때 가장 먼저 할 일은?',['간부에게 알리고 응급 처치','모른 척 계속 훈련','사진 찍기','도망가기']],
 ]);
 
+/* ---- 배달 라이더 ---- */
+JOB_ACT.rider={l:'배달 콜 잡기 (주소 외우기)',f:async()=>{
+  const g=await runMG('memory','배달 콜! 주소 외우기');const rush=issueOn('snow')||issueOn('cold')||issueOn('typhoon')||issueOn('yearend')||festOn();
+  if(g.pass){const n=rush?2:1;me.jp.deliv=(me.jp.deliv||0)+n;const tip=r10((30+10*me.rank)*(rush?2:1));gain(tip,'배달 팁');await mgResult(`배달 완료! 배달 건수 +${n}`,true);
+    setMsg(`${pick(['"문 앞에 두고 벨 눌러주세요" 미션 성공','손님이 "기사님 최고" 별점 5개','엘리베이터 없는 5층 빌라 계단 완주','국물 한 방울 안 흘리고 짬뽕 배달 성공','"리뷰 이벤트 콜라 서비스 주세요" 요청까지 완벽 처리'])}! 팁 +${won(tip)}, 배달 건수 +${n}${rush?' (대목이라 2배!)':''}`)}
+  else{await mgResult('주소를 헷갈렸어요…',false);if(R()<.4){spend(60,'배달 중 접촉사고 수리비');setMsg('엉뚱한 아파트를 돌다 골목에서 접촉사고… 수리비 (자동차보험이 있으면 90% 보장)')}else setMsg('옆 동에 배달했다가 다시 가져다 드렸어요. 손님: "괜찮아요, 식었지만요"')}
+}};
+KEYS.push(
+ {w:1.5,c:()=>me.job==='rider',f:()=>{const g=lucky(80,'황금열쇠: 배달 단골 팁');return `매일 시키는 단골 손님이 "늘 고마워요" 하며 봉투를 건넸어요 +${won(g)}`}},
+ {w:1,c:()=>me.job==='rider',f:()=>{spend(70,'황금열쇠: 빗길 미끄러짐 수리비');return '빗길에 스쿠터가 미끄러졌어요. 다친 데는 없지만 수리비가… (자동차보험 있으면 90% 보장)'}},
+);
+Q.rider=(Q.rider||[]).concat([
+ ['배달 중 신호등이 노란불로 바뀌면?',['멈출 준비를 한다','더 빨리 달린다','인도로 올라간다','경적을 울린다']],
+ ['이륜차 운전 시 꼭 써야 하는 것은?',['안전모(헬멧)','선글라스','이어폰','모자']],
+ ['"문 앞에 두고 벨 눌러주세요" 요청을 받으면?',['문 앞에 두고 벨을 누른다','문을 두드리고 기다린다','경비실에 맡긴다','전화만 한다']],
+ ['배달 음식이 식지 않게 하는 데 가장 좋은 것은?',['보온 가방','비닐봉지','종이 상자','주머니']],
+ ['비 오는 날 이륜차 운전에서 가장 조심할 곳은?',['맨홀 뚜껑·차선 페인트','넓은 도로','주차장','편의점 앞']],
+ ['도로에서 이륜차가 다니면 안 되는 곳은?',['인도','차도','교차로','골목길']],
+]);
+
 /* =====================================================================
    집 거래 · 청약 · 월급날 · 턴 · 마주침 · 은퇴 · 가문 상속
    ===================================================================== */
@@ -4263,7 +4300,7 @@ function payday(){
   const ptax=me.home.type==='own'?Math.round(housePrice(me.home.tier)*.001*taxCut()*(me.home.tier==='pent'?2:1)):0;if(ptax){extra.push(`재산세 -${won(ptax)}`);govPay('prop',ptax)}
   // 국민연금: 60세 전에는 월급의 4.5% 납부(회사 4.5% 추가 적립), 60세부터 연금 수령
   let npsC=0,npsB=0;
-  if(me.age<RETIRE&&pay>0){npsC=r10(pay*NPS_RATE);me.nps=me.nps||{paid:0,n:0};me.nps.paid+=npsC*2;me.nps.n++;if(me.job==='civil'||me.job==='soldier')me.nps.civil=1;extra.push(`국민연금 -${won(npsC)} (회사가 같은 만큼 더 적립)`)}
+  if(me.age<RETIRE&&pay>0&&me.job!=='rider'){npsC=r10(pay*NPS_RATE);me.nps=me.nps||{paid:0,n:0};me.nps.paid+=npsC*2;me.nps.n++;if(me.job==='civil'||me.job==='soldier')me.nps.civil=1;extra.push(`국민연금 -${won(npsC)} (회사가 같은 만큼 더 적립)`)}
   if(me.age>=RETIRE){npsB=npsPerLap();if(npsB)extra.push(`${me.nps&&me.nps.civil?'공무원연금':'국민연금'} +${won(npsB)}`);if(me.pension){const pp=25;npsB+=pp;extra.push(`개인연금 +${won(pp)}`)}}
   me.cash+=npsB-npsC;
   // 직업
