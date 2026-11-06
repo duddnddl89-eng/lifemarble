@@ -393,7 +393,10 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 @keyframes salep{50%{filter:brightness(1.12)}}@media (prefers-reduced-motion:reduce){.sale-bar{animation:none}}
 .ins-box{margin-top:10px;display:grid;gap:6px}.ins-row{display:flex;gap:8px;align-items:center;justify-content:space-between}.ins-row span{min-width:0;font-size:.9em}
 .sale-bar.fest{background:#3F8F62}.fest-box{display:grid;gap:8px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line,#ddd)}
+.trait-ov{place-items:start center}.trait-ov .trait-card{margin:auto}
 </style>
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
@@ -5652,6 +5655,11 @@ function tick(){
   settleMarket();
   if(Date.now()-lastReclaim>5*6e4){lastReclaim=Date.now();reclaimIdle()}
 }
+/* 오류 알림: 어딘가에서 에러가 나면 화면에 짧게 보여주고(캡처해서 알려주세요), 멈춘 진행을 풀어줌 */
+let lastErrT=0;
+function showErr(m){try{console.error(m);if(Date.now()-lastErrT<8000)return;lastErrT=Date.now();toast('오류가 났어요: '+String(m).slice(0,80)+' (이 화면을 캡처해 운영자에게 알려주세요)');setTimeout(()=>{try{if(busy&&!['mg','sum','auth'].some(id=>$(id)&&!$(id).hidden)&&!document.getElementById('traitOv')){busy=false;renderAll();idleActions()}}catch(e){}},1500)}catch(e){}}
+window.addEventListener('error',e=>showErr((e&&e.message)||'알 수 없는 오류'));
+window.addEventListener('unhandledrejection',e=>showErr((e&&e.reason&&(e.reason.message||e.reason))||'알 수 없는 오류'));
 function otherDevice(){
   if(window.__otherDev) return;window.__otherDev=true;busy=true;db=null; // 이 화면은 더 이상 저장하지 않음
   const d=el('div','auth');d.style.zIndex='90';const c=el('div','auth-card');
