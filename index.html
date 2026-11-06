@@ -481,6 +481,8 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
@@ -802,6 +804,7 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
       <li><b>직업 대물림</b>: 자녀가 부모님과 같은 직업 시험을 보면 합격률 +20%p, 합격하면 한 단계 위 직급에서 시작. 자영업은 단골 별 승계, 정치인(대통령·국회의원) 자녀는 득표 +5%. 부모님 특성 카드가 50% 확률로 3장 중에 나와요. 칭호: 3대째 금수저 · 흙수저 탈출(흙수저로 4억 넘게 물려줌) · 군인 가문 · 3대 가문.</li>
       <li><b>사채업자 (은행 탭)</b>: 은행 대출을 한도의 90% 넘게 쓰면 최대 500만~3,000만을 바로 빌려줘요. 이자는 바퀴당 5%(은행의 약 7배). 이자를 못 내면 원금에 붙고, 3번 연체하면 가장 비싼 물건부터 압류. 독촉 황금열쇠도 나와요. 순자산에서 빠져요.</li>
       <li><b>동네 찌라시 (동네 탭)</b>: 매일 3장 — 내일 이슈(무료) · 오늘 타임세일 시각 · 내일 주식 오르내림(각 20만). 모두 같은 소문을 보지만 10장 중 7장만 맞아요.</li>
+      <li><b>친구 가게 단골 도장</b>: 같은 친구 가게를 이용할 때마다 도장 1개, 5개가 차면 다음 방문은 공짜! 처음 꽉 채우면 그 가게 단골이 돼요(동네 뉴스). 가게 주인은 인생 탭에서 '내 가게 단골' 수를 볼 수 있어요.</li>
       <li><b>오늘의 운세</b>: 하루 첫 접속 때 점집 할머니 카드 3장 중 1장. 대길(좋은 일 +30%) · 재물운(월급 +10%) · 장사운(내 가게 매출 +15%) · 승부운(하우스 당첨금 +20%) · 시험운(합격률 +10%p) · 로또운(2개 맞힘 2배) · 구설수(나쁜 일 손해 +20%) · 지출운(생활비 +20%) · 평온. 0시까지 효과.</li>
       <li><b>빼빼로데이(11/11)·수능날</b>: 빼빼로데이 출석 주사위 +11, 편의점 매출 3배, 한정 황금열쇠. 수능날 출석 주사위 +10, 모든 시험 합격률 +10%p, 학원 매출 2배, 수능 한정 황금열쇠.</li>
       <li><b>연예인 (신규 직업)</b>: 연습생 → 데뷔조 → 신인 → 라이징 스타 → 톱스타 → 월드스타 (월급 80~1,300만). 오디션 합격률 낮음. 직장 칸 '무대 공연'(리듬 타이밍)으로 인기도(만점이면 2배, 주말 축제 날 또 2배)와 행사비. 라이징 스타부터 광고 섭외 황금열쇠. 스캔들(월급날 3%, 인기도 반토막), 35세부터 월급 -20%.</li>
@@ -3409,7 +3412,9 @@ async function visitShop(id,f,op){
     return publicFloor(id,f,`${nameOf(op)}님이 ${B.n}을(를) 정리하고 자리를 비워주기로 했어요`);
   }
   if(t===0) setMsg(`${nameOf(op)}네 ${B.n}(${c.n} ${f}층)에 들렀지만 셰프라서 맛만 평가하고 나왔어요 (음식 가게 면제)`);
-  else{spend(t,`${nameOf(op)}네 ${B.n} 이용`);payLedger(op,t,`${dynName()}님이 ${c.n} ${f}층 ${B.n} 이용`);track('shopuse');setMsg(`${nameOf(op)}네 ${B.n}(${c.n} ${f}층): ${pf('menu_'+F.biz,B.menu)}. -${won(t)}`)}
+  else{const sk=fkey(id,f)+'|'+op;me.stamps=me.stamps||{};const st=(me.stamps[sk]||0);
+    if(st>=STAMP_N){me.stamps[sk]=0;me.reg=me.reg||{};const first=!me.reg[sk];me.reg[sk]=1;track('shopuse');setMsg(`${nameOf(op)}네 ${B.n}(${c.n} ${f}층): 도장 ${STAMP_N}개 꽉! 오늘은 사장님이 "단골인데 그냥 가~" 하셨어요. 공짜!${first?' 이제 이 가게 단골이에요':''}`);if(first)postNews(`${dynName()}님이 ${nameOf(op)}네 ${B.n} 단골이 됐어요!`)}
+    else{spend(t,`${nameOf(op)}네 ${B.n} 이용`);payLedger(op,t,`${dynName()}님이 ${c.n} ${f}층 ${B.n} 이용`);track('shopuse');me.stamps[sk]=st+1;setMsg(`${nameOf(op)}네 ${B.n}(${c.n} ${f}층): ${pf('menu_'+F.biz,B.menu)}. -${won(t)} · 단골 도장 ${st+1}/${STAMP_N}${st+1>=STAMP_N?' (다음 방문 공짜!)':''}`)}}
   if(!F.t||me.job==='civil') return;
   if(Date.now()-(F.since||0)<2*864e5) return; // 권리금 보호: 연 지 2일 안 된 가게는 인수 불가
   if((me.keyT||0)>Date.now()-864e5) return; // 권리금 인수는 하루 1번
@@ -3458,7 +3463,7 @@ async function myFloorMenu(id,f,fresh){
   let head='';
   if(F.t) head=`${tag}: 세입자 ${nameOf(F.t)}님의 ${BIZ[F.biz].n} 영업 중 · ${LT_N[F.lt||'m']}${F.npc?` · 월세 ${won(leaseRent(id,f,'m'))}/바퀴`:F.rent?` · 월세 ${won(F.rent)}/바퀴`:''}${F.dep?` · 보증금 운용 수익 ${won(r10(F.dep*depRate()*2))}/바퀴 내 몫`:''}`;
   else if(F.pubL) head=`${tag}: 나라가 공공시설로 임대 중 · 임대료 ${won(pubLRent(id,f))}/바퀴 (국고에서)`;
-  else if(F.biz){const g=r10(floorToll(id,f)*.5);if(g&&!fresh)gain(g,`${tag} ${BIZ[F.biz].n} 출근 매출`);head=`내가 운영하는 ${BIZ[F.biz].n} (${tag})${g&&!fresh?` · 출근 매출 +${won(g)}`:''}`}
+  else if(F.biz){const rg=regularsOf(id,f);if(rg)setTimeout(()=>toast(`${tag} 단골 손님 ${rg}명!`),300);const g=r10(floorToll(id,f)*.5);if(g&&!fresh)gain(g,`${tag} ${BIZ[F.biz].n} 출근 매출`);head=`내가 운영하는 ${BIZ[F.biz].n} (${tag})${g&&!fresh?` · 출근 매출 +${won(g)}`:''}`}
   else head=F.ad?`${tag}: 임대 모집 중 (공실세 면제 · 이웃이나 주민이 세 들 수 있어요)`:`${tag}: 비어 있는 내 층 (공실세 0.5%/바퀴 · 임대 모집을 하면 면제)`;
   const mine=[];for(let k=1;k<=n;k++)if(flOf(id,k).o===ME())mine.push(k);
   const others=[];for(let k=1;k<=n;k++){const o=flOf(id,k).o;if(o&&o!==ME())others.push(k)}
@@ -4350,6 +4355,43 @@ function renderRumor(){
   if(me.job==='reporter')box.append(el('div','note','기자 특권: 내일 진짜 이슈는 인생 탭 위쪽 칩에서 확인하세요.'));
 }
 
+/* ---- 친구 가게 단골 도장: 같은 친구 가게 5번 이용하면 다음 한 번 공짜, 처음 꽉 채우면 단골 ---- */
+const STAMP_N=5;
+function regularsOf(id,f){const op=operatorOf(id,f);if(!op)return 0;const sk=fkey(id,f)+'|'+op;let n=0;for(const p of Object.values(others))if(p&&p.v===VER&&p.reg&&p.reg[sk])n++;return n}
+function myRegulars(){let n=0;for(const k of [...myFloors(),...Object.keys(me.leases||{})]){const [id,f]=fsplit(k);if(operatorOf(id,f)===ME())n+=regularsOf(id,f)}return n}
+
+/* ---- 웃긴 황금열쇠 2탄 ---- */
+KEYS.push(
+ {f:()=>{const g=lucky(60,'황금열쇠: 동창회 회비 정산');return `동창회 총무가 회비 정산을 잘못해서 1인당 돈을 더 돌려줬어요. 총무는 10년째 같은 사람이에요 +${won(g)}`}},
+ {f:()=>{spend(45,'황금열쇠: 미용실 대참사');return '"조금만 다듬어 주세요" 했는데 군대 머리가 됐어요. 모자 사느라 -45만'}},
+ {f:()=>{const g=lucky(150,'황금열쇠: 주식 계좌 발견');return `대학생 때 만든 주식 계좌를 찾았어요. 그때 산 1주가 그새 많이 올랐어요 +${won(g)}`}},
+ {f:()=>{spend(30,'황금열쇠: 구독 서비스 정리');return '안 보는 OTT 구독이 5개였어요. 해지하려고 보니 이미 이번 달 결제 완료 -30만'}},
+ {f:()=>{me.exp=Math.min(10,me.exp+1);return '엘리베이터에서 대표님께 "식사하셨어요?" 했다가 30분 인생 상담을 들었어요. 경험 +1'}},
+ {f:()=>{const g=lucky(40,'황금열쇠: 분실물 보상');return `지하철에 두고 내린 우산을 찾으러 갔더니 역무원이 "3년 동안 아무도 안 찾아갔다"며 우산 10개를 줬어요. 중고로 팔았어요 +${won(g)}`}},
+ {f:()=>{spend(55,'황금열쇠: 다이어트 보조제');return '"한 달 -10kg" 광고를 믿고 보조제를 샀어요. 한 달 뒤 체중계: +2kg -55만'}},
+ {f:()=>{const g=lucky(90,'황금열쇠: 경품 당첨');return `마트 시식 코너에서 만두를 7번 먹다가 경품 추첨권을 받았는데 당첨! 직원이 "다음엔 사 가세요" +${won(g)}`}},
+ {f:()=>{spend(25,'황금열쇠: 배달비 폭탄');return '새벽 2시 떡볶이를 시켰더니 배달비가 떡볶이값보다 비쌌어요. 그래도 먹었어요 -25만'}},
+ {f:()=>{const g=lucky(70,'황금열쇠: 블로그 체험단');return `동네 맛집 블로그 체험단에 뽑혔어요. 사진만 찍었는데 원고료까지 +${won(g)}`}},
+ {t:'친구가 "나 결혼해!"라며 청첩장을 보냈어요. 근데 5년 동안 연락 한 번 없던 친구예요.',opts:[
+   {l:'축의금 10만 보낸다',f:()=>{spend(10,'황금열쇠: 축의금');return R()<.3?'결혼식에서 다른 동창들 다 만났어요. 그중 한 명이 사업 파트너가 됐대요(진짜?)':'답례품으로 수건 한 장 받았어요 -10만'}},
+   {l:'"그날 출장이라…"',f:()=>'다음 날 그 친구 인스타에 내 이름만 빠진 단체 사진이 올라왔어요'}]},
+ {t:'회사 워크숍 장기자랑에 나가래요!',opts:[
+   {l:'댄스를 준비한다',f:()=>{if(R()<.5){const g=lucky(100,'황금열쇠: 장기자랑 1등');return `팀장님 앞에서 아이돌 춤을 췄더니 1등! 상품권 +${won(g)}. 다음 날부터 별명이 생겼어요`}return '중간에 바지가 흘러내렸어요. 1등은 못 했지만 전설이 됐어요'}},
+   {l:'사회를 본다',f:()=>{me.exp=Math.min(10,me.exp+1);return '마이크를 잡으니 숨겨둔 재능이 폭발! 진행 잘한다는 소문이 돌았어요. 경험 +1'}}]},
+ {f:()=>{spend(40,'황금열쇠: 캠핑 장비');return '유튜브 캠핑 영상 보고 장비를 질렀어요. 실제 캠핑은 0번, 베란다가 캠핑장이 됐어요 -40만'}},
+ {f:()=>{const g=lucky(110,'황금열쇠: 중고차 흥정');return `중고차를 팔러 갔는데 딜러가 "이 연식에 이 상태면…" 하며 예상보다 더 쳐줬어요 +${won(g)}`}},
+ {c:()=>me.children.length>0,f:()=>{spend(35,'황금열쇠: 아이 장난감');return '아이가 마트 바닥에 누워 "이거 사 줘!" 시전. 3분 버티다 결국 샀어요 -35만'}},
+ {c:()=>me.age>=50,f:()=>{const g=lucky(80,'황금열쇠: 동네 경로당');return `경로당 고스톱 판에서 오랜만에 운이 터졌어요. "젊은 사람이 너무하네" 소리 들음 +${won(g)}`}},
+ {c:()=>me.age<30,f:()=>{spend(20,'황금열쇠: 인생네컷');return '친구들이랑 인생네컷을 찍다가 소품 머리띠를 전부 써 보느라 10번 찍었어요 -20만'}},
+ {c:()=>myFloors().length>0,f:()=>{const g=lucky(90,'황금열쇠: 세입자 선물');return `세입자가 "사장님 덕분에 장사 잘돼요" 하며 과일 상자를 줬어요. 밑에 봉투가… +${won(g)}`}},
+);
+/* ---- 멘트 3탄 ---- */
+[['intern',['인턴 동기 단톡방이 회사 단톡방보다 활발해요','"인턴인데 이것까지 해?"를 하루에 다섯 번 생각했어요','사원증 목걸이를 퇴근 후에도 자랑스럽게 걸고 다녔어요']],
+ ['work',['출근하자마자 퇴근하고 싶은 마음을 꾹 참았어요','회의록을 쓰다 보니 내가 회의를 한 건지 받아 적은 건지 모르겠어요','사내 헬스장 등록만 하고 6개월째 안 갔어요','팀장님 "다들 의견 편하게 말해" → 아무도 말 안 함','오늘의 업무 성과: 프린터 고침']],
+ ['night',['야근 식대로 시킨 짜장면이 불어서 우동이 됐어요','"5분만 더"를 12번 하니 막차가 끊겼어요','밤 10시, 사무실에 남은 건 나와 화분뿐']],
+ ['tax',['세무서 가는 길 신호등이 전부 빨간불이었어요. 하늘도 가기 싫은가 봐요','납세는 국민의 의무, 아까운 건 국민의 마음']],
+].forEach(([k,arr])=>{FLAV[k]=(FLAV[k]||[]).concat(arr)});
+
 /* =====================================================================
    집 거래 · 청약 · 월급날 · 턴 · 마주침 · 은퇴 · 가문 상속
    ===================================================================== */
@@ -4902,7 +4944,7 @@ function renderStats(){
   renderLifeLine();
   const [lo,hi]=salRange(me.job,me.rank),off=myOffice();
   kv($('stats'),[
-    ['나이',`${me.age}세`],['특성',me.trait&&BORN[me.trait]?`${BORN[me.trait].e} ${BORN[me.trait].n} (+${BORN[me.trait].up} / -${BORN[me.trait].down})`:'아직 안 뽑음'],['오늘의 운세',fortune()?`${FORTUNE[fortune()].n} — ${FORTUNE[fortune()].d}`:'아직 안 뽑음'],['카드 도감',`${(me.traitBook||[]).length}/${Object.keys(BORN).length}장`],['직업',title()+(off?` · ${OFFICES[off].n}`:'')],['월급',lo===hi?won(lo):`${won(lo)}~${won(hi)}`],
+    ['나이',`${me.age}세`],['특성',me.trait&&BORN[me.trait]?`${BORN[me.trait].e} ${BORN[me.trait].n} (+${BORN[me.trait].up} / -${BORN[me.trait].down})`:'아직 안 뽑음'],['내 가게 단골',`${myRegulars()}명`],['오늘의 운세',fortune()?`${FORTUNE[fortune()].n} — ${FORTUNE[fortune()].d}`:'아직 안 뽑음'],['카드 도감',`${(me.traitBook||[]).length}/${Object.keys(BORN).length}장`],['직업',title()+(off?` · ${OFFICES[off].n}`:'')],['월급',lo===hi?won(lo):`${won(lo)}~${won(hi)}`],
     ['학력',EDU[me.edu]],['경험',me.exp+''],['집',`${HOME_TYPE[me.home.type]} ${HOUSE[me.home.tier].n}`],
     ['현금',won(me.cash)],['상가',`${myFloors().length}개 층${myTenancies().length?` · 임차 ${myTenancies().length}`:''}`],['가문',`${me.gen}대`]]);
   let ms=$('myShopList');if(!ms){ms=el('div','myshops');ms.id='myShopList';$('stats').after(ms)}
