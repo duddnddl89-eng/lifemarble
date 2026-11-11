@@ -491,6 +491,14 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
@@ -2040,8 +2048,9 @@ let T={w:-1,pres:[],mp:[],pol:new Set()};
 function refreshTerm(){
   const w=weekId()-1,res=results(w),pol=[];
   const pres=res.pres.filter(x=>x.won),mp=res.mp.filter(x=>x.won);
-  T={w,pres,mp,pol:new Set()};
-  if(!impeached()) pol.push(...presPolicies());
+  T={w,pres,mp,pol:new Set(),imp:false};
+  T.imp=typeof impeached==='function'&&impeached();
+  if(!T.imp) pol.push(...presPolicies());
   pol.push(...passedLaws());
   T.pol=new Set(pol);
 }
@@ -2559,7 +2568,7 @@ function npcVotes(w,off,list,realVotes){
   for(let i=0;i<n;i++){
     if(hmix('nv'+i+'#'+w+off)%100<25) continue; // 투표 안 하는 주
     const pref=(NPC_PREF[i]||{})[off==='pres'?'pp':'lp']||[];let best=null,bs=-1;
-    for(const x of list){const pl=cands[x.id].weeks[w].pledge||cands[x.id].weeks[w].policy;const r=pref.indexOf(pl);const sc=(r<0?0:30-r*10)+hmix('nc'+i+x.id+w)%10+8*certLv('sns',x.id===ME()?me:others[x.id]);if(sc>bs){bs=sc;best=x.id}}
+    for(const x of list){const pl=cands[x.id].weeks[w].pledge||cands[x.id].weeks[w].policy;const r=pref.indexOf(pl);const sc=(r<0?0:30-r*10)+hmix('nc'+i+x.id+w)%10+8*certLv('sns',(x.id===ME()?me:others[x.id])||{});if(sc>bs){bs=sc;best=x.id}}
     if(best){out[best]=(out[best]||0)+1;used++}
   }
   return out;
@@ -5248,7 +5257,7 @@ function renderAll(){renderBoard();renderStats();renderHome();renderBank();rende
 /* =====================================================================
    선거 · 경매 · 로또 · 결혼 · 보증 · 동기화
    ===================================================================== */
-function candEligible(off){const o=OFFICES[off];const r=[{t:`${o.age}세 이상`,ok:me.age>=o.age},{t:`순자산 ${won(o.net)} 이상`,ok:netWorth()>=o.net},{t:`기탁금 ${won(TR('pol')?Math.round(o.fee/2):o.fee)}`,ok:me.cash>=(TR('pol')?Math.round(o.fee/2):o.fee)}];if(me.job==='soldier')r.push({t:'군인은 전역해야 출마 가능',ok:false});if(off==='pres')r.push({t:'대통령은 인생에 한 번만 (국회의원·총리는 계속 가능)',ok:presId()!==ME()&&!(me.exPres&&me.exPres.s===seasonN()&&me.exPres.gen===(me.gen||1))});return r}
+function candEligible(off){const o=OFFICES[off];const r=[{t:`${o.age}세 이상`,ok:me.age>=o.age},{t:`순자산 ${won(o.net)} 이상`,ok:netWorth()>=o.net},{t:`기탁금 ${won(TR('pol')?Math.round(o.fee/2):o.fee)}`,ok:me.cash>=(TR('pol')?Math.round(o.fee/2):o.fee)}];if(me.job==='soldier')r.push({t:'군인은 전역해야 출마 가능',ok:false});if(off==='pres')r.push({t:'대통령은 인생에 한 번만 (국회의원·총리는 계속 가능)',ok:rawPresId()!==ME()&&!(me.exPres&&me.exPres.s===seasonN()&&me.exPres.gen===(me.gen||1))});return r}
 function writeElection(col,weeksObj){
   const w=weekId(),pruned={};for(const [k,v] of Object.entries(weeksObj)) if(+k>=w-2) pruned[k]=v;
   const body={weeks:pruned};if(col==='cand')cands[ME()]=body;else votes[ME()]=body;
@@ -5259,10 +5268,11 @@ function renderVote(){
   if(!db){box.append(el('div','note','선거는 온라인에서 이웃과 함께해요. 매주 월요일 0시에 개표하고 당선자가 일주일 동안 정책을 펼쳐요.'));return}
   const s1=el('div','el-sec');s1.append(el('div','el-h',`이번 주 임기 (${weekLabel(T.w)} 선거 결과)`));const off=el('div','office');
   const addRole=(role,list,set)=>{if(!list.length){off.append(el('span','role',role),el('span','note','당선자 없음'));return}
-    list.forEach(x=>{off.append(el('span','role',role),el('span','',`${nameOf(x.id)}${x.id===ME()?' (나)':''} · 득표 ${pct(x.share)}`));const p=cands[x.id].weeks[T.w].policy;off.append(el('span','pol-d',p&&set[p]?`${set[p].n} — ${set[p].d}`:'정책을 아직 고르지 않았어요'))})};
+    list.forEach(x=>{off.append(el('span','role',role),el('span','',`${nameOf(x.id)}${x.id===ME()?' (나)':''} · 득표 ${pct(x.share)}`));const p=cands[x.id].weeks[T.w].policy;off.append(el('span','pol-d',set===PRES_POL&&T.imp?`탄핵으로 정책 정지 (${p&&set[p]?set[p].n:'-'})`:p&&set[p]?`${set[p].n} — ${set[p].d}`:'정책을 아직 고르지 않았어요'))})};
   addRole('대통령',T.pres,PRES_POL);addRole('국회의원',T.mp,MP_LAW);s1.append(off);
   const mo=myOffice();
-  if(mo){const e=cands[ME()].weeks[T.w],set=mo==='pres'?PRES_POL:MP_LAW,cur=e.policy,pl=e.pledge;
+  if(mo==='pres'&&T.imp) s1.append(el('div','note','국회에서 탄핵돼 이번 주는 대통령 권한이 정지됐어요. 다음 선거에 다시 도전하세요.'));
+  else if(mo){const e=cands[ME()].weeks[T.w],set=mo==='pres'?PRES_POL:MP_LAW,cur=e.policy,pl=e.pledge;
     s1.append(el('div','el-h',cur?`${OFFICES[mo].n}으로서 ${mo==='pres'?'시행':'발의'} 중: 「${set[cur]?set[cur].n:'-'}」${pl&&cur!==pl?' (공약 파기)':pl?' (공약 그대로)':''} · 바꾸려면 아래에서 고르세요`:`${OFFICES[mo].n}으로서 이번 주 ${mo==='pres'?'정책':'법안'}을 고르세요.`));
     const pk=el('div','picks');Object.entries(set).forEach(([k,v])=>{const b=el('button','mini'+(k===cur?' primary':''),v.n+(k===pl?' (공약)':''));b.title=v.d;b.disabled=k===cur;b.onclick=()=>{const weeks=clone(cands[ME()].weeks);weeks[T.w].policy=k;writeElection('cand',weeks);addLog(`${OFFICES[mo].n}으로서 「${v.n}」 ${mo==='pres'?'시행':'발의'}`);
       postNews(pl&&k!==pl?`${OFFICES[mo].n} ${dynName()}님이 공약(${set[pl]?set[pl].n:''})을 깨고 「${v.n}」을(를) ${mo==='pres'?'시행':'발의'}했어요`:`${OFFICES[mo].n} ${dynName()}님이 「${v.n}」을(를) ${mo==='pres'?'시행':'발의'}했어요: ${v.d}`);refreshTerm();renderAll()};pk.append(b)});s1.append(pk)}
@@ -5298,7 +5308,7 @@ function pollNews(){ // 여론조사 1위 후보가 하루 한 번 동네 뉴스
 function settleElections(){
   if(!db||!got.cand||!got.vote||!cands[ME()]) return;
   const w=weekId(),weeks=clone(cands[ME()].weeks||{});let ch=false;
-  for(const [k,c] of Object.entries(weeks)){if(+k>=w||c.refunded)continue;const res=results(+k),x=res[c.office].find(y=>y.id===myId),share=x?x.share:0;
+  for(const [k,c] of Object.entries(weeks)){if(+k>=w||!c||c.refunded)continue;if(!OFFICES[c.office]){c.refunded=true;continue} /* 총리 등 출마 없이 쓴 임기 기록 */const res=results(+k),x=res[c.office].find(y=>y.id===myId),share=x?x.share:0;
     const back=share>=.15?c.fee:share>=.1?Math.round(c.fee/2):0;c.refunded=true;ch=true;if(back)me.cash+=back;
     if(x&&x.won){award(c.office==='pres'?'pres':'mp');story(`${OFFICES[c.office].n} 당선`);postNews(`${dynName()}님이 ${OFFICES[c.office].n}에 당선됐어요!`)}
     addLog(`${weekLabel(+k)} ${OFFICES[c.office].n} 선거: 득표 ${pct(share)}${x&&x.won?' — 당선!':' — 낙선'} · 기탁금 ${back?won(back)+' 반환':'반환 없음'}`)}
@@ -5432,12 +5442,13 @@ function seatsFor(w,off){
   let s=clamp(Math.round(voters/4),3,9);if(s%2===0)s++;return Math.min(9,s);
 }
 const cw=uid=>(cands[uid]&&cands[uid].weeks&&cands[uid].weeks[T.w])||{};
-const presId=()=>T.pres[0]&&T.pres[0].id;
+const rawPresId=()=>T.pres[0]&&T.pres[0].id; // 당선자 (탄핵돼도 그대로)
+const presId=()=>T.imp?null:rawPresId(); // 실제 권한을 가진 대통령 (탄핵되면 없음: 정책·월급·예산·로또·총리 지명 모두 정지)
 const mpIds=()=>T.mp.map(x=>x.id);
 const majority=()=>Math.floor(mpIds().length/2)+1;
 /* 대통령은 한 인생·한 시즌에 한 번만 (국회의원·총리는 계속 가능) */
 const seasonN=()=>(CFG.season&&CFG.season.n)||0;
-function markExPres(){if(!me||!db)return;if(!me.wasMp&&mpIds().includes(ME())){me.wasMp=1;save()}const w=weekId();let tw=null;if(presId()===ME())tw=w-1;else if(rawPresWinner(w-2)===ME())tw=w-2; // tw = 당선된 선거 주차
+function markExPres(){if(!me||!db)return;if(!me.wasMp&&mpIds().includes(ME())){me.wasMp=1;save()}const w=weekId();let tw=null;if(rawPresId()===ME())tw=w-1;else if(rawPresWinner(w-2)===ME())tw=w-2; // tw = 당선된 선거 주차
   if(tw==null)return;const e=me.exPres;if(e&&e.s===seasonN()&&e.gen===(me.gen||1))return;me.exPres={s:seasonN(),gen:me.gen||1,w:tw};save()}
 function exPresBan(id,w){const p=id===ME()?me:others[id];const e=p&&p.exPres;return !!(e&&e.s===seasonN()&&e.gen===(p.gen||1)&&e.w<w)}
 function pmPick(){const p=presId();const pm=p?cw(p).pm||null:null;return pm&&pm!==p?pm:null} // 대통령 본인은 총리 불가
@@ -5504,19 +5515,19 @@ function writeTermEntry(patch){
 }
 function renderGov(box){
   if(T.w<0) return;const s=el('div','el-sec');s.append(el('div','el-h','정부 (이번 주)'));
-  const pres=presId(),pm=pmId(),pick=pmPick(),k=polK(),pols=presPolicies(),ext=presExtra();
+  const pres=presId(),rp=rawPresId(),pm=pmId(),pick=pmPick(),k=polK(),pols=presPolicies(),ext=presExtra();
   const info=el('div','office');
-  info.append(el('span','role','대통령'),el('span','',pres?nameOf(pres)+(pres===ME()?' (나)':'')+(impeached()?' · 탄핵됨':''):'공석 — 이번 주 대통령 정책 없음, 국고는 쌓여요'));
+  info.append(el('span','role','대통령'),el('span','',rp?nameOf(rp)+(rp===ME()?' (나)':'')+(T.imp?' · 탄핵됨 (권한 정지)':''):'공석 — 이번 주 대통령 정책 없음, 국고는 쌓여요'));
   info.append(el('span','role','국무총리'),el('span','',pm?nameOf(pm)+(pm===ME()?' (나)':''):pres?(pick?`${nameOf(pick)} (국회 인준 거부됨) → 대통령이 예산 편성`:'미지명 → 대통령이 예산 편성'):'공석'));
   info.append(el('span','role','시행 정책'),el('span','',pols.length?pols.map(id=>PRES_POL[id].n).join(', '):'없음'));
   if(ext.length) info.append(el('span','role','추가 정책 심사'),el('span','',ext.map(id=>`${PRES_POL[id].n} ${extraApproved(id)?'✔ 승인':`(국회 찬성 ${mpIds().filter(x=>(cw(x).ppY||[]).includes(id)).length}/${majority()})`}`).join(' · ')));
   {const sp=polSpentAll(),tot=Object.values(sp).reduce((a,b)=>a+b,0),tr=treasury();
    info.append(el('span','role','정책 지원 지출'),el('span','',(tot?Object.entries(sp).map(([kk,v])=>`${POL_KIND[kk]||kk} ${won(v)}`).join(' · ')+` (이번 주 합계 ${won(tot)})`:'이번 주 아직 없음')+(pols.length&&tr<=0?' · 국고 바닥: 정책 중단':'')));}
-  info.append(el('span','role','예산 한도'),el('span','',`${won(budgetNow())} (정책 ${pols.length}개 · 강도 ${Math.round(k*100)}%)${budgetRejected()?' · 국회가 예산안 거부 → 기본 예산':''} · ${payFirst()?'월급 우선':'정책 우선'}`));
+  info.append(el('span','role','예산 한도'),el('span','',!pols.length?'시행 중인 대통령 정책이 없어 예산 집행 없음':`${won(budgetNow())} (정책 ${pols.length}개 · 강도 ${Math.round(k*100)}%)${budgetRejected()?' · 국회가 예산안 거부 → 기본 예산':''} · ${payFirst()?'월급 우선':'정책 우선'}`));
   const laws=passedLaws();info.append(el('span','role','통과된 법'),el('span','',laws.length?laws.map(l=>MP_LAW[l].n).join(', '):'없음'));
   info.append(el('span','role','로또'),el('span','',`1등 기본 상금 ${won(lottoBase())} + 판매액 일부 (국고 복권기금에서 지급, 판매금은 국고로)`));
   info.append(el('span','role','세법'),el('span','',`부자세·상가 보유세 ${Math.round(taxMul()*100)}%`));
-  if(impeached()) info.append(el('span','role','탄핵'),el('span','','국회 전원 찬성으로 이번 주 대통령 정책이 취소됐어요'));
+  if(T.imp) info.append(el('span','role','탄핵'),el('span','','국회 전원 찬성으로 이번 주 대통령 정책·월급·예산·로또 결정이 모두 정지됐어요'));
   info.append(el('span','role','국회'),el('span','',mpIds().length?`의원 ${mpIds().length}석 · 과반 ${majority()}표`:'공석 — 추가 정책은 자동 승인, 법안·세법 없음'));
   s.append(info);
   // 대통령: 총리 지명(본인 제외) · 추가 정책 · 월급/정책 우선 · 총리가 없으면 예산
@@ -5524,7 +5535,7 @@ function renderGov(box){
     const row=el('div','picks');row.append(el('span','note','총리 지명:'));
     const sel=el('select');const o0=el('option','','— 주민 선택 —');o0.value='';sel.append(o0);
     Object.entries(others).filter(([,p])=>p&&p.v===VER&&p.nick).forEach(([id,p])=>{const o=el('option','',dynName(p));o.value=id;if(pick===id)o.selected=true;sel.append(o)});
-    const b=el('button','mini','지명');b.onclick=()=>{if(!sel.value||sel.value===ME())return;writeTermEntry({pm:sel.value});postNews(`대통령 ${dynName()}님이 ${nameOf(sel.value)}님을 국무총리로 지명했어요`)};row.append(sel,b);s.append(row);
+    const b=el('button','mini','지명');b.onclick=()=>{if(!sel.value||sel.value===ME()||sel.value===cw(ME()).pm)return;writeTermEntry({pm:sel.value});postNews(`대통령 ${dynName()}님이 ${nameOf(sel.value)}님을 국무총리로 지명했어요`)};row.append(sel,b);s.append(row);
     const main=cw(ME()).policy,cur=cw(ME()).extra||[];
     if(main){const r2=el('div','picks');r2.append(el('span','note',`추가 정책 (최대 ${POL_MAX_EXTRA}개, 정책이 늘면 예산도 그만큼 필요${mpIds().length?', 국회 과반 승인':''}):`));
       Object.entries(PRES_POL).filter(([id])=>id!==main).forEach(([id,v])=>{const on=cur.includes(id),bad=polConflicts(id,main)||cur.some(c=>c!==id&&polConflicts(c,id));
@@ -5532,7 +5543,7 @@ function renderGov(box){
         bt.onclick=()=>{const nx=on?cur.filter(x=>x!==id):[...cur,id];writeTermEntry({extra:nx});if(!on)postNews(`대통령 ${dynName()}님이 「${v.n}」 추가 시행을 추진해요`)};r2.append(bt)});s.append(r2)}
     const r3=el('div','picks');r3.append(el('span','note','국고 사용 순서:'));
     [['pol','정책 우선 (국고가 비면 정치인 월급 체불)'],['pay','월급 우선 (정치인 월급 약 10번 치를 먼저 떼어 둠)']].forEach(([v,l])=>{const on=(cw(ME()).pri||'pol')===v;const bt=el('button','mini'+(on?' primary':''),l);bt.onclick=()=>writeTermEntry({pri:v});r3.append(bt)});s.append(r3);
-    {const r4=el('div','picks');r4.append(el('span','note','로또 1등 기본 상금 (국고에서 지급):'));LOTTO_OPTS.forEach(v=>{const on=lottoBase()===v;const bt=el('button','mini'+(on?' primary':''),won(v));bt.onclick=()=>{writeTermEntry({lotto:v});postNews(`대통령이 로또 1등 기본 상금을 ${won(v)}으로 정했어요!`)};r4.append(bt)});s.append(r4)}
+    {const r4=el('div','picks');r4.append(el('span','note','로또 1등 기본 상금 (국고에서 지급):'));LOTTO_OPTS.forEach(v=>{const on=lottoBase()===v;const bt=el('button','mini'+(on?' primary':''),won(v));bt.onclick=()=>{if(on)return;writeTermEntry({lotto:v});postNews(`대통령이 로또 1등 기본 상금을 ${won(v)}으로 정했어요!`)};r4.append(bt)});s.append(r4)}
   }
   // 예산 편성: 총리, 총리가 없으면 대통령
   if(budgeter()===ME()&&pols.length){
@@ -5554,9 +5565,10 @@ function renderGov(box){
     if(pick){const no=e.pmNo===pick;const b=el('button','mini'+(no?' danger':''),no?`총리 인준 반대 중 (${nameOf(pick)})`:`총리 인준 반대`);b.onclick=()=>writeTermEntry({pmNo:no?null:pick});row2.append(b)}
     {const no=!!e.budgetNo;const b=el('button','mini'+(no?' danger':''),no?'예산안 반대 중':'예산안 반대');b.onclick=()=>writeTermEntry({budgetNo:!no});row2.append(b)}
     {const sel=el('select');[.5,.75,1,1.25,1.5].forEach(x=>{const o=el('option','',`세법: 부자세·보유세 ${x*100}%`);o.value=x;if(Number(e.taxv||1)===x)o.selected=true;sel.append(o)});sel.onchange=()=>writeTermEntry({taxv:Number(sel.value)});row2.append(sel)}
-    if(pres&&(!impUsed()||e.impDone!=null)){const on=!!e.imp;const b=el('button','mini'+(on?' danger':''),on?'탄핵 찬성 중':'대통령 탄핵 (전원 찬성 필요, 시즌 1회)');b.onclick=()=>{writeTermEntry({imp:!on});if(!on)postNews(`국회의원 ${dynName()}님이 대통령 탄핵에 찬성했어요`)};row2.append(b)}
+    if(T.imp){row2.append(el('span','note','탄핵 가결 — 이번 주 대통령 권한 정지 (되돌릴 수 없어요)'))}
+    else if(rp&&(!impUsed()||e.impDone!=null)){const on=!!e.imp;const b=el('button','mini'+(on?' danger':''),on?`탄핵 찬성 중 (${mpIds().filter(x=>cw(x).imp).length}/${mpIds().length})`:`대통령 탄핵 (전원 찬성 필요, 시즌 1회 · 지금 ${mpIds().filter(x=>cw(x).imp).length}/${mpIds().length})`);b.onclick=()=>{writeTermEntry({imp:!on});if(!on)postNews(`국회의원 ${dynName()}님이 대통령 탄핵에 찬성했어요`)};row2.append(b)}
     s.append(row2);
-    if(impeached()&&e.impDone==null) writeTermEntry({impDone:(CFG.season&&CFG.season.n)||0});
+    if(T.imp&&e.impDone==null) setTimeout(()=>{if(cw(ME()).impDone==null)writeTermEntry({impDone:(CFG.season&&CFG.season.n)||0})},0); // 그리는 도중에 다시 그리지 않게 뒤로 미룸
   }
   box.append(s);
 }
