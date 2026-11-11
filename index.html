@@ -489,6 +489,8 @@ label.radio{flex-direction:row!important;align-items:center;gap:6px!important;fo
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
+<style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
+
 
 <style>.biz-tbl{width:100%;border-collapse:collapse;font-size:.85em;margin:.4em 0}.biz-tbl th,.biz-tbl td{border-bottom:1px solid var(--line,#ddd);padding:.3em .4em;text-align:left}.biz-tbl th{color:var(--ink-2)}.biz-tbl td:nth-child(-n+2),.biz-tbl th:nth-child(-n+2){white-space:nowrap}</style>
 
@@ -2355,7 +2357,9 @@ async function writeBld(id,fn){ // fn(cur복사본) → 새 문서 또는 throw
   const base=()=>({n:3,m:1,deals:0,f:{}});
   if(!db){const cur=clone(shops[id]||base());try{const nx=fn(cur);shops[id]=nx;return true}catch(e){return false}}
   let out=null;const r=await txn(COL.bld+'/'+id,cur=>{const c=cur?clone(cur):base();c.f=c.f||{};out=fn(c);return out});
-  if(r===true){shops[id]=out;return true}return false;
+  if(r===true){shops[id]=out;return true}
+  if(typeof r==='string'){console.error('bld write failed',r);try{showErr('가게 저장 실패: '+r)}catch(e){}}
+  return false;
 }
 const setF=(c,f,F)=>{c.f=c.f||{};if(F)c.f[f]=F;else delete c.f[f];return c};
 
@@ -2808,7 +2812,7 @@ function useCnt(kind,n=1){if(!me)return;const d=ptDay();if(!me.usage||me.usage.d
 
 /* ---- 저장 ---- */
 /* Firestore는 배열 안의 배열을 저장 못 함 → {__a:[...]}로 감싸 저장하고 읽을 때 되돌림 */
-function fsEnc(v,inArr){if(Array.isArray(v)){const a=v.map(x=>fsEnc(x,true));return inArr?{__a:a}:a}if(v&&typeof v==='object'){const o={};for(const k in v)o[k]=fsEnc(v[k],false);return o}return v}
+function fsEnc(v,inArr){if(v===undefined)return null;if(Array.isArray(v)){const a=v.map(x=>fsEnc(x,true));return inArr?{__a:a}:a}if(v&&typeof v==='object'){const o={};for(const k in v)if(v[k]!==undefined)o[k]=fsEnc(v[k],false);return o}return v} // undefined 값은 빼고 저장 (Firestore가 거부함)
 function fsDec(v){if(Array.isArray(v))return v.map(fsDec);if(v&&typeof v==='object'){if(Array.isArray(v.__a)&&Object.keys(v).length===1)return v.__a.map(fsDec);const o={};for(const k in v)o[k]=fsDec(v[k]);return o}return v}
 let saveErrT=0;
 function chain(fn){saving=saving.then(fn).catch(e=>{console.error('save failed',e);if(e&&e.code==='resource-exhausted')toast('오늘 무료 저장 한도를 넘었어요. 운영자에게 알려주세요.');else if(Date.now()-saveErrT>60000){saveErrT=Date.now();toast('서버 저장에 실패했어요. 인터넷 연결을 확인해 주세요.')}});return saving}
